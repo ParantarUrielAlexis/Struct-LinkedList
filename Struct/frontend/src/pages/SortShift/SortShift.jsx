@@ -3,7 +3,8 @@ import Navbar from "../../components/Navbar";
 import "./SortShift.css";
 
 const ShortShift = () => {
-    const originalArray = [2, 7, 11, 10, 8, 5]
+    const originalArray = [3, 1, 2, 6, 8, 5]
+
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
     const [message, setMessage] = useState("");
@@ -106,17 +107,23 @@ const ShortShift = () => {
     const checkSorting = () => {
         let correctCount = 0;
         let incorrectCount = 0;
-
+        let isPreviousCorrect = true; // Track if the previous iteration was correct
+        let isAlreadySorted = false; // Track if the array is already sorted
+    
         const results = grids.map((grid, index) => {
-            if (checkIteration(grid, index)) {
+            if (isPreviousCorrect && !isAlreadySorted && checkIteration(grid, index)) {
+                if (isSorted(grid)) {
+                    isAlreadySorted = true; // Mark as sorted if the current grid is sorted
+                }
                 correctCount++;
                 return { iteration: index + 1, correct: true };
             } else {
                 incorrectCount++;
+                isPreviousCorrect = false; // Mark subsequent iterations as incorrect
                 return { iteration: index + 1, correct: false };
             }
         });
-
+    
         setIterationResults(results);
         setMessage(`You got ${correctCount} correct iteration(s) and ${incorrectCount} incorrect iteration(s).`);
     };
