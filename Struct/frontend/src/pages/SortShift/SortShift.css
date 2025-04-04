@@ -62,7 +62,7 @@
     display: flex;
     justify-content: right;
     gap: 10px;
-    margin-left: 480px;
+    margin-left: 430px;
 }
 
 .add-btn, .remove-btn {
@@ -115,4 +115,28 @@
     border-radius: 50px;
     cursor: pointer;
     margin-top: 20px;
+}
+.correct-iteration {
+    color: #ff0000; /* Red color for emphasis */
+    font-size: 0.9em;
+    margin-top: 5px;
+    padding: 10px;
+    background-color: #ffe6e6; /* Light red background for visibility */
+    border: 1px solid #ff0000; /* Red border for emphasis */
+    border-radius: 5px;
+    text-align: center;
+    width: fit-content;
+    margin: 5px auto; /* Center the box */
+}
+.extra-iteration {
+    color: #ff0000; /* Red color for emphasis */
+    font-size: 0.9em;
+    margin-top: 5px;
+    padding: 10px;
+    background-color: #ffe6e6; /* Light red background for visibility */
+    border: 1px solid #ff0000; /* Red border for emphasis */
+    border-radius: 5px;
+    text-align: center;
+    width: fit-content;
+    margin: 5px auto; /* Center the box */
 }

@@ -3,7 +3,7 @@ import Navbar from "../../components/Navbar";
 import "./SortShift.css";
 
 const ShortShift = () => {
-    const originalArray = [3, 1, 2, 6, 8, 5]
+    const originalArray = [6, 5, 4, 3, 2, 1];
 
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
@@ -147,26 +147,54 @@ const ShortShift = () => {
                     <button className="add-btn" onClick={addGrid}>+</button>
                     <button className="remove-btn" onClick={removeGrid}>-</button>
                 </div>
-                {grids.map((grid, gridIndex) => (
-                    <div key={gridIndex}>
-                        <h3>{getOrdinalSuffix(gridIndex + 1)} Iteration</h3>
-                        <div className="grid-container">
-                            {grid.map((num, itemIndex) => (
-                                <div 
-                                    key={itemIndex} 
-                                    className={`grid-item ${selected.gridIndex === gridIndex && selected.itemIndex === itemIndex ? "selected" : ""}`} 
-                                    onClick={() => handleSelect(gridIndex, itemIndex)}
-                                >
-                                    {num}
-                                </div>
-                            ))}
+                {grids.map((grid, gridIndex) => {
+                    // Dynamically compute the correct result for the current iteration
+                    let correctResult = [...originalArray];
+                    for (let i = 0; i <= gridIndex; i++) {
+                        for (let j = 0; j < correctResult.length - i - 1; j++) {
+                            if (correctResult[j] > correctResult[j + 1]) {
+                                [correctResult[j], correctResult[j + 1]] = [correctResult[j + 1], correctResult[j]];
+                            }
+                        }
+                    }
+                
+                    // Check if this iteration is an "extra iteration"
+                    const isExtraIteration = iterationResults.length > 0 && iterationResults[gridIndex]?.correct === false && isSorted(grids[gridIndex]);
+                
+                    return (
+                        <div key={gridIndex}>
+                            <h3>{getOrdinalSuffix(gridIndex + 1)} Iteration</h3>
+                            <div className="grid-container">
+                                {grid.map((num, itemIndex) => (
+                                    <div
+                                        key={itemIndex}
+                                        className={`grid-item ${selected.gridIndex === gridIndex && selected.itemIndex === itemIndex ? "selected" : ""}`}
+                                        onClick={() => handleSelect(gridIndex, itemIndex)}
+                                    >
+                                        {num}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="iteration-status">
+                                {iterationResults.length > 0 &&
+                                    (iterationResults[gridIndex]?.correct ? (
+                                        "✓"
+                                    ) : (
+                                        <>
+                                            <span>X</span>
+                                            {isExtraIteration ? (
+                                                <div className="extra-iteration">Extra iteration!</div>
+                                            ) : (
+                                                <div className="correct-iteration">
+                                                    Correct: {correctResult.join(", ")}
+                                                </div>
+                                            )}
+                                        </>
+                                    ))}
+                            </div>
                         </div>
-                        <div className="iteration-status">
-                            {iterationResults.length > 0 &&
-                                (iterationResults[gridIndex]?.correct ? "✓" : "X")}
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
                 <button className="submit-btn" onClick={checkSorting}>Submit</button>
                 {message && <p className="result-message">{message}</p>}
             </div>
