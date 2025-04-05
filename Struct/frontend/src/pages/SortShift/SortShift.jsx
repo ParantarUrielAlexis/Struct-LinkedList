@@ -3,12 +3,14 @@ import Navbar from "../../components/Navbar";
 import "./SortShift.css";
 
 const ShortShift = () => {
-    const originalArray = [6, 5, 4, 3, 2, 1];
+    const originalArray = [13, 10, 8, 11, 7, 56, 1,];
 
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
-    const [message, setMessage] = useState("");
     const [iterationResults, setIterationResults] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
 
     const handleSelect = (gridIndex, itemIndex) => {
         if (selected.gridIndex === null) {
@@ -125,13 +127,13 @@ const ShortShift = () => {
         });
     
         setIterationResults(results);
-        setMessage(`You got ${correctCount} correct iteration(s) and ${incorrectCount} incorrect iteration(s).`);
+        setIsModalOpen(true); // Open the modal
     };
 
     return (
         <div className="short-shift-container">
             <h1>Sort Shift</h1>
-            <p className="instruction">Instruction: Use bubble sort to arrange the game items in ascending order.</p>
+            <p className="instruction">Instruction: Use bubble sort to arrange the numbers in ascending order.</p>
             <div className="array-label">Original Array:</div>
             <div className="orig-grid-container">
                 {originalArray.map((num, index) => (
@@ -175,29 +177,123 @@ const ShortShift = () => {
                                     </div>
                                 ))}
                             </div>
-                            <div className="iteration-status">
-                                {iterationResults.length > 0 &&
-                                    (iterationResults[gridIndex]?.correct ? (
-                                        "✓"
-                                    ) : (
-                                        <>
-                                            <span>X</span>
-                                            {isExtraIteration ? (
-                                                <div className="extra-iteration">Extra iteration!</div>
-                                            ) : (
-                                                <div className="correct-iteration">
-                                                    Correct: {correctResult.join(", ")}
-                                                </div>
-                                            )}
-                                        </>
-                                    ))}
-                            </div>
+                           
                         </div>
                     );
                 })}
-                <button className="submit-btn" onClick={checkSorting}>Submit</button>
-                {message && <p className="result-message">{message}</p>}
+                <button className="submit-btn" onClick={() => setIsConfirmModalOpen(true)}>Submit</button>
             </div>
+            {isConfirmModalOpen && (
+                <div className="modal-overlay-confirm">
+                    <div className="modal-content-confirm">
+                        <div className="modal-header-confirm">
+                            <h2>Confirm Submission</h2>
+                        </div>
+                        <div className="modal-body-confirm">
+                            <p>Are you sure you want to submit your answer?</p>
+                            <div className="modal-warning">
+                                <span className="warning-icon">⚠️</span>
+                                <br></br> This action cannot be undone.
+                            </div>
+                        </div>
+                        <div className="modal-footer-confirm">
+                            <button className="submit-btn-confirm" onClick={() => {
+                                checkSorting();
+                                setIsConfirmModalOpen(false);
+                            }}>
+                                Yes, Submit
+                            </button>
+                            <button className="cancel-btn-confirm" onClick={() => setIsConfirmModalOpen(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {isModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h2>Sorting Results</h2>
+                            
+                        </div>
+                        {/* Scoring System */}
+                        <div className="score-container">
+                            {(() => {
+                                const totalPoints = 60;
+                                const iterationsRequired = correctSteps.length - 1; // Exclude the initial array
+                                const pointsPerIteration = totalPoints / iterationsRequired;
+                                let score = 0;
+
+                                iterationResults.forEach((result, index) => {
+                                    if (result.correct) {
+                                        score += pointsPerIteration; // Award full points for correct iterations
+                                    } else if (isSorted(grids[index])) {
+                                        score += pointsPerIteration / 2; // Award half points for extra iterations
+                                    }
+                                });
+
+                                // Determine if the user passed or failed
+                                const passingScore = 0.7 * totalPoints; // 70% of total points
+                                const remarks = score >= passingScore ? "Pass" : "Fail";
+                                const remarksClass = score >= passingScore ? "pass" : "fail";
+
+                                return (
+                                    <div className="score-container">
+                                        <p>Score: {score.toFixed(2)} / <span className="total-points">{totalPoints}</span></p>
+                                        <p>Remark: <span className={remarksClass}>{remarks}</span></p>
+
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                        <div className="results-container">
+                            <div>
+                                <h3>Your Answers</h3>
+                                {grids.map((grid, index) => (
+                                    <div key={index}>
+                                        <h4>{getOrdinalSuffix(index + 1)} Iteration</h4>
+                                        <div className="grid-container">
+                                            {grid.map((num, i) => (
+                                                <div key={i} className="grid-item">
+                                                    {num}
+                                                </div>
+                                            ))}
+                                            <span 
+                                                className={`iteration-status-icon ${iterationResults[index]?.correct ? 'correct' : 'incorrect'}`}>
+                                                {iterationResults[index]?.correct ? "✓" : "X"}
+                                            </span>
+
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div>
+                                <h3>Correct Answers</h3>
+                                {correctSteps.slice(1).map((step, index) => (
+                                    <div key={index}>
+                                        <h4>{getOrdinalSuffix(index + 1)} Iteration</h4>
+                                        <div className="grid-container">
+                                            {step.map((num, i) => (
+                                                <div key={i} className="grid-item">
+                                                    {num}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="reset-container">
+                            <button className="reset-btn" onClick={() => window.location.reload()}>
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
         </div>
     );
 };
