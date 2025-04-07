@@ -66,6 +66,8 @@ function TypeTest() {
   const [showNavbar, setShowNavbar] = useState(true);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
 
+  // const [pulseEffect, setPulseEffect] = useState(false);
+
   const startGame = () => {
     if (!gameStarted) {
       setStartTime(Date.now()); // Set the start time only when the game starts
@@ -175,6 +177,9 @@ function TypeTest() {
 
     // Check if the input matches the current word
     if (value === currentWord) {
+      // Trigger pulse effect
+      // setPulseEffect(true);
+      // setTimeout(() => setPulseEffect(false), 500);
       // Play ping sound when a word is completed (only if not muted)
       if (!isMuted) {
         pingSound.currentTime = 0; // Reset sound to the beginning
@@ -406,6 +411,12 @@ function TypeTest() {
         </div>
       )}
 
+      {/* Add gradient background and pulse effect based on game state */}
+      {/* <div
+        className={`game-container ${gameStarted ? "gradient" : ""} ${
+          pulseEffect ? "pulse" : ""
+        }`}
+      > */}
       {/* Game Container */}
       <div className="game-container">
         {/* Score and Multiplier */}
