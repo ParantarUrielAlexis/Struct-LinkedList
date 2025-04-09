@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import Navbar from "../../components/Navbar";
-import "./SortShift.css";
+import "./SortShiftSelection.css";
 
-const ShortShift = () => {
-    const originalArray = [2, 10, 8, 4, 9, 56, 6,];
+const ShortShiftSelection = () => {
+    const originalArray = [1, 2, 4, 3, 10, 9, 6];
 
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
     const [iterationResults, setIterationResults] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-
 
     const handleSelect = (gridIndex, itemIndex) => {
         if (selected.gridIndex === null) {
@@ -67,38 +66,45 @@ const ShortShift = () => {
         return true;
     };
 
-    // Function to simulate bubble sort and store the steps
-    const bubbleSortSteps = () => {
+    // Function to simulate selection sort and store the steps
+    const selectionSortSteps = () => {
         let arr = [...originalArray];
-        let steps = [arr.slice()];
+        let steps = [arr.slice()]; // Include the initial array as the first step
         for (let i = 0; i < arr.length - 1; i++) {
-            let swapped = false;
-            for (let j = 0; j < arr.length - i - 1; j++) {
-                if (arr[j] > arr[j + 1]) {
-                    [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-                    swapped = true;
+            let minIndex = i;
+            for (let j = i + 1; j < arr.length; j++) {
+                if (arr[j] < arr[minIndex]) {
+                    minIndex = j;
                 }
             }
-            if (swapped) {
-                steps.push(arr.slice());
-            } else {
-                break; // No swaps, the array is sorted
+            if (minIndex !== i) {
+                [arr[i], arr[minIndex]] = [arr[minIndex], arr[i]];
+            }
+            steps.push(arr.slice()); // Add the current state of the array after each iteration
+
+            // Stop adding steps if the array is already sorted
+            if (isSorted(arr)) {
+                break;
             }
         }
         return steps;
     };
 
-    // Generate the correct bubble sort steps
-    const correctSteps = bubbleSortSteps();
+    // Generate the correct selection sort steps
+    const correctSteps = selectionSortSteps();
 
     const checkIteration = (grid, gridIndex) => {
         // Dynamically compute the expected result for the current iteration
         let arr = [...originalArray];
-        for (let i = 0; i <= gridIndex; i++) { // Include the current iteration
-            for (let j = 0; j < arr.length - i - 1; j++) {
-                if (arr[j] > arr[j + 1]) {
-                    [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+        for (let i = 0; i <= gridIndex; i++) {
+            let minIndex = i;
+            for (let j = i + 1; j < arr.length; j++) {
+                if (arr[j] < arr[minIndex]) {
+                    minIndex = j;
                 }
+            }
+            if (minIndex !== i) {
+                [arr[i], arr[minIndex]] = [arr[minIndex], arr[i]];
             }
         }
 
@@ -109,23 +115,27 @@ const ShortShift = () => {
     const checkSorting = () => {
         let correctCount = 0;
         let incorrectCount = 0;
-        let isPreviousCorrect = true; // Track if the previous iteration was correct
-        let isAlreadySorted = false; // Track if the array is already sorted
-    
+        const iterationsRequired = correctSteps.length; // Total required iterations
+        let isPreviousCorrect = true; // Track if all previous iterations were correct
+
         const results = grids.map((grid, index) => {
-            if (isPreviousCorrect && !isAlreadySorted && checkIteration(grid, index)) {
-                if (isSorted(grid)) {
-                    isAlreadySorted = true; // Mark as sorted if the current grid is sorted
+            if (index < iterationsRequired && isPreviousCorrect) {
+                // Within the required iterations and all previous iterations are correct
+                if (checkIteration(grid, index)) {
+                    correctCount++;
+                    return { iteration: index + 1, correct: true };
+                } else {
+                    incorrectCount++;
+                    isPreviousCorrect = false; // Mark subsequent iterations as incorrect
+                    return { iteration: index + 1, correct: false };
                 }
-                correctCount++;
-                return { iteration: index + 1, correct: true };
             } else {
+                // Mark as incorrect if previous iterations were incorrect or it's an extra iteration
                 incorrectCount++;
-                isPreviousCorrect = false; // Mark subsequent iterations as incorrect
                 return { iteration: index + 1, correct: false };
             }
         });
-    
+
         setIterationResults(results);
         setIsModalOpen(true); // Open the modal
     };
@@ -133,7 +143,7 @@ const ShortShift = () => {
     return (
         <div className="short-shift-container">
             <h1>Sort Shift</h1>
-            <p className="instruction">Instruction: Use bubble sort to arrange the numbers in ascending order.</p>
+            <p className="instruction">Instruction: Use selection sort to arrange the numbers in ascending order.</p>
             <div className="array-label">Original Array:</div>
             <div className="orig-grid-container">
                 {originalArray.map((num, index) => (
@@ -144,43 +154,27 @@ const ShortShift = () => {
             </div>
 
             <div className="iterations">
-                <h2>Bubble Sort</h2>
+                <h2>Selection Sort</h2>
                 <div className="controls">
                     <button className="add-btn" onClick={addGrid}>+</button>
                     <button className="remove-btn" onClick={removeGrid}>-</button>
                 </div>
-                {grids.map((grid, gridIndex) => {
-                    // Dynamically compute the correct result for the current iteration
-                    let correctResult = [...originalArray];
-                    for (let i = 0; i <= gridIndex; i++) {
-                        for (let j = 0; j < correctResult.length - i - 1; j++) {
-                            if (correctResult[j] > correctResult[j + 1]) {
-                                [correctResult[j], correctResult[j + 1]] = [correctResult[j + 1], correctResult[j]];
-                            }
-                        }
-                    }
-                
-                    // Check if this iteration is an "extra iteration"
-                    const isExtraIteration = iterationResults.length > 0 && iterationResults[gridIndex]?.correct === false && isSorted(grids[gridIndex]);
-                
-                    return (
-                        <div key={gridIndex}>
-                            <h3>{getOrdinalSuffix(gridIndex + 1)} Iteration</h3>
-                            <div className="grid-container">
-                                {grid.map((num, itemIndex) => (
-                                    <div
-                                        key={itemIndex}
-                                        className={`grid-item ${selected.gridIndex === gridIndex && selected.itemIndex === itemIndex ? "selected" : ""}`}
-                                        onClick={() => handleSelect(gridIndex, itemIndex)}
-                                    >
-                                        {num}
-                                    </div>
-                                ))}
-                            </div>
-                           
+                {grids.map((grid, gridIndex) => (
+                    <div key={gridIndex}>
+                        <h3>{getOrdinalSuffix(gridIndex + 1)} Iteration</h3>
+                        <div className="grid-container">
+                            {grid.map((num, itemIndex) => (
+                                <div
+                                    key={itemIndex}
+                                    className={`grid-item ${selected.gridIndex === gridIndex && selected.itemIndex === itemIndex ? "selected" : ""}`}
+                                    onClick={() => handleSelect(gridIndex, itemIndex)}
+                                >
+                                    {num}
+                                </div>
+                            ))}
                         </div>
-                    );
-                })}
+                    </div>
+                ))}
                 <button className="submit-btn" onClick={() => setIsConfirmModalOpen(true)}>Submit</button>
             </div>
             {isConfirmModalOpen && (
@@ -215,7 +209,6 @@ const ShortShift = () => {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h2>Sorting Results</h2>
-                            
                         </div>
                         {/* Scoring System */}
                         <div className="score-container">
@@ -302,9 +295,8 @@ const ShortShift = () => {
                     </div>
                 </div>
             )}
-            
         </div>
     );
 };
 
-export default ShortShift;
+export default ShortShiftSelection;
