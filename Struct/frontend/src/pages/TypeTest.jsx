@@ -3,10 +3,10 @@ import "./TypeTest.css";
 
 import { FaRedo } from "react-icons/fa";
 import { FaClock } from "react-icons/fa";
-import { FaVolumeUp, FaVolumeMute } from "react-icons/fa"; // Import volume icons
+import { FaVolumeUp, FaVolumeMute } from "react-icons/fa";
 
-import typingSoundFile from "../assets/typing.mp3"; // Add your typing sound file
-import pingSoundFile from "../assets/ping.mp3"; // Add your ping sound file
+import typingSoundFile from "../assets/typing.mp3";
+import pingSoundFile from "../assets/ping.mp3";
 
 const words = [
   "*(arr+i)",
@@ -37,40 +37,42 @@ const wordDefinitions = {
 };
 
 function TypeTest() {
-  const typingSound = new Audio(typingSoundFile);
-  const pingSound = new Audio(pingSoundFile);
-
+  const inputRef = useRef(null);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(15); // Timer starts at 15 seconds
-  const [startTime, setStartTime] = useState(null); // Track the start time
-  const [score, setScore] = useState(0); // Track the score
-  const [multiplier, setMultiplier] = useState(1); // Track the multiplier
-  const [mistakes, setMistakes] = useState(0); // Track mistakes for the current word
-  const [scoreAnimation, setScoreAnimation] = useState(false); // Animation for score
-  const [multiplierAnimation, setMultiplierAnimation] = useState(false); // Animation for multiplier
-  const [difficulty, setDifficulty] = useState("Easy"); // Track difficulty level
-  const [selectedTimer, setSelectedTimer] = useState(15); // Track selected timer
-
-  const inputRef = useRef(null); // Reference to the input field
 
   const [mode, setMode] = useState("Competitive");
+  const [gameStarted, setGameStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
-  const [customTime, setCustomTime] = useState(""); // State for custom time input
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [startTime, setStartTime] = useState(null);
+  const [selectedTimer, setSelectedTimer] = useState(15);
+  const [customTime, setCustomTime] = useState("");
   const [showCustomTimeModal, setShowCustomTimeModal] = useState(false);
 
+  const [score, setScore] = useState(0);
+  const [multiplier, setMultiplier] = useState(1);
+  const [mistakes, setMistakes] = useState(0);
+  const [scoreAnimation, setScoreAnimation] = useState(false);
+  const [multiplierAnimation, setMultiplierAnimation] = useState(false);
+
+  const [difficulty, setDifficulty] = useState("Easy");
+
+  const typingSound = new Audio(typingSoundFile);
+  const pingSound = new Audio(pingSoundFile);
   const [isMuted, setIsMuted] = useState(false);
 
   const [showNavbar, setShowNavbar] = useState(true);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
 
+  // const [isDarkMode, setIsDarkMode] = useState(false);
+
   // const [pulseEffect, setPulseEffect] = useState(false);
 
   const startGame = () => {
     if (!gameStarted) {
-      setStartTime(Date.now()); // Set the start time only when the game starts
+      setStartTime(Date.now());
     }
     setGameStarted(true);
     setGameOver(false);
@@ -78,13 +80,13 @@ function TypeTest() {
     setHasStartedTyping(false);
     setCurrentWordIndex(0);
     setInputValue("");
-    setTimeLeft(mode === "Competitive" ? selectedTimer : null); // Timer only for Competitive Mode
-    setStartTime(null); // Reset the start time
-    setScore(0); // Reset the score
-    setMultiplier(1); // Reset the multiplier
-    setMistakes(0); // Reset mistakes
+    setTimeLeft(mode === "Competitive" ? selectedTimer : null);
+    setStartTime(null);
+    setScore(0);
+    setMultiplier(1);
+    setMistakes(0);
 
-    // Automatically focus the input field
+    // automatic focus on input field
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
@@ -95,9 +97,10 @@ function TypeTest() {
   const handleCustomTimeSubmit = () => {
     const time = parseInt(customTime, 10);
     if (!isNaN(time) && time > 0) {
-      setSelectedTimer(time); // Set the custom time as the selected timer
-      setShowCustomTimeModal(false); // Hide the input field
-      setCustomTime(""); // Reset the input field
+      setSelectedTimer(time);
+      setTimeLeft(time);
+      setShowCustomTimeModal(false);
+      setCustomTime("");
     } else {
       alert("Please enter a valid number greater than 0.");
     }
@@ -105,24 +108,24 @@ function TypeTest() {
 
   const handleModeChange = (newMode) => {
     setMode(newMode);
-    setGameStarted(false); // Reset the game when switching modes
+    setGameStarted(false);
     setGameOver(false);
     setCurrentWordIndex(0);
     setInputValue("");
-    setTimeLeft(newMode === "Competitive" ? selectedTimer : null); // Reset timer for Competitive Mode
+    setTimeLeft(newMode === "Competitive" ? selectedTimer : null);
     setScore(0);
     setMultiplier(1);
     setMistakes(0);
   };
 
   const toggleMute = () => {
-    setIsMuted((prev) => !prev); // Toggle mute state
+    setIsMuted((prev) => !prev);
   };
 
   useEffect(() => {
     if (mode === "Competitive" && gameStarted && startTime && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer); // Cleanup the timer
+      return () => clearTimeout(timer);
     } else if (mode === "Competitive" && timeLeft === 0) {
       setGameOver(true);
       setGameStarted(false);
@@ -131,25 +134,25 @@ function TypeTest() {
 
   const restartGame = () => {
     setGameStarted(false);
-    setGameOver(false); // Reset the gameOver state
+    setGameOver(false);
     setShowNavbar(true);
     setHasStartedTyping(false);
     setCurrentWordIndex(0);
     setInputValue("");
-    setTimeLeft(selectedTimer); // Reset the timer
-    setStartTime(null); // Reset the start time
-    setScore(0); // Reset the score
-    setMultiplier(1); // Reset the multiplier
-    setMistakes(0); // Reset mistakes
+    setTimeLeft(selectedTimer);
+    setStartTime(null);
+    setScore(0);
+    setMultiplier(1);
+    setMistakes(0);
 
-    // Automatically focus the input field
+    // matic focus on input field
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
       }
     }, 0);
 
-    setGameStarted(true); // Restart the game
+    setGameStarted(true);
   };
 
   const handleInputChange = (e) => {
@@ -157,16 +160,15 @@ function TypeTest() {
 
     if (!hasStartedTyping) {
       setHasStartedTyping(true);
-      setShowNavbar(false); // Hide the navbar when typing starts
+      setShowNavbar(false);
     }
 
-    // Play typing sound for every letter typed (only if not muted)
     if (!isMuted) {
-      typingSound.currentTime = 0; // Reset sound to the beginning
+      typingSound.currentTime = 0;
       typingSound.play();
     }
 
-    // Start the timer when the user types the first letter
+    // timer start when user input
     if (!startTime) {
       setStartTime(Date.now());
     }
@@ -175,47 +177,47 @@ function TypeTest() {
 
     const currentWord = words[currentWordIndex];
 
-    // Check if the input matches the current word
     if (value === currentWord) {
       // Trigger pulse effect
       // setPulseEffect(true);
       // setTimeout(() => setPulseEffect(false), 500);
       // Play ping sound when a word is completed (only if not muted)
       if (!isMuted) {
-        pingSound.currentTime = 0; // Reset sound to the beginning
+        pingSound.currentTime = 0;
         pingSound.play();
       }
 
-      // Update score and multiplier
+      // score and multiplier calculation
       const points = 5 * multiplier;
       setScore((prevScore) => prevScore + points);
-      setScoreAnimation(true); // Trigger score animation
+      setScoreAnimation(true);
 
+      // multiplier calculation and animation
       if (mistakes === 0) {
-        setMultiplier((prevMultiplier) => prevMultiplier + 1); // No mistakes, increase by 1
+        setMultiplier((prevMultiplier) => prevMultiplier + 1);
       } else {
-        setMultiplier((prevMultiplier) => prevMultiplier + 0.5); // Mistakes made, increase by 0.5
+        setMultiplier((prevMultiplier) => prevMultiplier + 0.5);
       }
-      setMultiplierAnimation(true); // Trigger multiplier animation
+      setMultiplierAnimation(true);
 
-      // Move to the next word
+      // move next
       setCurrentWordIndex((prevIndex) => prevIndex + 1);
       setInputValue("");
-      setMistakes(0); // Reset mistakes for the next word
+      setMistakes(0);
 
-      // End game if all words are completed
+      // end
       if (currentWordIndex + 1 === words.length) {
         setGameOver(true);
         setGameStarted(false);
       }
     } else {
-      // Check for mistakes
+      // checking mistake
       if (!currentWord.startsWith(value)) {
         setMistakes((prevMistakes) => prevMistakes + 1);
 
-        // Decrease multiplier if mistakes reach 2
+        // multiplier decreases if mistakes is 2
         if (mistakes + 1 === 2) {
-          setMultiplier((prevMultiplier) => Math.max(1, prevMultiplier - 0.5)); // Ensure multiplier doesn't go below 1
+          setMultiplier((prevMultiplier) => Math.max(1, prevMultiplier - 0.5)); // multiplier should never be below 1
           setMultiplierAnimation(true); // Trigger multiplier animation
         }
       }
@@ -224,20 +226,21 @@ function TypeTest() {
 
   const handleDifficultyChange = (newDifficulty) => {
     if (difficulty !== newDifficulty) {
-      setDifficulty(newDifficulty); // Update the difficulty without affecting the game state
+      setDifficulty(newDifficulty);
     }
   };
 
   const handleTimerChange = (newTimer) => {
     if (selectedTimer !== newTimer) {
-      setSelectedTimer(newTimer); // Update the timer without affecting the game state
+      setSelectedTimer(newTimer);
+      setTimeLeft(newTimer);
     }
   };
 
   useEffect(() => {
     if (gameStarted && startTime && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer); // Cleanup the timer
+      return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
       setGameOver(true);
       setGameStarted(false);
@@ -246,21 +249,21 @@ function TypeTest() {
 
   useEffect(() => {
     if (scoreAnimation) {
-      const timer = setTimeout(() => setScoreAnimation(false), 300); // Reset after animation
+      const timer = setTimeout(() => setScoreAnimation(false), 300);
       return () => clearTimeout(timer);
     }
   }, [scoreAnimation]);
 
   useEffect(() => {
     if (multiplierAnimation) {
-      const timer = setTimeout(() => setMultiplierAnimation(false), 300); // Reset after animation
+      const timer = setTimeout(() => setMultiplierAnimation(false), 300);
       return () => clearTimeout(timer);
     }
   }, [multiplierAnimation]);
 
   const calculateWPM = () => {
-    const elapsedTime = (Date.now() - startTime) / 1000 / 120; // Time in minutes
-    return Math.round(currentWordIndex / elapsedTime) || 0; // Words per minute
+    const elapsedTime = (Date.now() - startTime) / 1000 / 120;
+    return Math.round(currentWordIndex / elapsedTime) || 0; // wpm
   };
 
   const renderHighlightedWord = () => {
@@ -293,6 +296,10 @@ function TypeTest() {
     ));
   };
 
+  // const toggleDarkMode = () => {
+  //   setIsDarkMode((prev) => !prev);
+  // };
+
   return (
     <div className="type-test-wrapper">
       {/* Navigation Bar */}
@@ -318,6 +325,10 @@ function TypeTest() {
             <button className="mute-button" onClick={toggleMute}>
               {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
             </button>
+            {/* Dark Mode Toggle
+            <button className="dark-mode-button" onClick={toggleDarkMode}>
+              {isDarkMode ? "Light Mode" : "Dark Mode"}
+            </button> */}
           </div>
 
           <div className="difficulty">
