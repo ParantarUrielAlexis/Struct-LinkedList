@@ -22,6 +22,9 @@ const Navbar = () => {
         <li>
           <Link to="/type-test">Type Test</Link>
         </li>
+        <li>
+          <Link to="/snake-game">Snake Game</Link>
+        </li>
       </ul>
     </nav>
   );
