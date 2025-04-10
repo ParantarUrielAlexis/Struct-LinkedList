@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import SortRush from "./pages/SortRush";
 import TypeTest from "./pages/TypeTest";
-
+import Module from "./pages/Module";
 function App() {
   return (
     <Router>
@@ -13,6 +13,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/sort" element={<SortRush />} />
         <Route path="/type-test" element={<TypeTest />} />
+        <Route path="/module" element={<Module />} />
       </Routes>
     </Router>
   );
