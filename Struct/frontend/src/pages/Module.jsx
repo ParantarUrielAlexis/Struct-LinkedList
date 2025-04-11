@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp, FaPlay, FaBook } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const lessons = [
   { id: 1, title: "Basic Definition of Arrays", duration: "30 mins" },
@@ -12,13 +13,18 @@ const lessons = [
 
 const Module = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
   };
 
+  const handleTypingTestRedirect = () => {
+    navigate("/type-test"); // Redirect to Typing Test page
+  };
+
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <aside className="w-1/4 bg-white shadow-md">
         <div className="p-4 border-b">
@@ -31,7 +37,6 @@ const Module = () => {
               className="flex items-center justify-between p-3 bg-blue-50 rounded-lg shadow-sm hover:bg-blue-100 cursor-pointer"
             >
               <div className="flex items-center">
-                {/* Learning Icon */}
                 <FaBook className="text-blue-500 mr-2" />
                 <h3 className="text-sm font-semibold text-gray-700">
                   Lesson {lesson.id}: {lesson.title}
@@ -44,7 +49,7 @@ const Module = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-10">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800">
             Learn about Arrays
@@ -82,7 +87,7 @@ const Module = () => {
           </p>
           <ul className="mt-2 ml-4 list-disc text-gray-600">
             <li>
-              Fixed Size: Once you decide how many elements you want, youre
+              Fixed Size: Once you decide how many elements you want, you're
               (usually) stuck with it.
             </li>
             <li>
@@ -96,24 +101,6 @@ const Module = () => {
           </ul>
         </section>
 
-        {/* Types of Arrays Section */}
-        <section className="mb-6 bg-yellow-50 p-4 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Types of Arrays
-          </h2>
-          <p className="mt-2 text-gray-600">
-            Flat or stacked, arrays come in layers!
-          </p>
-          <p className="mt-2 text-gray-600">
-            In C++, arrays can be classified by their dimensions. The most basic
-            form is the one-dimensional array, often just called a linear array.
-            Its like a single row of lockers, where each locker holds one value,
-            and you access them using an index. For example,{" "}
-            <code>int numbers[5]</code> declares a one-dimensional array that
-            can hold five integers.
-          </p>
-        </section>
-
         {/* Common Operations Section */}
         <section className="mb-6 bg-red-50 p-4 rounded-lg shadow-sm">
           <h2 className="text-xl font-semibold text-gray-800">
@@ -122,13 +109,31 @@ const Module = () => {
           <p className="mt-2 text-gray-600">Simple moves, powerful outcomes.</p>
           <p className="mt-2 text-gray-600">
             Once an array is declared and initialized, there are several common
-            operations youll often perform. The most frequent is accessing
+            operations you'll often perform. The most frequent is accessing
             elements using the index. In C++, you access the third element of an
             array using
             <code> arr[2]</code> (since indexing starts at 0). You can also
             modify an element directly:
             <code> arr[1] = 10</code> sets the second item to 10.
           </p>
+        </section>
+
+        {/* Code Section */}
+        <section className="mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
+          <h2 className="text-xl font-semibold text-gray-800">Try the Code!</h2>
+          <p className="mt-2 text-gray-600">
+            Use the embedded editor below to experiment with the code:
+          </p>
+          <div className="mt-4" style={{ width: "100%", height: "500px" }}>
+            <iframe
+              src="https://paiza.io/projects/e/7eJbVn6Exa0scu55RtY1Aw?theme=twilight"
+              width="100%"
+              height="500"
+              scrolling="no"
+              seamless="seamless"
+              className="rounded-lg border border-gray-300"
+            ></iframe>
+          </div>
         </section>
 
         {/* Play to Learn Section */}
@@ -144,15 +149,16 @@ const Module = () => {
           </div>
           {isDropdownOpen && (
             <div className="mt-4 space-y-4">
-              {/* Typing Test Game */}
               <div className="p-4 bg-white rounded-lg shadow-md flex items-center justify-between">
                 <p className="text-gray-600">Typing Test Game</p>
-                <button className="flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600">
+                <button
+                  onClick={handleTypingTestRedirect}
+                  className="flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600"
+                >
                   <FaPlay />
                 </button>
               </div>
 
-              {/* Sorting Game */}
               <div className="p-4 bg-white rounded-lg shadow-md flex items-center justify-between">
                 <p className="text-gray-600">Sorting Game</p>
                 <button className="flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600">
