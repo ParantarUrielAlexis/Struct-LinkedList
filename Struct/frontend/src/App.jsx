@@ -18,7 +18,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path = "/sortshift" element={<SortShift />} />
-        <Route path = "sortshiftselection" element={<SortShiftSelection/>} />
+        <Route path = "/sortshiftselection" element={<SortShiftSelection/>} />
       </Routes>
     </Router>
   );

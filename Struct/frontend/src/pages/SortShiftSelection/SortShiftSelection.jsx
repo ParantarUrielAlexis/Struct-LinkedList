@@ -11,13 +11,19 @@ const ShortShiftSelection = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
+    const swapSound = new Audio("/sounds/swap.mp3");
+    const clickSound = new Audio("/sounds/first_click.mp3");
+
+
     const handleSelect = (gridIndex, itemIndex) => {
         if (selected.gridIndex === null) {
             // First selection
+            clickSound.play();
             setSelected({ gridIndex, itemIndex });
         } else if (selected.gridIndex === gridIndex && selected.itemIndex !== itemIndex) {
             // Swap only within the same grid
             swapNumbers(gridIndex, selected.itemIndex, itemIndex);
+            swapSound.play();
             setSelected({ gridIndex: null, itemIndex: null });
         } else {
             // Reset selection
@@ -35,12 +41,16 @@ const ShortShiftSelection = () => {
 
     const addGrid = () => {
         // Don't add new grids if the last grid is already sorted
+        const addGridSound = new Audio("/sounds/add.mp3");
+        addGridSound.play();
         if (grids.length < 6 && !isSorted(grids[grids.length - 1])) {
             setGrids([...grids, [...grids[grids.length - 1]]]);
         }
     };
 
     const removeGrid = () => {
+        const removeGridSound = new Audio("/sounds/delete.mp3");
+        removeGridSound.play();
         if (grids.length > 1) {
             setGrids(grids.slice(0, -1));
         }
