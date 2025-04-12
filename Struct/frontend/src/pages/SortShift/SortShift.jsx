@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import unsortedImg from '../../assets/unsorted.png';
 import firstCompare from '../../assets/first_compare.png';
 import secondCompare from '../../assets/second_compare.png';
@@ -16,7 +16,10 @@ import iterationGIF from '../../assets/first_iteration.gif';
 import "./SortShift.css";
 
 const ShortShift = () => {
-    const originalArray = [2, 10, 8, 4, 9, 56, 6,];
+    const generateRandomArray = () =>{
+        return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
+    }
+    const [originalArray, setOriginalArray] = useState([]);
 
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
@@ -24,6 +27,12 @@ const ShortShift = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [isTutorialOpen, setIsTutorialOpen] = useState(true);
+
+    useEffect(() => {
+        const randomArray = generateRandomArray();
+        setOriginalArray(randomArray);
+        setGrids([randomArray]);
+    }, []);
 
     const swapSound = new Audio("/sounds/swap.mp3");
     const clickSound = new Audio("/sounds/first_click.mp3");
@@ -55,7 +64,8 @@ const ShortShift = () => {
     
     const closeTutorial = () => {
         setIsTutorialOpen(false);
-    }
+    };
+
 
     const addGrid = () => {
         const addGridSound = new Audio("/sounds/add.mp3");
@@ -231,6 +241,12 @@ const ShortShift = () => {
                                 <img src={fourthSwap} alt="Fourth Swap" className="fourth-compare" />
                             </p>
                         </div>
+                        <p>
+                            Now we have completed one iteration. The largest number (56) has "bubbled" to the end of the array. We repeat the process for the remaining unsorted part of the array until no swaps are needed in a full pass.
+                        </p>
+                        <div className="line-break">
+                            <hr></hr>
+                        </div>
                         <div className="simulation">
                             <p>
                                 Watch the simulation to see how the algorithm works in real-time.
@@ -238,29 +254,55 @@ const ShortShift = () => {
                             
                             <img src={iterationGIF} alt="Iteration GIF" className="iteration_gif" />
                         </div>
-                        <div className="game-introduction">
-                            <h2>Ready to Play?</h2>
-                            <p>
-                                Now that you understand how Bubble Sort works, it's time to put your knowledge to the test!
-                                Your goal is to sort the numbers in ascending order using the Bubble Sort algorithm.
-                            </p>
-                            <p>
-                                Click on two adjacent boxes to swap their positions. Repeat this process until the array is fully sorted.
-                                Remember, you can only swap adjacent elements!
-                            </p>
-                            <p>
-                                Good luck, and have fun!
-                            </p>
-                            <button className="start-btn" onClick={closeTutorial}>
-                                Start Game
-                            </button>
+                        <div className="line-break">
+                            <hr></hr>
                         </div>
+                        <div className="game-introduction">
+                            <h2>Welcome to Sort Shift!</h2>
+                            <p>
+                                Sort Shift is an interactive game designed to help you understand and practice the Bubble Sort algorithm. 
+                                Your task is to sort a series of numbers in ascending order by swapping adjacent elements, just like in Bubble Sort.
+                                The game challenges you to think critically and apply the sorting steps efficiently. Each move you make will be evaluated, 
+                                and your score will reflect how accurately and efficiently you complete the sorting process.
+                            </p>
+                            <h2>How to Play:</h2>
+                            <ul>
+                                <li>Click on two adjacent boxes to swap their positions.</li>
+                                <li>Repeat this process until the array is fully sorted.</li>
+                                <li>Remember, you can only swap adjacent elements!</li>
+                            </ul>
+                            <p>
+                                Are you ready to put your sorting skills to the test? Let's see how well you can perform!
+                            </p>
+                        </div>
+                        <div className="line-break">
+                            <hr></hr>
+                        </div>
+                        <div className="scoring-system">
+                        <h2>How Scoring Works</h2>
+                        <p>
+                            Your score in the Short Shift game is based on how accurately and efficiently you sort the array using the Bubble Sort algorithm. Here's how the scoring works:
+                        </p>
+                        <ul>
+                            <li><strong>Correct Iterations:</strong> You earn points for each correct iteration. The total points are divided equally among the required iterations.</li>
+                            <li><strong>Incorrect Iterations:</strong> Points are deducted for incorrect iterations.</li>
+                            <li><strong>Extra Iterations:</strong> Points are also deducted if you perform unnecessary extra iterations after the array is already sorted.</li>
+                            <li><strong>Maximum Score:</strong> The maximum score you can achieve is <strong>60 points</strong>.</li>
+                            <li><strong>Passing Score:</strong> To pass, you need to score at least <strong>70%</strong> of the total points (42 points).</li>
+                        </ul>
+                        <p>
+                            Aim to complete the sorting process with as few mistakes and extra iterations as possible to maximize your score!
+                        </p>
+                    </div>
+                    <button className="start-btn" onClick={closeTutorial}>
+                                Start Game
+                    </button>
                     </div>
                 </div>
             )}
             {!isTutorialOpen && (
                 <>
-                <h1>Sort Shift</h1>
+                <h1 className="title-game">Sort Shift</h1>
                     <p className="instruction">Instruction: Use bubble sort to arrange the numbers in ascending order.</p>
                     <div className="array-label">Original Array:</div>
                     <div className="orig-grid-container">

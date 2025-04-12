@@ -1,17 +1,39 @@
+@keyframes fadeSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(50px); /* Start slightly below */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0); /* End at the original position */
+    }
+}
+
+.title-game{
+    font-size: 40px;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-family: Arial, sans-serif;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+
 .short-shift-container {
     text-align: center;
     padding: 20px;
     font-family: Arial, sans-serif;
 }
-
 .instruction {
     font-size: 16px;
     margin-bottom: 10px;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 
 .array-label {
     font-weight: bold;
     margin-bottom: 10px;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+    
 }
 
 .grid-container {
@@ -20,12 +42,14 @@
     justify-content: center;
     margin-top: 10px;
     flex-wrap: wrap; /* Wrap items if they exceed the width */
+    animation: fadeSlideIn 0.2s ease-in-out; /* Apply the animation */
 }
 .orig-grid-container {
     display: flex;
     justify-content: center;
     gap: 10px;
     margin-bottom: 35px;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 .grid-item {
     width: 70px;
@@ -53,6 +77,7 @@
     border-radius: 5px;
     border: 2px solid rgb(255, 132, 0);
     cursor: pointer;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 
 .grid-item.selected {
@@ -65,6 +90,7 @@
     justify-content: right;
     gap: 10px;
     margin-left: 510px;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 
 
@@ -75,6 +101,7 @@
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 .add-btn:hover, .remove-btn:hover {
     background-color: #00ADB5;
@@ -100,12 +127,14 @@
     flex-direction: column;
     align-items: center;
     transition: all 0.3s ease-in-out;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 
 .iterations h2 {
     margin-right: 430px;
     font-size: 24px;
     justify-content: center;
+    animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 .iterations h3 {
     margin-bottom: 2px; /* Reduce space below iteration title */
@@ -124,6 +153,11 @@
     border-radius: 50px;
     cursor: pointer;
     margin-top: 20px;
+}
+.submit-btn:hover {
+    background-color: #5b7eee;
+    color: white;
+    transition: background-color 0.3s ease;
 }
 .correct-iteration {
     color: #ff0000; /* Red color for emphasis */
@@ -373,6 +407,16 @@
   
 
   /* Tutorial CSS*/
+  @keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+    
+    }  
+
   .tutorial-modal {
     position: fixed;
     top: 0;
@@ -384,16 +428,17 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    animation: fadeIn 2s ease-in-out; 
 }
 
 .tutorial-content {
     background-color: white;
     padding: 20px;
     border-radius: 10px;
-    height: 60%; /* Set a fixed height for the modal */
+    height: 85%; /* Set a fixed height for the modal */
     text-align: center;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1250px;
     overflow-y: auto; /* Enable vertical scrolling */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow for better visibility */
 }
@@ -434,10 +479,11 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 18px;
 }
 
 .start-btn:hover {
-    background-color: #45a049;
+    background-color: #5b7eee;
 }
 .how-it-works{
     padding: 20px;
@@ -477,3 +523,65 @@
     margin-top: 20px;
     margin-bottom: 20px;
 }
+.scoring-system {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.scoring-system h2 {
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #333;
+}
+
+.scoring-system p {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.scoring-system ul {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-left: 20px;
+}
+
+.scoring-system ul li {
+    margin-bottom: 10px;
+}
+.game-introduction {
+    margin-top: 20px;
+    text-align: left;
+    line-height: 2;
+}
+
+.game-introduction h2 {
+    margin-bottom: 15px;
+    font-size: 26px;
+    color: #333;
+}
+
+.game-introduction h3 {
+    margin-top: 20px;
+    font-size: 22px;
+    color: #555;
+}
+
+.game-introduction p {
+    font-size: 18px;
+    line-height: 2;
+    margin-bottom: 15px;
+}
+
+.game-introduction ul {
+    font-size: 18px;
+    line-height: 1.6;
+    margin: 15px 0;
+    text-align: left;
+    display: inline-block;
+}
+
+.game-introduction ul li {
+    margin-bottom: 10px;
+}
+
