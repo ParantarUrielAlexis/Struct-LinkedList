@@ -1,21 +1,23 @@
-import React, { useEffect, useState } from "react";
-import unsortedImg from '../../assets/unsorted.png';
-import firstCompare from '../../assets/first_compare.png';
-import secondCompare from '../../assets/second_compare.png';
-import thirdCompare from '../../assets/third_compare.png';
-import fourthCompare from '../../assets/fourth_compare.png';
-import fifthCompare from '../../assets/fifth_compare.png';
-import sixthCompare from '../../assets/sixth_compare.png';
-import firstSwap from '../../assets/first_swap.png';
-import secondSwap from '../../assets/second_swap.png';
-import thirdSwap from '../../assets/third_swap.png';
-import fourthSwap from '../../assets/fourth_swap.png';
+import React, { useEffect, useState, useRef } from "react";
+import unsortedImg from '../../assets/bubble/unsorted.png';
+import firstCompare from '../../assets/bubble/first_compare.png';
+import secondCompare from '../../assets/bubble/second_compare.png';
+import thirdCompare from '../../assets/bubble/third_compare.png';
+import fourthCompare from '../../assets/bubble/fourth_compare.png';
+import fifthCompare from '../../assets/bubble/fifth_compare.png';
+import sixthCompare from '../../assets/bubble/sixth_compare.png';
+import firstSwap from '../../assets/bubble/first_swap.png';
+import secondSwap from '../../assets/bubble/second_swap.png';
+import thirdSwap from '../../assets/bubble/third_swap.png';
+import fourthSwap from '../../assets/bubble/fourth_swap.png';
 
-import iterationGIF from '../../assets/first_iteration.gif';
+import iterationGIF from '../../assets/bubble/first_iteration.gif';
 
 import "./SortShift.css";
 
 const ShortShift = () => {
+    const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); // Use useRef for persistence
+
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
@@ -64,6 +66,11 @@ const ShortShift = () => {
     
     const closeTutorial = () => {
         setIsTutorialOpen(false);
+        const sound = backgroundSound.current;
+        sound.volume = 0.2; // Set volume to 20%
+        sound.loop = true; // Loop the sound
+        sound.play();
+        
     };
 
 
@@ -162,9 +169,11 @@ const ShortShift = () => {
                 return { iteration: index + 1, correct: false };
             }
         });
+        
     
         setIterationResults(results);
         setIsModalOpen(true); // Open the modal
+
     };
 
     return (
@@ -370,6 +379,9 @@ const ShortShift = () => {
                         </div>
                         <div className="modal-footer-confirm">
                             <button className="submit-btn-confirm" onClick={() => {
+                                const sound = backgroundSound.current;
+                                sound.pause(); // Pause the background sound
+                                sound.currentTime = 0; // Reset the sound to the beginning 
                                 checkSorting();
                                 setIsConfirmModalOpen(false);
                             }}>
