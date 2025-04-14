@@ -10,13 +10,15 @@ import firstSwap from '../../assets/bubble/first_swap.png';
 import secondSwap from '../../assets/bubble/second_swap.png';
 import thirdSwap from '../../assets/bubble/third_swap.png';
 import fourthSwap from '../../assets/bubble/fourth_swap.png';
+import musicLogo from '../../assets/music.png';
+import tutorialLogo from '../../assets/tutorial.png';
 
 import iterationGIF from '../../assets/bubble/first_iteration.gif';
 
 import "./SortShift.css";
 
 const ShortShift = () => {
-    const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); // Use useRef for persistence
+    const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
 
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
@@ -29,6 +31,7 @@ const ShortShift = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [isTutorialOpen, setIsTutorialOpen] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(true);
 
     useEffect(() => {
         const randomArray = generateRandomArray();
@@ -39,19 +42,29 @@ const ShortShift = () => {
     const swapSound = new Audio("/sounds/swap.mp3");
     const clickSound = new Audio("/sounds/first_click.mp3");
 
+    const toggleMusic = () => {
+        const sound = backgroundSound.current;
+        if(sound.paused){
+            sound.play();
+            setIsPlaying(true);
+        } else {
+            sound.pause();
+            setIsPlaying(false);
+        }
+    }
+
     const handleSelect = (gridIndex, itemIndex) => {
 
         if (selected.gridIndex === null) {
             clickSound.play();
-            // First selection
+            
             setSelected({ gridIndex, itemIndex });
         } else if (selected.gridIndex === gridIndex && selected.itemIndex !== itemIndex) {
-            // Swap only within the same grid
+            
             swapNumbers(gridIndex, selected.itemIndex, itemIndex);
             swapSound.play();
             setSelected({ gridIndex: null, itemIndex: null });
         } else {
-            // Reset selection
             setSelected({ gridIndex: null, itemIndex: null });
         }
     };
@@ -67,8 +80,8 @@ const ShortShift = () => {
     const closeTutorial = () => {
         setIsTutorialOpen(false);
         const sound = backgroundSound.current;
-        sound.volume = 0.2; // Set volume to 20%
-        sound.loop = true; // Loop the sound
+        sound.volume = 0.2; 
+        sound.loop = true; 
         sound.play();
         
     };
@@ -324,12 +337,25 @@ const ShortShift = () => {
 
                     <div className="iterations">
                         <h2>Bubble Sort</h2>
+                        <div className="game-controls">
+                        <button
+                            className="control-btn tutorial-btn"
+                            onClick={() => setIsTutorialOpen(true)}
+                        >
+                            <img src= {tutorialLogo} alt="Tutorial" className="tutorial-logo" />
+                        </button>
+
+                        <button className="control-btn music-btn" onClick={toggleMusic}>
+                            <div className={`music-logo-wrapper ${!isPlaying ? "slashed" : ""}`}>
+                                <img src={musicLogo} alt="Music" className="music-logo" />
+                            </div>
+                        </button>
+                    </div>
                         <div className="controls">
                             <button className="add-btn" onClick={addGrid}>+</button>
                             <button className="remove-btn" onClick={removeGrid}>-</button>
                         </div>
                         {grids.map((grid, gridIndex) => {
-                            // Dynamically compute the correct result for the current iteration
                             let correctResult = [...originalArray];
                             for (let i = 0; i <= gridIndex; i++) {
                                 for (let j = 0; j < correctResult.length - i - 1; j++) {
@@ -339,7 +365,6 @@ const ShortShift = () => {
                                 }
                             }
                          
-                            // Check if this iteration is an "extra iteration"
                             const isExtraIteration = iterationResults.length > 0 && iterationResults[gridIndex]?.correct === false && isSorted(grids[gridIndex]);
                         
                             return (
@@ -380,8 +405,8 @@ const ShortShift = () => {
                         <div className="modal-footer-confirm">
                             <button className="submit-btn-confirm" onClick={() => {
                                 const sound = backgroundSound.current;
-                                sound.pause(); // Pause the background sound
-                                sound.currentTime = 0; // Reset the sound to the beginning 
+                                sound.pause(); 
+                                sound.currentTime = 0; 
                                 checkSorting();
                                 setIsConfirmModalOpen(false);
                             }}>
@@ -405,30 +430,30 @@ const ShortShift = () => {
                         <div className="score-container">
                             {(() => {
                                 const totalPoints = 60;
-                                const iterationsRequired = correctSteps.length - 1; // Exclude the initial array
+                                const iterationsRequired = correctSteps.length - 1; 
                                 const pointsPerIteration = totalPoints / iterationsRequired;
-                                const penaltyPerExtraIteration = pointsPerIteration / 2; // Deduct half the points for extra iterations
+                                const penaltyPerExtraIteration = pointsPerIteration / 2; 
                                 let score = 0;
 
                                 iterationResults.forEach((result, index) => {
                                     if (index < iterationsRequired) {
-                                        // Within the required iterations
+                                        
                                         if (result.correct) {
-                                            score += pointsPerIteration; // Award full points for correct iterations
+                                            score += pointsPerIteration; 
                                         } else {
-                                            score -= penaltyPerExtraIteration; // Deduct points for incorrect iterations
+                                            score -= penaltyPerExtraIteration; 
                                         }
                                     } else {
-                                        // Extra iterations beyond the required number
-                                        score -= penaltyPerExtraIteration; // Penalize extra iterations
+                                        
+                                        score -= penaltyPerExtraIteration; 
                                     }
                                 });
 
-                                // Ensure the score doesn't go below 0
+                                
                                 score = Math.max(0, score);
 
-                                // Determine if the user passed or failed
-                                const passingScore = 0.7 * totalPoints; // 70% of total points
+                               
+                                const passingScore = 0.7 * totalPoints; 
                                 const remarks = score >= passingScore ? "Pass" : "Fail";
                                 const remarksClass = score >= passingScore ? "pass" : "fail";
 

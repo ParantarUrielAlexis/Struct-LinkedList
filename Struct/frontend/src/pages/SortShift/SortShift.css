@@ -52,8 +52,8 @@
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 .grid-item {
-    width: 70px;
-    height: 70px;
+    width: 75px;
+    height: 75px;
     background-color: #393E46;
     color: white;
     font-size: 32px;
@@ -585,3 +585,70 @@
     margin-bottom: 10px;
 }
 
+
+/* Game Controls*/
+.game-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-right:500px;
+}
+
+.control-btn {
+    background-color: #f0f0f0;
+    border: 2px solid #000000;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.control-btn:hover {
+    background-color: #ddd;
+    transform: scale(1.1);
+}
+
+.tutorial-btn {
+    color: #007bff;
+}
+
+.music-btn {
+    color: #28a745;
+}
+
+.music-logo-wrapper {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+}
+
+.music-logo {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.music-logo-wrapper.slashed::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 140%; 
+    height: 2px;
+    background-color: black;
+    transform: translate(-50%, -50%) rotate(45deg);
+    pointer-events: none;
+    border: 1px solid black; 
+}
+
+
+.tutorial-logo{
+    width: 22px;
+    height: 22px;
+}
