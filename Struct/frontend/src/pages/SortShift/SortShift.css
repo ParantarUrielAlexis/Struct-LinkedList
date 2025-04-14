@@ -52,8 +52,8 @@
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
 }
 .grid-item {
-    width: 75px;
-    height: 75px;
+    width: 7px;
+    height: 70px;
     background-color: #393E46;
     color: white;
     font-size: 32px;
@@ -287,6 +287,7 @@
     justify-content: center;
     margin-top: 60px;
     margin-bottom: 30px;
+    gap: 20px
 }
 
 .reset-btn {
@@ -298,10 +299,49 @@
     font-size: 16px;
     cursor: pointer;
 }
-
 .reset-btn:hover {
     background-color: #cc0000;
 }
+.next-btn {
+    background-color: #00adb5;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.next-btn:not(:disabled):hover {
+    background-color: #007a80; /* Hover effect only for enabled buttons */
+}
+
+.next-btn:disabled {
+    background-color: #ccc; /* Grey out the button when disabled */
+    color: #666; /* Optional: Change text color for disabled state */
+    cursor: not-allowed; /* Change cursor to indicate it's not clickable */
+}
+/* For the previous button */
+.previous-btn:not(:disabled):hover {
+    background-color: #007a80; /* Hover effect only for enabled buttons */
+}
+
+.previous-btn{
+    background-color: #00adb5;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.previous-btn:disabled {
+    background-color: #ccc; /* Grey out the button when disabled */
+    color: #666; /* Optional: Change text color for disabled state */
+    cursor: not-allowed; /* Change cursor to indicate it's not clickable */
+}
+
+
 .score-container {
     display: flex;
     justify-content: center; 

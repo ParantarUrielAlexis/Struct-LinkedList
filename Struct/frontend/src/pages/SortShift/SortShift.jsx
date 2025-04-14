@@ -188,6 +188,27 @@ const ShortShift = () => {
         setIsModalOpen(true); // Open the modal
 
     };
+    const totalPoints = 60;
+    const iterationsRequired = correctSteps.length - 1;
+    const pointsPerIteration = totalPoints / iterationsRequired;
+    const penaltyPerExtraIteration = pointsPerIteration / 2;
+    let score = 0;
+
+    iterationResults.forEach((result, index) => {
+        if (index < iterationsRequired) {
+            if (result.correct) {
+                score += pointsPerIteration;
+            } else {
+                score -= penaltyPerExtraIteration;
+            }
+        } else {
+            score -= penaltyPerExtraIteration;
+        }
+    });
+
+    score = Math.max(0, score);
+    const passingScore = 0.7 * totalPoints;
+    const remarks = score >= passingScore ? "Pass" : "Fail";
 
     return (
         <div className="short-shift-container">
@@ -506,9 +527,24 @@ const ShortShift = () => {
                         </div>
                         
                         <div className="reset-container">
-                            <button className="reset-btn" onClick={() => window.location.reload()}>
-                                Reset
+                             <button
+                                className="previous-btn"
+                                onClick={() => window.location.reload()}
+                                disabled={remarks === "Fail"} 
+                            >
+                                PREVIOUS
                             </button>
+                            <button className="reset-btn" onClick={() => window.location.reload()}>
+                                RESET
+                            </button>
+                            <button 
+                                className="next-btn" 
+                                onClick={() => window.location.reload()}
+                                disabled={remarks === "Fail"} 
+                            >
+                                NEXT
+                            </button>
+                            
                         </div>
                     </div>
                 </div>
