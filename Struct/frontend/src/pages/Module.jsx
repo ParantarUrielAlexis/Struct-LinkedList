@@ -3,12 +3,12 @@ import { FaChevronDown, FaChevronUp, FaPlay, FaBook } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const lessons = [
-  { id: 1, title: "Basic Definition of Arrays", duration: "30 mins" },
-  { id: 2, title: "Indexing and Modifying Elements", duration: "30 mins" },
-  { id: 3, title: "Static Arrays", duration: "30 mins" },
-  { id: 4, title: "Dynamic Arrays", duration: "30 mins" },
-  { id: 5, title: "Multidimensional Arrays", duration: "30 mins" },
-  { id: 6, title: "Basic Sorting Algorithms", duration: "30 mins" },
+  { id: 1, title: "Basic Definition of Arrays" },
+  { id: 2, title: "Indexing and Modifying" },
+  { id: 3, title: "Static Arrays" },
+  { id: 4, title: "Dynamic Arrays" },
+  { id: 5, title: "Multidimensional Arrays" },
+  { id: 6, title: "Basic Sorting Algorithms" },
 ];
 
 const Module = () => {
@@ -26,10 +26,7 @@ const Module = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <aside className="w-1/4 bg-white shadow-md">
-        <div className="p-4 border-b">
-          <h2 className="text-lg font-bold text-gray-700">Array Module</h2>
-        </div>
+      <aside className="w-1/4 bg-white shadow-md pt-20">
         <ul className="p-4 space-y-4">
           {lessons.map((lesson) => (
             <li
@@ -38,18 +35,21 @@ const Module = () => {
             >
               <div className="flex items-center">
                 <FaBook className="text-blue-500 mr-2" />
+                {/* Show full title on larger screens, only "Lesson X" on smaller screens */}
                 <h3 className="text-sm font-semibold text-gray-700">
-                  Lesson {lesson.id}: {lesson.title}
+                  <span className="block sm:hidden">Lesson {lesson.id}</span>
+                  <span className="hidden sm:block">
+                    Lesson {lesson.id}: {lesson.title}
+                  </span>
                 </h3>
               </div>
-              <span className="text-xs text-gray-500">{lesson.duration}</span>
             </li>
           ))}
         </ul>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-10 pt-20">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800">
             Learn about Arrays

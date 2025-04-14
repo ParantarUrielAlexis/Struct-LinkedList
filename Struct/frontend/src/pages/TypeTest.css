@@ -1,5 +1,6 @@
 .type-test-wrapper {
   display: flex;
+  margin-top: 80px;
   flex-direction: column; /* Stack navbar and game container vertically */
   justify-content: center; /* Center vertically */
   align-items: center; /* Center horizontally */
@@ -15,7 +16,7 @@
   background-color: #f8f9fa;
   border-bottom: 2px solid #ddd;
   margin: 0 auto; /* Center the navbar horizontally */
-  width: 1500px; /* Ensure the width is fixed for centering */
+  width: 1300px; /* Ensure the width is fixed for centering */
 }
 
 .modes {
@@ -206,7 +207,7 @@
 .game-container {
   margin-top: 20px; /* Add 20px space between the navbar and the game container */
   background-color: #fff;
-  width: 1500px; /* Adjusted width for the layout */
+  width: 1300px; /* Adjusted width for the layout */
   height: 800px;
   padding: 20px;
 
@@ -414,6 +415,7 @@
   background-color: #f8f9fa;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
   max-width: 800px;
   margin: 20px auto;
 }
@@ -439,6 +441,7 @@
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   padding: 30px;
   margin: 20px auto;
+  height: 500px;
   width: 1000px;
   animation: fadeIn 0.5s ease-in-out;
 }
