@@ -15,9 +15,9 @@ import tutorialLogo from '../../assets/tutorial.png';
 
 import iterationGIF from '../../assets/bubble/first_iteration.gif';
 
-import "./SortShift.css";
+import styles from './SortShiftBubble.module.css';
 
-const ShortShift = () => {
+const ShortShiftBubble = () => {
     const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
 
     const generateRandomArray = () =>{
@@ -211,18 +211,18 @@ const ShortShift = () => {
     const remarks = score >= passingScore ? "Pass" : "Fail";
 
     return (
-        <div className="short-shift-container">
+        <div className={styles['short-shift-container']}>
              {isTutorialOpen && (
-                <div className="tutorial-modal">
-                    <div className="tutorial-content">
+                <div className={styles["tutorial-modal"]}>
+                    <div className={styles["tutorial-content"]}>
                         <h1>Bubble Sort</h1>
-                        <hr></hr>
-                        <p>
+                        <hr className={styles["divider"]}></hr>
+                        <p className={styles["description"]}>
                             <strong>Bubble sort</strong> is a simple comparison-based sorting algorithm. It repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. This process continues until the list is sorted. The algorithm gets its name because smaller elements "bubble" to the top (beginning of the list), while larger elements sink to the bottom (end of the list) with each pass.
                         </p>
-                        <div className="how-it-works">
+                        <div className={styles["how-it-works"]}>
                             <h3>How it works:</h3>
-                            <ol>
+                            <ol className={styles["steps-list"]}>
                                 <li>Start at the beginning of the array.</li>
                                 <li>Compare the current element with the next one.</li>
                                 <li>If the current element is greater than the next, swap them.</li>
@@ -231,43 +231,43 @@ const ShortShift = () => {
                                 <li>Stop when no swaps are needed in a full pass.</li>
                             </ol>
                         </div>
-                        <p>
+                        <p className={styles["additional-info"]}>
                         Continue reading to fully understand the Bubble Sort algorithm and how to implement it yourself.
                         </p>
-                        <div className="line-break">
-                            <hr></hr>
+                        <div className={styles["line-break"]}>
+                            <hr className={styles["divider"]}></hr>
                         </div>
-                        <div className="manual-run-through">
+                        <div className={styles["manual-run-through"]}>
                             <h2>Manual Run Through</h2>
-                            <p>
+                            <p className={styles["step-description"]}>
                                 <strong>Step 1: </strong> We start with an unsorted array.
-                                <img src={unsortedImg} alt="Unsorted Array" className="unsorted-image" />
+                                <img src={unsortedImg} alt="Unsorted Array" className={styles["unsorted-image"]} />
                             </p>
-                            <p>
+                            <p className={styles["step-description"]}>
                                 <strong>Step 2: </strong> We look at the two first values. Does the lowest value come first? Yes, so we don't need to swap them.
-                                <img src={firstCompare} alt="First Compare" className="first-compare" />
+                                <img src={firstCompare} alt="First Compare" className={styles["first-compare"]} />
                             </p>
-                            <p>
+                            <p className={styles["step-description"]}>
                                 <strong>Step 3: </strong>  Take one step forward and look at values 10 and 8. Does the lowest value come first? No.
-                                <img src={secondCompare} alt="Second Compare" className="second-compare" />
+                                <img src={secondCompare} alt="Second Compare" className={styles["second-compare"]} />
                             </p>
-                            <p>
+                            <p className={styles["step-description"]}>
                                 <strong>Step 4: </strong>  So we need to swap them so that 8 comes first.
-                                <img src={firstSwap} alt="First Swap" className="first-swap" />
+                                <img src={firstSwap} alt="First Swap" className={styles["first-swap"]} />
                             </p>
-                            <p>
+                            <p className={styles["step-description"]}>
                                 <strong>Step 5: </strong>  Taking one step forwards and look at value 10 and 4. Does the lowest value come first? No.
-                                <img src={thirdCompare} alt="Third Compare" className="first-swap" />
+                                <img src={thirdCompare} alt="Third Compare" className={styles["third-compare"]} />
                             </p>
-                            <p>
+                            <p className={styles["step-description"]}>
                                 <strong>Step 6: </strong>  Let's swap them so that 4 comes first.
-                                <img src={secondSwap} alt="Second Swap" className="second-swap" />
+                                <img src={secondSwap} alt="Second Swap" className={styles["second-swap"]} />
                             </p>
-                            <p>
+                            <p className={styles["step-description"]}>
                                 <strong>Step 7: </strong>  Looking at 10 and 9. Do we need to swap them? Yes.
-                                <img src={fourthCompare} alt="Fourth Compare" className="fourth-compare" />
+                                <img src={fourthCompare} alt="Fourth Compare" className={styles["fourth-compare"]} />
                             </p>
-                            <p>
+                            <p className={styles["step-description"]}>
                                 <strong>Step 8: </strong>  We must swap them so that 9 comes first.
                                 <img src={thirdSwap} alt="Third Swap" className="fourth-compare" />
                             </p>
@@ -287,20 +287,20 @@ const ShortShift = () => {
                         <p>
                             Now we have completed one iteration. The largest number (56) has "bubbled" to the end of the array. We repeat the process for the remaining unsorted part of the array until no swaps are needed in a full pass.
                         </p>
-                        <div className="line-break">
+                        <div className={styles["line-break"]}>
                             <hr></hr>
                         </div>
-                        <div className="simulation">
+                        <div className={styles["simulation"]}>
                             <p>
                                 Watch the simulation to see how the algorithm works in real-time.
                             </p>
                             
                             <img src={iterationGIF} alt="Iteration GIF" className="iteration_gif" />
                         </div>
-                        <div className="line-break">
+                        <div className={styles["line-break"]}>
                             <hr></hr>
                         </div>
-                        <div className="game-introduction">
+                        <div className={styles["game-introduction"]}>
                             <h2>Welcome to Sort Shift!</h2>
                             <p>
                                 Sort Shift is an interactive game designed to help you understand and practice the Bubble Sort algorithm. 
@@ -314,14 +314,11 @@ const ShortShift = () => {
                                 <li>Repeat this process until the array is fully sorted.</li>
                                 <li>Remember, you can only swap adjacent elements!</li>
                             </ul>
-                            <p>
-                                Are you ready to put your sorting skills to the test? Let's see how well you can perform!
-                            </p>
                         </div>
-                        <div className="line-break">
+                        <div className={styles["line-break"]}>
                             <hr></hr>
                         </div>
-                        <div className="scoring-system">
+                        <div className={styles["scoring-system"]}>
                         <h2>How Scoring Works</h2>
                         <p>
                             Your score in the Short Shift game is based on how accurately and efficiently you sort the array using the Bubble Sort algorithm. Here's how the scoring works:
@@ -337,7 +334,7 @@ const ShortShift = () => {
                             Aim to complete the sorting process with as few mistakes and extra iterations as possible to maximize your score!
                         </p>
                     </div>
-                    <button className="start-btn" onClick={closeTutorial}>
+                    <button className={styles["start-btn"]} onClick={closeTutorial}>
                                 Start Game
                     </button>
                     </div>
@@ -345,36 +342,36 @@ const ShortShift = () => {
             )}
             {!isTutorialOpen && (
                 <>
-                <h1 className="title-game">Sort Shift</h1>
-                    <p className="instruction">Instruction: Use bubble sort to arrange the numbers in ascending order.</p>
-                    <div className="array-label">Original Array:</div>
-                    <div className="orig-grid-container">
+                    <h1 className={styles["title-game"]}>Sort Shift</h1>
+                    <p className={styles["instruction"]}>Instruction: Use bubble sort to arrange the numbers in ascending order.</p>
+                    <div className={styles["array-label"]}>Original Array:</div>
+                    <div className={styles["orig-grid-container"]}>
                         {originalArray.map((num, index) => (
-                            <div key={index} className="orig-grid-item">
+                            <div key={index} className={styles["orig-grid-item"]}>
                                 {num}
                             </div>
                         ))}
                     </div>
 
-                    <div className="iterations">
-                        <h2>Bubble Sort</h2>
-                        <div className="game-controls">
-                        <button
-                            className="control-btn tutorial-btn"
-                            onClick={() => setIsTutorialOpen(true)}
-                        >
-                            <img src= {tutorialLogo} alt="Tutorial" className="tutorial-logo" />
-                        </button>
+                    <div className={styles["iterations"]}>
+                        <h2 className={styles["bubble-sort-title"]}>Bubble Sort</h2>
+                        <div className={styles["game-controls"]}>
+                            <button
+                                className={`${styles["control-btn"]} ${styles["tutorial-btn"]}`}
+                                onClick={() => setIsTutorialOpen(true)}
+                            >
+                                <img src={tutorialLogo} alt="Tutorial" className={styles["tutorial-logo"]} />
+                            </button>
 
-                        <button className="control-btn music-btn" onClick={toggleMusic}>
-                            <div className={`music-logo-wrapper ${!isPlaying ? "slashed" : ""}`}>
-                                <img src={musicLogo} alt="Music" className="music-logo" />
-                            </div>
-                        </button>
-                    </div>
-                        <div className="controls">
-                            <button className="add-btn" onClick={addGrid}>+</button>
-                            <button className="remove-btn" onClick={removeGrid}>-</button>
+                            <button className={`${styles["control-btn"]} ${styles["music-btn"]}`} onClick={toggleMusic}>
+                                <div className={`${styles["music-logo-wrapper"]} ${!isPlaying ? styles["slashed"] : ""}`}>
+                                    <img src={musicLogo} alt="Music" className={styles["music-logo"]} />
+                                </div>
+                            </button>
+                        </div>
+                        <div className={styles["controls"]}>
+                            <button className={styles["add-btn"]} onClick={addGrid}>+</button>
+                            <button className={styles["remove-btn"]} onClick={removeGrid}>-</button>
                         </div>
                         {grids.map((grid, gridIndex) => {
                             let correctResult = [...originalArray];
@@ -385,55 +382,54 @@ const ShortShift = () => {
                                     }
                                 }
                             }
-                         
+
                             const isExtraIteration = iterationResults.length > 0 && iterationResults[gridIndex]?.correct === false && isSorted(grids[gridIndex]);
-                        
+
                             return (
                                 <div key={gridIndex}>
-                                    <h3>{getOrdinalSuffix(gridIndex + 1)} Iteration</h3>
-                                    <div className="grid-container">
+                                    <h3 className={styles["iteration-title"]}>{getOrdinalSuffix(gridIndex + 1)} Iteration</h3>
+                                    <div className={styles["grid-container"]}>
                                         {grid.map((num, itemIndex) => (
                                             <div
                                                 key={itemIndex}
-                                                className={`grid-item ${selected.gridIndex === gridIndex && selected.itemIndex === itemIndex ? "selected" : ""}`}
+                                                className={`${styles["grid-item"]} ${selected.gridIndex === gridIndex && selected.itemIndex === itemIndex ? styles["selected"] : ""}`}
                                                 onClick={() => handleSelect(gridIndex, itemIndex)}
                                             >
                                                 {num}
                                             </div>
                                         ))}
                                     </div>
-                                
                                 </div>
                             );
                         })}
-                        <button className="submit-btn" onClick={() => setIsConfirmModalOpen(true)}>Submit</button>
+                        <button className={styles["submit-btn"]} onClick={() => setIsConfirmModalOpen(true)}>Submit</button>
                     </div>
                 </>
-             )}
+            )}
             {isConfirmModalOpen && (
-                <div className="modal-overlay-confirm">
-                    <div className="modal-content-confirm">
-                        <div className="modal-header-confirm">
+                <div className={styles["modal-overlay-confirm"]}>
+                    <div className={styles["modal-content-confirm"]}>
+                        <div className={styles["modal-header-confirm"]}>
                             <h2>Confirm Submission</h2>
                         </div>
-                        <div className="modal-body-confirm">
+                        <div className={styles["modal-body-confirm"]}>
                             <p>Are you sure you want to submit your answer?</p>
-                            <div className="modal-warning">
-                                <span className="warning-icon">⚠️</span>
-                                <br></br> This action cannot be undone.
+                            <div className={styles["modal-warning"]}>
+                                <span className={styles["warning-icon"]}>⚠️</span>
+                                <br /> This action cannot be undone.
                             </div>
                         </div>
-                        <div className="modal-footer-confirm">
-                            <button className="submit-btn-confirm" onClick={() => {
+                        <div className={styles["modal-footer-confirm"]}>
+                            <button className={styles["submit-btn-confirm"]} onClick={() => {
                                 const sound = backgroundSound.current;
-                                sound.pause(); 
-                                sound.currentTime = 0; 
+                                sound.pause();
+                                sound.currentTime = 0;
                                 checkSorting();
                                 setIsConfirmModalOpen(false);
                             }}>
                                 Yes, Submit
                             </button>
-                            <button className="cancel-btn-confirm" onClick={() => setIsConfirmModalOpen(false)}>
+                            <button className={styles["cancel-btn-confirm"]} onClick={() => setIsConfirmModalOpen(false)}>
                                 Cancel
                             </button>
                         </div>
@@ -441,82 +437,75 @@ const ShortShift = () => {
                 </div>
             )}
             {isModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <div className="modal-header">
+                <div className={styles["modal-overlay"]}>
+                    <div className={styles["modal-content"]}>
+                        <div className={styles["modal-header"]}>
                             <h2>Sorting Results</h2>
-                            
                         </div>
-                        {/* Scoring System */}
-                        <div className="score-container">
+                        <div className={styles["score-container"]}>
                             {(() => {
                                 const totalPoints = 60;
-                                const iterationsRequired = correctSteps.length - 1; 
+                                const iterationsRequired = correctSteps.length - 1;
                                 const pointsPerIteration = totalPoints / iterationsRequired;
-                                const penaltyPerExtraIteration = pointsPerIteration / 2; 
+                                const penaltyPerExtraIteration = pointsPerIteration / 2;
                                 let score = 0;
 
                                 iterationResults.forEach((result, index) => {
                                     if (index < iterationsRequired) {
-                                        
                                         if (result.correct) {
-                                            score += pointsPerIteration; 
+                                            score += pointsPerIteration;
                                         } else {
-                                            score -= penaltyPerExtraIteration; 
+                                            score -= penaltyPerExtraIteration;
                                         }
                                     } else {
-                                        
-                                        score -= penaltyPerExtraIteration; 
+                                        score -= penaltyPerExtraIteration;
                                     }
                                 });
 
-                                
                                 score = Math.max(0, score);
 
-                               
-                                const passingScore = 0.7 * totalPoints; 
+                                const passingScore = 0.7 * totalPoints;
                                 const remarks = score >= passingScore ? "Pass" : "Fail";
-                                const remarksClass = score >= passingScore ? "pass" : "fail";
+                                const remarksClass = score >= passingScore ? styles["pass"] : styles["fail"];
 
                                 return (
-                                    <div className="score-container">
-                                        <p>Score: {score.toFixed(2)} / <span className="total-points">{totalPoints}</span></p>
+                                    <div className={styles["score-container"]}>
+                                        <p>Score: {score.toFixed(2)} / <span className={styles["total-points"]}>{totalPoints}</span></p>
                                         <p>Remark: <span className={remarksClass}>{remarks}</span></p>
                                     </div>
                                 );
                             })()}
                         </div>
-                        <div className="results-container">
+                        <div className={styles["results-container"]}>
                             <div>
-                                <h3>Your Answers</h3>
-                                <hr></hr>
+                                <h3 className={styles["results-title"]}>Your Answers</h3>
+                                <hr />
                                 {grids.map((grid, index) => (
                                     <div key={index}>
-                                        <h4>{getOrdinalSuffix(index + 1)} Iteration</h4>
-                                        <div className="grid-container">
+                                        <h4 className={styles["iteration-title"]}>{getOrdinalSuffix(index + 1)} Iteration</h4>
+                                        <div className={styles["grid-container"]}>
                                             {grid.map((num, i) => (
-                                                <div key={i} className="grid-item">
+                                                <div key={i} className={styles["grid-item"]}>
                                                     {num}
                                                 </div>
                                             ))}
-                                            <span 
-                                                className={`iteration-status-icon ${iterationResults[index]?.correct ? 'correct' : 'incorrect'}`}>
+                                            <span
+                                                className={`${styles["iteration-status-icon"]} ${iterationResults[index]?.correct ? styles["correct"] : styles["incorrect"]}`}>
                                                 {iterationResults[index]?.correct ? "✓" : "X"}
                                             </span>
-
                                         </div>
                                     </div>
                                 ))}
                             </div>
                             <div>
-                                <h3>Correct Answers</h3>
-                                <hr></hr>
+                                <h3 className={styles["results-title"]}>Correct Answers</h3>
+                                <hr />
                                 {correctSteps.slice(1).map((step, index) => (
                                     <div key={index}>
-                                        <h4>{getOrdinalSuffix(index + 1)} Iteration</h4>
-                                        <div className="grid-container">
+                                        <h4 className={styles["iteration-title"]}>{getOrdinalSuffix(index + 1)} Iteration</h4>
+                                        <div className={styles["grid-container"]}>
                                             {step.map((num, i) => (
-                                                <div key={i} className="grid-item">
+                                                <div key={i} className={styles["grid-item"]}>
                                                     {num}
                                                 </div>
                                             ))}
@@ -525,26 +514,24 @@ const ShortShift = () => {
                                 ))}
                             </div>
                         </div>
-                        
-                        <div className="reset-container">
-                             <button
-                                className="previous-btn"
+                        <div className={styles["reset-container"]}>
+                            <button
+                                className={styles["previous-btn"]}
                                 onClick={() => window.location.reload()}
-                                disabled={remarks === "Fail"} 
+                                disabled={remarks === "Fail"}
                             >
                                 PREVIOUS
                             </button>
-                            <button className="reset-btn" onClick={() => window.location.reload()}>
+                            <button className={styles["reset-btn"]} onClick={() => window.location.reload()}>
                                 RESET
                             </button>
-                            <button 
-                                className="next-btn" 
+                            <button
+                                className={styles["next-btn"]}
                                 onClick={() => window.location.reload()}
-                                disabled={remarks === "Fail"} 
+                                disabled={remarks === "Fail"}
                             >
                                 NEXT
                             </button>
-                            
                         </div>
                     </div>
                 </div>
@@ -554,4 +541,4 @@ const ShortShift = () => {
     );
 };
 
-export default ShortShift;
+export default ShortShiftBubble;

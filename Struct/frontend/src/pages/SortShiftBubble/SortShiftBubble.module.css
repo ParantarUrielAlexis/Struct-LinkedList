@@ -1,0 +1,699 @@
+@keyframes fadeSlideIn {
+0% {
+    opacity: 0;
+    transform: translateY(50px); /* Start slightly below */
+}
+100% {
+    opacity: 1;
+    transform: translateY(0); /* End at the original position */
+}
+}
+
+.title-game{
+font-size: 40px;
+text-align: center;
+margin-top: 20px;
+margin-bottom: 20px;
+font-family: Arial, sans-serif;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+
+.short-shift-container {
+text-align: center;
+padding: 20px;
+font-family: Arial, sans-serif;
+}
+.instruction {
+font-size: 16px;
+margin-bottom: 10px;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+
+.array-label {
+font-weight: bold;
+margin-bottom: 10px;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+
+}
+
+.grid-container {
+display: flex;
+gap: 5px;
+justify-content: center;
+margin-top: 10px;
+flex-wrap: wrap; /* Wrap items if they exceed the width */
+animation: fadeSlideIn 0.2s ease-in-out; /* Apply the animation */
+}
+.orig-grid-container {
+display: flex;
+justify-content: center;
+gap: 10px;
+margin-bottom: 35px;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+.grid-item {
+width: 70px;
+height: 70px;
+background-color: #393E46;
+color: white;
+font-size: 32px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 5px;
+border: 2px solid rgb(255, 132, 0);
+cursor: pointer;
+}
+
+.orig-grid-item {
+width: 50px;
+height: 50px;
+background-color: #393E46;
+color: white;
+font-size: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 5px;
+border: 2px solid rgb(255, 132, 0);
+cursor: pointer;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+
+.grid-item.selected {
+border: 2px solid red;
+box-shadow: 0 0 10px red;
+}
+
+.controls {
+display: flex;
+justify-content: right;
+gap: 10px;
+margin-left: 510px;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+
+
+.add-btn, .remove-btn {
+width: 25px;
+height: 25px;
+font-size: 18px;
+border: none;
+cursor: pointer;
+border-radius: 5px;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+.add-btn:hover, .remove-btn:hover {
+background-color: #00ADB5;
+color: white;
+transition: background-color 0.3s ease;
+}
+
+.add-btn {
+background-color: rgb(1, 210, 1);
+color: black;
+}
+
+.remove-btn {
+background-color: red;
+color: black;
+}
+.iterations {
+border: 3px solid black; /* Reduce border thickness */
+padding: 10px; /* Reduce inner spacing */
+margin: 10px auto; /* Reduce space around */
+width: 630px; /* Adjust width to content */
+display: flex;
+flex-direction: column;
+align-items: center;
+transition: all 0.3s ease-in-out;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+
+.iterations h2 {
+margin-right: 430px;
+font-size: 24px;
+justify-content: center;
+animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+}
+.iterations h3 {
+margin-bottom: 2px; /* Reduce space below iteration title */
+margin-top: 15px; /* Increase space above iteration title */
+text-align: center;
+}
+
+.submit-btn {
+background-color: #00ADB5;
+height: 50px;
+width: 300px;
+color: rgb(0, 0, 0);
+padding: 10px 20px;
+font-size: 16px;
+border: none;
+border-radius: 50px;
+cursor: pointer;
+margin-top: 20px;
+}
+.submit-btn:hover {
+background-color: #5b7eee;
+color: white;
+transition: background-color 0.3s ease;
+}
+.correct-iteration {
+color: #ff0000; /* Red color for emphasis */
+font-size: 0.9em;
+margin-top: 5px;
+padding: 10px;
+background-color: #ffe6e6; /* Light red background for visibility */
+border: 1px solid #ff0000; /* Red border for emphasis */
+border-radius: 5px;
+text-align: center;
+width: fit-content;
+margin: 5px auto; /* Center the box */
+}
+.extra-iteration {
+color: #ff0000; /* Red color for emphasis */
+font-size: 0.9em;
+margin-top: 5px;
+padding: 10px;
+background-color: #ffe6e6; /* Light red background for visibility */
+border: 1px solid #ff0000; /* Red border for emphasis */
+border-radius: 5px;
+text-align: center;
+width: fit-content;
+margin: 5px auto; /* Center the box */
+}
+
+.modal-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.5);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+}
+
+.modal-content {
+background-color: #E4E4E4;
+padding: 20px;
+border-radius: 10px;
+width: 85%;
+max-width: 150%;
+max-height: 80%; /* Limit the height of the modal */
+overflow-y: auto; /* Enable vertical scrolling */
+text-align: center;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.results-container {
+display: flex;
+justify-content: space-between;
+margin-top: 20px;
+gap: 20px;
+}
+.results-container hr {
+border: 2px black solid;
+width: 60%; /* Reduce the length of the horizontal rule */
+margin: 0 auto; /* Center the horizontal rule */
+}
+
+.close-btn {
+background-color: #00adb5;
+color: white;
+padding: 10px 20px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+margin-top: 20px;
+}
+
+.close-btn:hover {
+background-color: #007a80;
+}
+.iteration-status-icon {
+font-size: 13px;
+margin-left: 10px;
+margin-top: 20px;
+display: inline-flex;
+justify-content: center;
+align-items: center;
+width: 25px;
+height: 25px;
+border-radius: 50%;
+text-align: center;
+}
+
+.iteration-status-icon.correct {
+background-color: rgb(8, 249, 24); /* Green for correct */
+color: rgb(0, 0, 0);
+border: 2px solid black;
+font-weight: 600px;
+}
+
+.iteration-status-icon.incorrect {
+background-color: rgb(255, 0, 0); /* Red for incorrect */
+color: rgb(0, 0, 0);
+border: 2px solid black;
+font-weight: 600px;
+
+}
+
+.modal-header {
+margin-top: 40px;
+display: flex;
+justify-content: center;
+align-items: center;
+position: relative;
+margin-bottom: 20px;
+}
+
+.modal-header h2 {
+position: absolute;
+left: 50%;
+transform: translateX(-50%);
+}
+
+.modal-header .close-btn {
+position: absolute;
+right: 0;
+margin-top: -20px;
+}
+.reset-container {
+display: flex;
+justify-content: center;
+margin-top: 60px;
+margin-bottom: 30px;
+gap: 20px
+}
+
+.reset-btn {
+background-color: #ff4d4d;
+color: white;
+padding: 10px 20px;
+border: none;
+border-radius: 5px;
+font-size: 16px;
+cursor: pointer;
+}
+.reset-btn:hover {
+background-color: #cc0000;
+}
+.next-btn {
+background-color: #00adb5;
+color: white;
+padding: 10px 20px;
+border: none;
+border-radius: 5px;
+font-size: 16px;
+cursor: pointer;
+}
+
+.next-btn:not(:disabled):hover {
+background-color: #007a80; /* Hover effect only for enabled buttons */
+}
+
+.next-btn:disabled {
+background-color: #ccc; /* Grey out the button when disabled */
+color: #666; /* Optional: Change text color for disabled state */
+cursor: not-allowed; /* Change cursor to indicate it's not clickable */
+}
+/* For the previous button */
+.previous-btn:not(:disabled):hover {
+background-color: #007a80; /* Hover effect only for enabled buttons */
+}
+
+.previous-btn{
+background-color: #00adb5;
+color: white;
+padding: 10px 20px;
+border: none;
+border-radius: 5px;
+font-size: 16px;
+cursor: pointer;
+}
+.previous-btn:disabled {
+background-color: #ccc; /* Grey out the button when disabled */
+color: #666; /* Optional: Change text color for disabled state */
+cursor: not-allowed; /* Change cursor to indicate it's not clickable */
+}
+
+
+.score-container {
+display: flex;
+justify-content: center; 
+gap: 40px; 
+margin-top: 15px;
+font-size: 21px; 
+}
+
+.score-container .total-points {
+font-size: 16px; 
+}
+
+.score-container .remarks {
+font-weight: bold;
+}
+
+.pass {
+color: green;
+}
+
+.fail {
+color: red;
+}
+
+.modal-overlay-confirm {
+position: fixed;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+background: rgba(0, 0, 0, 0.5);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 999;
+}
+
+.modal-content-confirm {
+background: white;
+padding: 2rem;
+border-radius: 10px;
+max-width: 500px;
+width: 90%;
+box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header-confirm h2 {
+margin: 0 0 1rem;
+font-size: 1.8rem;
+text-align: center;
+}
+
+.modal-body-confirm p {
+text-align: center;
+font-size: 1.2rem;
+}
+
+.modal-footer-confirm {
+display: flex;
+justify-content: center;
+gap: 1rem;
+margin-top: 1.5rem;
+}
+
+.modal-footer-confirm button {
+height: 80px;
+width: 110px;
+font-size: 16px;
+border-radius: 8px;
+border: none;
+cursor: pointer;
+transition: background-color 0.3s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+}
+
+/* Confirm button */
+.submit-btn-confirm {
+background-color: #007bff;
+color: white;
+}
+
+.submit-btn-confirm:hover {
+background-color: #0056b3;
+}
+
+/* Cancel button */
+.cancel-btn-confirm {
+background-color: #f44336;
+color: white;
+}
+
+.cancel-btn-confirm:hover {
+background-color: #d32f2f;
+}
+
+.warning-icon {
+font-size: 130px; /* makes emoji larger */
+}
+
+
+
+/* Tutorial CSS*/
+@keyframes fadeIn {
+0% {
+    opacity: 0;
+}
+100% {
+    opacity: 1;
+}
+
+}  
+
+.tutorial-modal {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.8);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+animation: fadeIn 2s ease-in-out; 
+}
+
+.tutorial-content {
+background-color: white;
+padding: 20px;
+border-radius: 10px;
+height: 85%; /* Set a fixed height for the modal */
+text-align: center;
+width: 100%;
+max-width: 1250px;
+overflow-y: auto; /* Enable vertical scrolling */
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow for better visibility */
+}
+.tutorial-content hr{
+width: 35%;
+border: 2px solid black;
+margin-bottom: 35px;
+}
+.tutorial-content p {
+text-indent: 50px;
+text-align: left;
+font-size: 18px;
+line-height: 1.7;
+}
+.tutorial-content strong {
+font-size: 20px;
+font-weight: bold;
+}
+
+.tutorial-content h1 {
+margin-bottom: 24px;
+}
+
+.tutorial-content p {
+margin-bottom: 20px;
+}
+
+.tutorial-content ol {
+text-align: left;
+margin-bottom: 20px;
+}
+
+.start-btn {
+background-color: #00ADB5;
+color: rgb(0, 0, 0);
+margin-top: 40px;
+padding: 10px 20px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+font-size: 18px;
+}
+
+.start-btn:hover {
+background-color: #5b7eee;
+}
+.how-it-works{
+padding: 20px;
+background-color: #00ADB5;
+margin-top: 30px;
+line-height: 1.5;  
+}
+.how-it-works h3{
+margin-top: 20px;
+text-align: left;
+}
+.line-break hr{
+border: 0.5px solid black;
+width: 100%;
+margin: 20px auto; /* Center the line */
+}
+.manual-run-through h2{
+margin-top: 50px;
+text-align: left;
+margin-bottom: 20px;
+}
+.manual-run-through img{
+    width: 69%;
+    height: 69%;
+    margin-left: 35px;
+}
+.first-swap{
+width: 71.6%;
+margin-left: 25px
+}
+.second-swap{
+width: 71.6%;
+margin-left: 10px
+}
+.fourth-compare{
+width: 71.6%;
+margin-left: 10px
+}
+.simulation img{
+width: 100%;
+height: auto;
+margin-top: 20px;
+margin-bottom: 20px;
+}
+.scoring-system {
+margin-top: 20px;
+text-align: left;
+}
+
+.scoring-system h2 {
+margin-bottom: 15px;
+font-size: 24px;
+color: #333;
+}
+
+.scoring-system p {
+font-size: 18px;
+line-height: 1.6;
+margin-bottom: 15px;
+}
+
+.scoring-system ul {
+font-size: 18px;
+line-height: 1.6;
+margin-left: 20px;
+}
+
+.scoring-system ul li {
+margin-bottom: 10px;
+}
+.game-introduction {
+margin-top: 20px;
+text-align: left;
+line-height: 2;
+}
+
+.game-introduction h2 {
+margin-bottom: 15px;
+font-size: 26px;
+color: #333;
+}
+
+.game-introduction h3 {
+margin-top: 20px;
+font-size: 22px;
+color: #555;
+}
+
+.game-introduction p {
+font-size: 18px;
+line-height: 2;
+margin-bottom: 15px;
+}
+
+.game-introduction ul {
+font-size: 18px;
+line-height: 1.6;
+margin: 15px 0;
+text-align: left;
+display: inline-block;
+}
+
+.game-introduction ul li {
+margin-bottom: 10px;
+}
+
+
+/* Game Controls*/
+.game-controls {
+display: flex;
+justify-content: center;
+gap: 10px;
+margin-right:500px;
+}
+
+.control-btn {
+background-color: #f0f0f0;
+border: 2px solid #000000;
+border-radius: 50%;
+width: 30px;
+height: 30px;
+font-size: 18px;
+display: flex;
+justify-content: center;
+align-items: center;
+cursor: pointer;
+transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.control-btn:hover {
+background-color: #ddd;
+transform: scale(1.1);
+}
+
+.tutorial-btn {
+color: #007bff;
+}
+
+.music-btn {
+color: #28a745;
+}
+
+.music-logo-wrapper {
+position: relative;
+width: 20px;
+height: 20px;
+display: inline-block;
+}
+
+.music-logo {
+width: 100%;
+height: 100%;
+display: block;
+}
+
+.music-logo-wrapper.slashed::after {
+content: "";
+position: absolute;
+top: 50%;
+left: 50%;
+width: 140%; 
+height: 2px;
+background-color: black;
+transform: translate(-50%, -50%) rotate(45deg);
+pointer-events: none;
+border: 1px solid black; 
+}
+
+
+.tutorial-logo{
+width: 22px;
+height: 22px;
+}

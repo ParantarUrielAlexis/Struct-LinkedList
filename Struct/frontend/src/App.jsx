@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 import SortRush from "./pages/SortRush";
 import Signup from "./pages/Signup/Signup";
 import Login from "./pages/Login/Login";
-import SortShift from "./pages/SortShift/SortShift";
+import SortShiftBubble from "./pages/SortShiftBubble/SortShiftBubble";
 import SortShiftSelection from "./pages/SortShiftSelection/SortShiftSelection";
 
 function App() {
@@ -17,8 +17,8 @@ function App() {
         <Route path="/sort" element={<SortRush />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path = "/sortshift" element={<SortShift />} />
-        <Route path = "/sortshiftselection" element={<SortShiftSelection/>} />
+        <Route path = "/sortshiftbubble" element={<SortShiftBubble />} />
+        <Route path = "/sortshiftselection" element={<SortShiftSelection />} />
       </Routes>
     </Router>
   );
