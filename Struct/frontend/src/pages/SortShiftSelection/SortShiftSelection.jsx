@@ -18,7 +18,7 @@ import tutorialLogo from '../../assets/tutorial.png';
 import styles from './SortShiftSelection.module.css';
 
 const SortShiftSelection= () => {
-    const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
+    const backgroundSound = useRef(new Audio("/sounds/selection_background.mp3")); 
 
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
@@ -80,9 +80,9 @@ const SortShiftSelection= () => {
     const closeTutorial = () => {
         setIsTutorialOpen(false);
         const sound = backgroundSound.current;
-        sound.volume = 0.2; 
+        sound.volume = 0.3; 
         sound.loop = true; 
-        // sound.play();
+        sound.play();
         
     };
 
@@ -197,7 +197,7 @@ const SortShiftSelection= () => {
     const totalPoints = 60;
     const iterationsRequired = correctSteps.length - 1;
     const pointsPerIteration = totalPoints / iterationsRequired;
-    const penaltyPerExtraIteration = pointsPerIteration / 2;
+    const penaltyPerExtraIteration = pointsPerIteration / 4;
     let score = 0;
 
     iterationResults.forEach((result, index) => {
