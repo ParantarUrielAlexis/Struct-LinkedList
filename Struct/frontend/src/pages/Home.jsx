@@ -13,7 +13,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col  bg-gray-100">
+    <div className="min-h-screen flex flex-col pt-16 bg-gray-100">
       <h1 className="text-4xl font-bold text-black-800 mb-4">React + Django</h1>
       {data ? (
         <p className="text-xl text-green-500">{data.message}</p>
