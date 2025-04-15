@@ -7,6 +7,7 @@ import Signup from "./pages/Signup/Signup";
 import Login from "./pages/Login/Login";
 import SortShiftBubble from "./pages/SortShiftBubble/SortShiftBubble";
 import SortShiftSelection from "./pages/SortShiftSelection/SortShiftSelection";
+import SortShiftInsertion from "./pages/SortShiftInsertion/SortShiftInsertion";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path = "/sortshiftbubble" element={<SortShiftBubble />} />
         <Route path = "/sortshiftselection" element={<SortShiftSelection />} />
+        <Route path = "/sortshiftinsertion" element={<SortShiftInsertion />} />
       </Routes>
     </Router>
   );

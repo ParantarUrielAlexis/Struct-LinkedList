@@ -17,7 +17,7 @@ import iterationGIF from '../../assets/bubble/first_iteration.gif';
 
 import styles from './SortShiftBubble.module.css';
 
-const ShortShiftBubble = () => {
+const SortShiftBubble = () => {
     const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
 
     const generateRandomArray = () =>{
@@ -541,4 +541,4 @@ const ShortShiftBubble = () => {
     );
 };
 
-export default ShortShiftBubble;
+export default SortShiftBubble;

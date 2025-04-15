@@ -1,30 +1,31 @@
 import React, { useEffect, useState, useRef } from "react";
-import unsortedImg from '../../assets/selection/unsorted.png';
-import firstIteration from '../../assets/selection/first_iteration.png';
-import secondIteration from '../../assets/selection/second_iteration.png';
-import thirdIteration from '../../assets/selection/third_iteration.png';
-import fourthIteration from '../../assets/selection/fourth_iteration.png';
-import fifthIteration from '../../assets/selection/fifth_iteration.png';
-import sixthIteration from '../../assets/selection/sixth_iteration.png';
-import firstSwapped from '../../assets/selection/swapped1.png';
-import secondSwapped from '../../assets/selection/swapped2.png';
-import thirdSwapped from '../../assets/selection/swapped3.png';
-import forthSwapped from '../../assets/selection/swapped4.png';
-import simulation from '../../assets/selection/simulation.gif';
+import unsortedImg from '../../assets/insertion/unsorted.png';
+import firstIteration from '../../assets/insertion/first_iteration.png';
+import secondIteration from '../../assets/insertion/second_iteration.png';
+import thirdIteration from '../../assets/insertion/third_iteration.png';
+import fourthIteration from '../../assets/insertion/fourth_iteration.png';
+import fifthIteration from '../../assets/insertion/fifth_iteration.png';
+import sixthIteration from '../../assets/insertion/sixth_iteration.png';
+
+import firstSwapped from '../../assets/insertion/swapped1.png';
+import secondSwapped from '../../assets/insertion/swapped2.png';
+import thirdSwapped from '../../assets/insertion/swapped3.png';
+import forthSwapped from '../../assets/insertion/swapped4.png';
+import simulation from '../../assets/insertion/simulation.gif';
 
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
 
-import styles from './SortShiftSelection.module.css';
+import styles from './SortShiftInsertion.module.css';
 
-const SortShiftSelection= () => {
-    const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
+const SortShiftInsertion = () => {
+    const backgroundSound = useRef(new Audio("/sounds/insertion_background.mp3")); 
 
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
     const [originalArray, setOriginalArray] = useState([]);
-   
+    
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
     const [iterationResults, setIterationResults] = useState([]);
@@ -80,9 +81,9 @@ const SortShiftSelection= () => {
     const closeTutorial = () => {
         setIsTutorialOpen(false);
         const sound = backgroundSound.current;
-        sound.volume = 0.2; 
+        sound.volume = 0.3; 
         sound.loop = true; 
-        // sound.play();
+        sound.play();
         
     };
 
@@ -123,49 +124,38 @@ const SortShiftSelection= () => {
         return true;
     };
 
-    const selectionSortSteps = () => {
+    const insertionSortSteps = () => {
         let arr = [...originalArray];
-        let steps = [arr.slice()]; 
-        for (let i = 0; i < arr.length - 1; i++) {
-            let minIndex = i;
-            for (let j = i + 1; j < arr.length; j++) {
-                if (arr[j] < arr[minIndex]) {
-                    minIndex = j;
-                }
+        let steps = [arr.slice()];
+        for (let i = 1; i < arr.length; i++) {
+            let key = arr[i];
+            let j = i - 1;
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j--;
             }
-            if (minIndex !== i) {
-                [arr[i], arr[minIndex]] = [arr[minIndex], arr[i]];
-            }
-            steps.push(arr.slice()); 
-
-            if (isSorted(arr)) {
-                break;
-            }
+            arr[j + 1] = key;
+            steps.push(arr.slice());
+            if (isSorted(arr)) break;
         }
         return steps;
     };
 
-    
-    const correctSteps = selectionSortSteps();
+    const correctSteps = insertionSortSteps();
 
     const checkIteration = (grid, gridIndex) => {
         let arr = [...originalArray];
-        for (let i = 0; i <= gridIndex; i++) {
-            let minIndex = i;
-            for (let j = i + 1; j < arr.length; j++) {
-                if (arr[j] < arr[minIndex]) {
-                    minIndex = j;
-                }
+        for (let i = 1; i <= gridIndex + 1; i++) {
+            let key = arr[i];
+            let j = i - 1;
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j--;
             }
-            if (minIndex !== i) {
-                [arr[i], arr[minIndex]] = [arr[minIndex], arr[i]];
-            }
+            arr[j + 1] = key;
         }
 
-        if (gridIndex >= correctSteps.length - 1) {
-            return false;
-        }
-
+        if (gridIndex >= correctSteps.length) return false;
         return JSON.stringify(grid) === JSON.stringify(arr);
     };
 
@@ -173,27 +163,26 @@ const SortShiftSelection= () => {
         let correctCount = 0;
         let incorrectCount = 0;
         let isPreviousCorrect = true;
-        let isAlreadySorted = false; 
-    
+        let isAlreadySorted = false;
+
         const results = grids.map((grid, index) => {
             if (isPreviousCorrect && !isAlreadySorted && checkIteration(grid, index)) {
-                if (isSorted(grid)) {
-                    isAlreadySorted = true; 
-                }
+                if (isSorted(grid)) isAlreadySorted = true;
                 correctCount++;
                 return { iteration: index + 1, correct: true };
             } else {
                 incorrectCount++;
-                isPreviousCorrect = false; 
+                isPreviousCorrect = false;
                 return { iteration: index + 1, correct: false };
             }
         });
-        
-    
+
         setIterationResults(results);
         setIsModalOpen(true);
-
     };
+    
+
+    
     const totalPoints = 60;
     const iterationsRequired = correctSteps.length - 1;
     const pointsPerIteration = totalPoints / iterationsRequired;
@@ -221,23 +210,23 @@ const SortShiftSelection= () => {
              {isTutorialOpen && (
                 <div className={styles["tutorial-modal"]}>
                     <div className={styles["tutorial-content"]}>
-                        <h1>Selection Sort</h1>
+                        <h1>Insertion Sort</h1>
                         <hr className={styles["divider"]}></hr>
                         <p className={styles["description"]}>
-                            <strong>Selection Sort</strong> is a simple comparison-based sorting algorithm. It repeatedly selects the smallest (or largest, depending on the order) element from the unsorted portion of the array and places it in its correct position. This process continues until the entire array is sorted.
+                            <strong>Insertion Sort</strong> is a simple comparison-based sorting algorithm. It builds the final sorted array one element at a time by repeatedly taking the next unsorted element and inserting it into its correct position in the sorted portion of the array.
                         </p>
                         <div className={styles["how-it-works"]}>
                             <h3>How it works:</h3>
                             <ol className={styles["steps-list"]}>
-                                <li>Start with the first element in the array.</li>
-                                <li>Find the smallest element in the unsorted portion of the array.</li>
-                                <li>Swap the smallest element with the first element of the unsorted portion.</li>
-                                <li>Move to the next element and repeat the process for the remaining unsorted portion of the array.</li>
-                                <li>Continue until the entire array is sorted.</li>
+                                <li>Start from the second element in the array (index 1).</li>
+                                <li>Compare it with elements before it and shift larger elements to the right.</li>
+                                <li>Insert the current element into its correct position.</li>
+                                <li>Repeat this process for each element in the array.</li>
+                                <li>Continue until all elements are placed in the correct order.</li>
                             </ol>
                         </div>
                         <p className={styles["additional-info"]}>
-                            <strong>Selection Sort </strong>is an intuitive algorithm that works well for small datasets. However, it is not efficient for large datasets due to its time complexity of O(n²). Continue reading to learn how to implement it in the game.
+                            <strong>Insertion Sort</strong> is an intuitive algorithm that works well for small datasets or nearly sorted arrays. However, like other basic sorting algorithms, its time complexity is O(n²) in the worst case.
                         </p>
                         <div className={styles["line-break"]}>
                             <hr className={styles["divider"]}></hr>
@@ -249,52 +238,52 @@ const SortShiftSelection= () => {
                                 <img src={unsortedImg} alt="Unsorted Array" className={styles["unsorted-image"]} />
                             </p>
                             <p className={styles["step-description"]}>
-                                <strong>Step 2: </strong>The first element 12 is already the smallest in the array, so no swap is needed and we are done with first iteration.
+                            <strong>Step 2: </strong> Compare (12) with (42). Since (12) is smaller, we shift (42) and insert (12) in the first position.
                                 <img src={firstIteration} alt="First Iteration" className={styles["first-compare"]} />
                             </p>
                             <p className={styles["step-description"]}>
-                                <strong>Step 3: </strong>  Move to the second position. Find the smallest element in the unsorted portion (23). 
+                                <strong>Swapped: </strong> We swap them and we are done with first iteration. <br></br>
+                                <img src={firstSwapped} alt="First Swap" className={styles["first-swap"]} /> 
+                            </p>
+                            <p className={styles["step-description"]}>
+                                <strong>Step 3: </strong> Compare (34) with (42). Since 34 is smaller, we shift 42 and insert 34 before it. 
                                 <img src={secondIteration} alt="Second Iteration" className={styles["second-compare"]} /> 
                             </p>
                             <p className={styles["step-description"]}>
                                 <strong>Swapped: </strong> We swap them and we are done with second iteration. <br></br>
-                                <img src={firstSwapped} alt="First Swap" className={styles["first-swap"]} /> 
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 4: </strong> You can see here that the smallest element is 34, which already in the correct position, so no swap is needed.
-                                <img src={thirdIteration} alt="Third Iteration" className={styles["first-swap"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 5: </strong>  Move the fourth position. Find the smallest element in the unsorted portion (45).
-                                <img src={fourthIteration} alt="Fourth Iteration" className={styles["fourth-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with fourth iteration. <br></br>
                                 <img src={secondSwapped} alt="Second Compare" className={styles["second-swap"]} /> 
                             </p>
                             <p className={styles["step-description"]}>
-                                <strong>Step 6: </strong> Move to the fifth position. Find the smallest element in the unsorted portion (56).
-                                <img src={fifthIteration} alt="Fifth Iteration" className="fifth-iteration" />
+                            <strong>Step 4: </strong> (65) is already greater than all sorted elements, so it stays in place. We are done with third iteration.
+                                <img src={thirdIteration} alt="Third Iteration" className={styles["first-swap"]} />
                             </p>
                             <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with fifth iteration. <br></br>
+                                <strong>Step 5: </strong> Compare (23) with (65), (42), and (34). Shift all of them and insert 23 after 12.<br />
+                                <img src={fourthIteration} alt="Fourth Iteration" className={styles["fourth-compare"]} />
+                            </p>
+                            <p className={styles["step-description"]}>
+                                <strong>Swapped: </strong> Elements were shifted and 23 was inserted in its correct spot. We are done with fourth iteration. <br></br>
                                 <img src={thirdSwapped} alt="Third Swapped" className={styles["third-swap"]} /> 
                             </p>
+                            <p className={styles["step-description"]}>
+                            <strong>Step 6: </strong> (78) is greater than all sorted elements, so it stays in place.
+                                <img src={fifthIteration} alt="Fifth Iteration" className="fifth-iteration" />
+                            </p>
                             <p>
-                                <strong>Step 7: </strong>  Move to the sixth position. Find the smallest element in the unsorted portion (67).
+                                <strong>Step 7: </strong> Compare (56) with (78) and (65). Shift both, then insert 56 before them.
                                 <img src={sixthIteration} alt="Sixth Iteration" className="sixth-iteration" />
                             </p>
                             <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with sixth iteration. <br></br>
+                                <strong>Swapped: </strong> 56 was inserted at the correct position after shifting larger values. <br></br>
                                 <img src={forthSwapped} alt="Fourth Swapped" className={styles["fourth-swap"]} /> 
                             </p>
                         </div>
                         <p>
-                            The array is now sorted! The final sorted array is: [12, 23, 34, 45, 56, 67, 78]. 
+                            The array is now sorted! The final sorted array is: <strong>[12, 23, 34, 42, 56, 65, 78]</strong>.
                         </p>
                         <br></br>
                         <p>
-                            <strong>Remarks:</strong>  Find the smallest element in the unsorted portion of the array and swap it with the first element of the unsorted portion. Repeat this process until the entire array is sorted.
+                            <strong>Remarks:</strong> In <i>Insertion Sort</i>, we build the sorted array one element at a time by comparing each new element with those before it and inserting it into its correct position. Larger elements are shifted to make space when needed.
                         </p>
                         <div className={styles["line-break"]}>
                             <hr></hr>
@@ -312,18 +301,18 @@ const SortShiftSelection= () => {
                         <div className={styles["game-introduction"]}>
                             <h2>Welcome to Sort Shift!</h2>
                             <p>
-                                Sort Shift is an interactive game designed to help you understand and practice the Selection Sort algorithm. 
-                                Your task is to sort a series of numbers in ascending order by selecting the smallest element from the unsorted portion of the array 
-                                and swapping it with the first element of the unsorted portion. This process continues until the entire array is sorted.
+                                Sort Shift is an interactive game designed to help you understand and practice the Insertion Sort algorithm. 
+                                Your task is to sort a series of numbers in ascending order by repeatedly picking an element from the unsorted portion of the array 
+                                and inserting it into its correct position in the sorted portion. This process continues until the entire array is sorted.
                                 The game challenges you to think critically and apply the sorting steps efficiently. Each move you make will be evaluated, 
                                 and your score will reflect how accurately and efficiently you complete the sorting process.
                             </p>
                             <h2>How to Play:</h2>
                             <ul>
-                                <li>Click on the smallest element in the unsorted portion of the array.</li>
-                                <li>Swap it with the first element of the unsorted portion.</li>
+                                <li>Click on the element you want to insert into the sorted portion of the array.</li>
+                                <li>Move it to its correct position in the sorted portion by swapping it with larger elements.</li>
                                 <li>Repeat this process until the array is fully sorted.</li>
-                                <li>If the current position already contains the smallest element, you still need to add an iteration to proceed.</li>
+                                <li>If the element is already in its correct position, you still need to proceed to the next iteration.</li>
                             </ul>
                         </div>
                         <div className={styles["line-break"]}>
@@ -355,7 +344,7 @@ const SortShiftSelection= () => {
             {!isTutorialOpen && (
                 <>
                     <h1 className={styles["title-game"]}>Sort Shift</h1>
-                    <p className={styles["instruction"]}>Instruction: Use selection sort to arrange the numbers in ascending order.</p>
+                    <p className={styles["instruction"]}>Instruction: Use insertion sort to arrange the numbers in ascending order.</p>
                     <div className={styles["array-label"]}>Original Array:</div>
                     <div className={styles["orig-grid-container"]}>
                         {originalArray.map((num, index) => (
@@ -366,7 +355,7 @@ const SortShiftSelection= () => {
                     </div>
 
                     <div className={styles["iterations"]}>
-                        <h2 className={styles["bubble-sort-title"]}>Selection Sort</h2>
+                        <h2 className={styles["bubble-sort-title"]}>Insertion Sort</h2>
                         <div className={styles["game-controls"]}>
                             <button
                                 className={`${styles["control-btn"]} ${styles["tutorial-btn"]}`}
@@ -553,4 +542,4 @@ const SortShiftSelection= () => {
     );
 };
 
-export default SortShiftSelection;
+export default SortShiftInsertion;
