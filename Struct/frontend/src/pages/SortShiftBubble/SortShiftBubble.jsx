@@ -91,7 +91,7 @@ const SortShiftBubble = () => {
         const addGridSound = new Audio("/sounds/add.mp3");
         addGridSound.play();
         // Don't add new grids if the last grid is already sorted
-        if (grids.length < 6 && !isSorted(grids[grids.length - 1])) {
+        if (grids.length < 6 ) {
             setGrids([...grids, [...grids[grids.length - 1]]]);
         }
     };
@@ -212,6 +212,11 @@ const SortShiftBubble = () => {
 
     return (
         <div className={styles['short-shift-container']}>
+             <video className={styles['background-video']} autoPlay loop muted>
+                        <source src="/video/bubble_bg.mp4" type="video/mp4" />
+                        Your browser does not support the video tag.
+            </video>
+
              {isTutorialOpen && (
                 <div className={styles["tutorial-modal"]}>
                     <div className={styles["tutorial-content"]}>

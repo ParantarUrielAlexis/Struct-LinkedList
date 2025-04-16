@@ -15,24 +15,54 @@
     margin-top: 20px;
     margin-bottom: 20px;
     font-family: Arial, sans-serif;
+    color: rgb(37, 32, 32);;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+    }
+  
+    
+    .background-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1; /* Ensure it stays behind other content */
+    }
+    .content{
+        position: relative;
+        z-index: 1;
+    }
+    .background-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Optional: Add a dark overlay for better contrast */
+        z-index: 0;
     }
     
     .short-shift-container {
+    position: relative;
     text-align: center;
     padding: 20px;
     font-family: Arial, sans-serif;
+    width: 100%;
+    overflow: hidden;
     }
     .instruction {
     font-size: 16px;
     margin-bottom: 10px;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+    color: rgb(37,37,37);
     }
     
     .array-label {
     font-weight: bold;
     margin-bottom: 10px;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+    color: rgb(37,37,37);
     
     }
     
@@ -54,28 +84,32 @@
     .grid-item {
     width: 70px;
     height: 70px;
-    background-color: #393E46;
-    color: white;
+    background-color: #ffb310;
+    color: black;
     font-size: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 5px;
-    border: 2px solid rgb(255, 132, 0);
+    border: 2px solid #000000;;
     cursor: pointer;
+    transition: .2s;
+    }
+    .grid-item:hover{
+        transform: scale(1.1);
     }
     
     .orig-grid-item {
     width: 50px;
     height: 50px;
-    background-color: #393E46;
-    color: white;
+    background-color: #ffb310;;
+    color: black;
     font-size: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 5px;
-    border: 2px solid rgb(255, 132, 0);
+    border: 2px solid black;
     cursor: pointer;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
     }
@@ -101,6 +135,7 @@
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    border: 2px solid #000000;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
     }
     .add-btn:hover, .remove-btn:hover {
@@ -111,15 +146,14 @@
     
     .add-btn {
     background-color: rgb(1, 210, 1);
-    color: black;
+    color: rgb(37,37,37);
     }
-    
     .remove-btn {
     background-color: red;
-    color: black;
+    color: rgb(37,37,37);
     }
     .iterations {
-    border: 3px solid black; /* Reduce border thickness */
+    border: 3px solid black;
     padding: 10px; /* Reduce inner spacing */
     margin: 10px auto; /* Reduce space around */
     width: 630px; /* Adjust width to content */
@@ -128,6 +162,7 @@
     align-items: center;
     transition: all 0.3s ease-in-out;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
+    color: rgb(0, 0, 0);
     }
     
     .iterations h2 {
@@ -143,7 +178,7 @@
     }
     
     .submit-btn {
-    background-color: #00ADB5;
+    background-color: #ffb310;
     height: 50px;
     width: 300px;
     color: rgb(0, 0, 0);
@@ -153,6 +188,7 @@
     border-radius: 50px;
     cursor: pointer;
     margin-top: 20px;
+    border: 2px solid #000; 
     }
     .submit-btn:hover {
     background-color: #5b7eee;

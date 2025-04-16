@@ -16,11 +16,12 @@ import simulation from '../../assets/insertion/simulation.gif';
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
 
+
 import styles from './SortShiftInsertion.module.css';
 
 const SortShiftInsertion = () => {
     const backgroundSound = useRef(new Audio("/sounds/insertion_background.mp3")); 
-
+    
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
@@ -92,7 +93,7 @@ const SortShiftInsertion = () => {
         const addGridSound = new Audio("/sounds/add.mp3");
         addGridSound.play();
         // Don't add new grids if the last grid is already sorted
-        if (grids.length < 6 && !isSorted(grids[grids.length - 1])) {
+        if (grids.length < 6) {
             setGrids([...grids, [...grids[grids.length - 1]]]);
         }
     };
@@ -207,6 +208,14 @@ const SortShiftInsertion = () => {
 
     return (
         <div className={styles['short-shift-container']}>
+            <video className={styles['background-video']} autoPlay loop muted>
+            <source src="/video/insertion2_bg.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+            </video>
+
+        {/* Optional Overlay */}
+        
+        <div className={styles['background-overlay']}></div>
              {isTutorialOpen && (
                 <div className={styles["tutorial-modal"]}>
                     <div className={styles["tutorial-content"]}>
@@ -341,72 +350,74 @@ const SortShiftInsertion = () => {
                     </div>
                 </div>
             )}
-            {!isTutorialOpen && (
-                <>
-                    <h1 className={styles["title-game"]}>Sort Shift</h1>
-                    <p className={styles["instruction"]}>Instruction: Use insertion sort to arrange the numbers in ascending order.</p>
-                    <div className={styles["array-label"]}>Original Array:</div>
-                    <div className={styles["orig-grid-container"]}>
-                        {originalArray.map((num, index) => (
-                            <div key={index} className={styles["orig-grid-item"]}>
-                                {num}
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className={styles["iterations"]}>
-                        <h2 className={styles["bubble-sort-title"]}>Insertion Sort</h2>
-                        <div className={styles["game-controls"]}>
-                            <button
-                                className={`${styles["control-btn"]} ${styles["tutorial-btn"]}`}
-                                onClick={() => setIsTutorialOpen(true)}
-                            >
-                                <img src={tutorialLogo} alt="Tutorial" className={styles["tutorial-logo"]} />
-                            </button>
-
-                            <button className={`${styles["control-btn"]} ${styles["music-btn"]}`} onClick={toggleMusic}>
-                                <div className={`${styles["music-logo-wrapper"]} ${!isPlaying ? styles["slashed"] : ""}`}>
-                                    <img src={musicLogo} alt="Music" className={styles["music-logo"]} />
+            <div className={styles['content']}>
+                {!isTutorialOpen && (
+                    <>
+                        <h1 className={styles["title-game"]}>Sort Shift</h1>
+                        <p className={styles["instruction"]}>Instruction: Use insertion sort to arrange the numbers in ascending order.</p>
+                        <div className={styles["array-label"]}>Original Array:</div>
+                        <div className={styles["orig-grid-container"]}>
+                            {originalArray.map((num, index) => (
+                                <div key={index} className={styles["orig-grid-item"]}>
+                                    {num}
                                 </div>
-                            </button>
+                            ))}
                         </div>
-                        <div className={styles["controls"]}>
-                            <button className={styles["add-btn"]} onClick={addGrid}>+</button>
-                            <button className={styles["remove-btn"]} onClick={removeGrid}>-</button>
-                        </div>
-                        {grids.map((grid, gridIndex) => {
-                            let correctResult = [...originalArray];
-                            for (let i = 0; i <= gridIndex; i++) {
-                                for (let j = 0; j < correctResult.length - i - 1; j++) {
-                                    if (correctResult[j] > correctResult[j + 1]) {
-                                        [correctResult[j], correctResult[j + 1]] = [correctResult[j + 1], correctResult[j]];
+
+                        <div className={styles["iterations"]}>
+                            <h2 className={styles["bubble-sort-title"]}>Insertion Sort</h2>
+                            <div className={styles["game-controls"]}>
+                                <button
+                                    className={`${styles["control-btn"]} ${styles["tutorial-btn"]}`}
+                                    onClick={() => setIsTutorialOpen(true)}
+                                >
+                                    <img src={tutorialLogo} alt="Tutorial" className={styles["tutorial-logo"]} />
+                                </button>
+
+                                <button className={`${styles["control-btn"]} ${styles["music-btn"]}`} onClick={toggleMusic}>
+                                    <div className={`${styles["music-logo-wrapper"]} ${!isPlaying ? styles["slashed"] : ""}`}>
+                                        <img src={musicLogo} alt="Music" className={styles["music-logo"]} />
+                                    </div>
+                                </button>
+                            </div>
+                            <div className={styles["controls"]}>
+                                <button className={styles["add-btn"]} onClick={addGrid}>+</button>
+                                <button className={styles["remove-btn"]} onClick={removeGrid}>-</button>
+                            </div>
+                            {grids.map((grid, gridIndex) => {
+                                let correctResult = [...originalArray];
+                                for (let i = 0; i <= gridIndex; i++) {
+                                    for (let j = 0; j < correctResult.length - i - 1; j++) {
+                                        if (correctResult[j] > correctResult[j + 1]) {
+                                            [correctResult[j], correctResult[j + 1]] = [correctResult[j + 1], correctResult[j]];
+                                        }
                                     }
                                 }
-                            }
 
-                            const isExtraIteration = iterationResults.length > 0 && iterationResults[gridIndex]?.correct === false && isSorted(grids[gridIndex]);
+                                const isExtraIteration = iterationResults.length > 0 && iterationResults[gridIndex]?.correct === false && isSorted(grids[gridIndex]);
 
-                            return (
-                                <div key={gridIndex}>
-                                    <h3 className={styles["iteration-title"]}>{getOrdinalSuffix(gridIndex + 1)} Iteration</h3>
-                                    <div className={styles["grid-container"]}>
-                                        {grid.map((num, itemIndex) => (
-                                            <div
-                                                key={itemIndex}
-                                                className={`${styles["grid-item"]} ${selected.gridIndex === gridIndex && selected.itemIndex === itemIndex ? styles["selected"] : ""}`}
-                                                onClick={() => handleSelect(gridIndex, itemIndex)}
-                                            >
-                                                {num}
-                                            </div>
-                                        ))}
+                                return (
+                                    <div key={gridIndex}>
+                                        <h3 className={styles["iteration-title"]}>{getOrdinalSuffix(gridIndex + 1)} Iteration</h3>
+                                        <div className={styles["grid-container"]}>
+                                            {grid.map((num, itemIndex) => (
+                                                <div
+                                                    key={itemIndex}
+                                                    className={`${styles["grid-item"]} ${selected.gridIndex === gridIndex && selected.itemIndex === itemIndex ? styles["selected"] : ""}`}
+                                                    onClick={() => handleSelect(gridIndex, itemIndex)}
+                                                >
+                                                    {num}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                        <button className={styles["submit-btn"]} onClick={() => setIsConfirmModalOpen(true)}>Submit</button>
-                    </div>
-                </>
-            )}
+                                );
+                            })}
+                            <button className={styles["submit-btn"]} onClick={() => setIsConfirmModalOpen(true)}>Submit</button>
+                        </div>
+                    </>
+                )}
+            </div>
             {isConfirmModalOpen && (
                 <div className={styles["modal-overlay-confirm"]}>
                     <div className={styles["modal-content-confirm"]}>
@@ -516,13 +527,7 @@ const SortShiftInsertion = () => {
                             </div>
                         </div>
                         <div className={styles["reset-container"]}>
-                            <button
-                                className={styles["previous-btn"]}
-                                onClick={() => window.location.reload()}
-                                disabled={remarks === "Fail"}
-                            >
-                                PREVIOUS
-                            </button>
+                            
                             <button className={styles["reset-btn"]} onClick={() => window.location.reload()}>
                                 RESET
                             </button>
