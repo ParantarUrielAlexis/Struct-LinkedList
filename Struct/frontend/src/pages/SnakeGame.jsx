@@ -22,9 +22,10 @@ import backgroundMusic from '../assets/snakegame/sounds/background.mp3';
 import headEatImg from '../assets/snakegame/images/head_eat.png';
 
 // Constants
-const GRID_SIZE = 20;
-const CELL_SIZE = 20;
-const GAME_SPEED = 150;
+// Change these constants at the top of SnakeGame.jsx
+const GRID_SIZE = 20;  // Increased from 20
+const CELL_SIZE = 30;  // Increased from 20
+const GAME_SPEED = 150; // You can adjust this if needed
 
 const DIRECTIONS = {
   UP: { x: 0, y: -1 },
@@ -187,36 +188,41 @@ getArrayRepresentation = () => {
   };
 
   gameLoop = (currentTime) => {
-    if (this.state.isPaused || !this.state.audioReady || !this.state.gameStarted) {
+    // Stop the loop completely if paused
+    if (this.state.isPaused || !this.state.audioReady || !this.state.gameStarted || this.state.gameOver) {
+      this.setState({ lastUpdateTime: currentTime });
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
       return;
     }
 
-    const timeDelta = currentTime - this.state.lastUpdateTime;
+    const timeDelta = currentTime - (this.state.lastUpdateTime || currentTime);
     const newAccumulatedTime = this.state.accumulatedTime + timeDelta;
-    const frameDuration = 8000 / 60; // Target 60 FPS (~16.67ms per frame)
+    const frameDuration = GAME_SPEED;
 
-    let updatedAccumulatedTime = newAccumulatedTime;
-    let updateCount = 0;
-    
-    while (updatedAccumulatedTime >= frameDuration && updateCount < 4) {
+    // Only allow one update per frame maximum to keep controls responsive
+    if (newAccumulatedTime >= frameDuration) {
       this.moveSnake();
-      updatedAccumulatedTime -= frameDuration;
-      updateCount++;
+      this.setState({
+        lastUpdateTime: currentTime,
+        accumulatedTime: newAccumulatedTime - frameDuration
+      });
+    } else {
+      this.setState({
+        lastUpdateTime: currentTime,
+        accumulatedTime: newAccumulatedTime
+      });
     }
-
-    this.setState({
-      lastUpdateTime: currentTime,
-      accumulatedTime: updatedAccumulatedTime
-    });
 
     this.animationFrameId = requestAnimationFrame(this.gameLoop);
   };
 
+
   // Update moveSnake method
   moveSnake = () => {
-    if (this.state.isPaused || !this.state.audioReady || !this.state.gameStarted) return;
-  
+    if (this.state.isPaused || !this.state.audioReady || !this.state.gameStarted || this.state.gameOver) {
+      return;
+    }
+
     this.setState(prevState => {
       const { snake, direction, food, score, highScore } = prevState;
       const head = { ...snake[0] };
@@ -300,7 +306,16 @@ getArrayRepresentation = () => {
   };
 
   resetGame = () => {
-    clearInterval(this.gameLoop);
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    
+    // Clear any eating animation timeout
+    if (this.eatingAnimationTimeout) {
+      clearTimeout(this.eatingAnimationTimeout);
+    }
+  
     this.setState({
       snake: [{ x: 5, y: 10 }, { x: 4, y: 10 }, { x: 3, y: 10 }],
       direction: DIRECTIONS.RIGHT,
@@ -308,7 +323,8 @@ getArrayRepresentation = () => {
       gameOver: false,
       score: 0,
       isPaused: false,
-      gameStarted: false
+      gameStarted: false,
+      isEating: false
     });
     this.nextDirection = DIRECTIONS.RIGHT;
     
@@ -319,6 +335,8 @@ getArrayRepresentation = () => {
   };
 
   togglePause = () => {
+    if (this.state.gameOver) return;
+    
     this.setState(prevState => {
       const newPauseState = !prevState.isPaused;
       if (this.backgroundAudio) {
@@ -443,10 +461,6 @@ getArrayRepresentation = () => {
           <div 
             ref={this.gameBoardRef}
             className={`game-board ${!gameStarted ? 'waiting-start' : ''}`}
-            style={{ 
-              width: `${GRID_SIZE * CELL_SIZE}px`,
-              height: `${GRID_SIZE * CELL_SIZE}px`
-            }}
             tabIndex="0"
             onKeyDown={this.handleKeyDown}
           >
@@ -620,6 +634,7 @@ getArrayRepresentation = () => {
                 {isPaused ? 'Resume' : 'Pause'}
               </button>
             )}
+
             <button className="action-btn reset" onClick={this.resetGame}>
               {gameStarted ? 'Reset' : 'New Game'}
             </button>

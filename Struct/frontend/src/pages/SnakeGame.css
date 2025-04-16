@@ -29,7 +29,7 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 30px;
-  max-width: 800px;
+  max-width: 1000px;  /* Increased from 800px */
   margin: 0 auto;
   background-color: white;
   border-radius: var(--border-radius);
@@ -83,11 +83,13 @@ body {
 /* Game Board */
 .game-board {
   background-color: #afd746;
-  border: 2px solid var(--dark-color);
+  border: 3px solid var(--dark-color); /* Slightly thicker border */
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow);
   border-radius: 5px;
+  width: 600px; /* 20 cells * 30px */
+  height: 600px; /* 20 cells * 30px */
 }
 
 .game-board.waiting-start {
@@ -113,8 +115,8 @@ body {
 /* Snake Elements */
 .snake-segment {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 30px; /* Increased from 20px */
+  height: 30px; /* Increased from 20px */
   transition: transform 0.1s ease;
 }
 
@@ -136,8 +138,8 @@ body {
 /* Food */
 .food-container {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 30px; /* Increased from 20px */
+  height: 30px; /* Increased from 20px */
   animation: float 2s infinite ease-in-out;
 }
 
@@ -353,21 +355,41 @@ body {
 }
 
 /* Responsive Design */
-@media (max-width: 600px) {
-  .game-header {
+@media (max-width: 1000px) {
+  .game-content-wrapper {
     flex-direction: column;
     align-items: center;
   }
   
-  .score-display {
-    margin-top: 10px;
+  .array-side-panel {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .snake-game-container {
+      padding: 15px;
+    }
+    
+    .game-title {
+      font-size: 1.8rem;
+    }
+    
+    .array-cell {
+      width: 15px;
+      height: 15px;
+      font-size: 8px;
+    }
   }
   
-  .control-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
+  .game-board {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1/1;
   }
+}
   
   .horizontal-controls {
     gap: 30px;
@@ -376,7 +398,6 @@ body {
   .game-title {
     font-size: 2rem;
   }
-}
 
 @media (max-width: 400px) {
   .action-controls {
@@ -464,24 +485,27 @@ body {
 .array-grid {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;           /* Reduced from 2px */
   margin-bottom: 15px;
+  max-height: 500px;  /* Added max height */
+  overflow-y: auto;    /* Added scroll */
 }
+
 
 .array-row {
   display: flex;
-  gap: 2px;
+  gap: 1px;           /* Reduced from 2px */
 }
 
 .array-cell {
-  width: 24px;
-  height: 24px;
+  width: 20px;  /* Reduced from 24px to fit more cells */
+  height: 20px; /* Reduced from 24px to fit more cells */
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f0f0f0;
-  border-radius: 3px;
-  font-size: 12px;
+  border-radius: 2px;  /* Reduced from 3px */
+  font-size: 10px;     /* Reduced from 12px */
   font-family: monospace;
 }
 
