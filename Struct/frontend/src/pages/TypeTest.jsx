@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./TypeTest.css";
 
+import { useNavigate } from "react-router-dom";
+
 import { FaRedo } from "react-icons/fa";
 import { FaClock } from "react-icons/fa";
 import { FaVolumeUp, FaVolumeMute } from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 
 import typingSoundFile from "../assets/typing.mp3";
 import pingSoundFile from "../assets/ping.mp3";
@@ -69,6 +72,8 @@ function TypeTest() {
   // const [isDarkMode, setIsDarkMode] = useState(false);
 
   // const [pulseEffect, setPulseEffect] = useState(false);
+
+  const navigate = useNavigate();
 
   const startGame = () => {
     if (!gameStarted) {
@@ -394,6 +399,13 @@ function TypeTest() {
                   onClick={() => setShowCustomTimeModal(true)}
                 >
                   <FaClock /> {/* React clock icon */}
+                </div>
+                {/* Back Arrow */}
+                <div
+                  className="timer-item back-arrow"
+                  onClick={() => navigate("/module")} // Navigate back to Module.jsx
+                >
+                  <FaArrowLeft /> {/* React back arrow icon */}
                 </div>
               </div>
             </div>

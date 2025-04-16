@@ -1,6 +1,6 @@
 .type-test-wrapper {
   display: flex;
-  margin-top: 80px;
+  margin-top: 40px;
   flex-direction: column; /* Stack navbar and game container vertically */
   justify-content: center; /* Center vertically */
   align-items: center; /* Center horizontally */

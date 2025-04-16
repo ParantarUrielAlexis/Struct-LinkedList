@@ -126,7 +126,7 @@ const Module = () => {
           </p>
           <div className="mt-4" style={{ width: "100%", height: "500px" }}>
             <iframe
-              src="https://paiza.io/projects/e/7eJbVn6Exa0scu55RtY1Aw?theme=twilight"
+              src="https://paiza.io/projects/e/vBuj24nZhWzDYWHr6Le1mg?theme=twilight"
               width="100%"
               height="500"
               scrolling="no"
