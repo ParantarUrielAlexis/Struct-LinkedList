@@ -12,7 +12,9 @@ import Home from "./pages/Home";
 import SortRush from "./pages/SortRush";
 import TypeTest from "./pages/TypeTest";
 import Module from "./pages/Module";
-
+import LandingPage from "./pages/LandingPage";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup"; // Assuming you have a Signin page
 const AppLayout = () => {
   const location = useLocation();
 
@@ -31,6 +33,10 @@ const AppLayout = () => {
           <Route path="/sort" element={<SortRush />} />
           <Route path="/type-test" element={<TypeTest />} />
           <Route path="/module" element={<Module />} />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          {/* Add other routes here */}
         </Routes>
       </div>
     </div>

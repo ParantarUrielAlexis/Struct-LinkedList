@@ -7,10 +7,14 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-left">
-        <Link to="/" className="logo-link">
+        {/* Link the logo to the landing page */}
+        <Link to="/landing" className="logo-link">
           <img src={logo} alt="Struct Academy Logo" className="logo-img" />
         </Link>
-        <h2 className="logo-text">STRUCT | ACADEMY</h2>
+        <h2 className="logo-text">
+          <Link to="/landing">STRUCT | ACADEMY</Link>{" "}
+          {/* Link the text as well */}
+        </h2>
       </div>
 
       <div className="nav-right">
