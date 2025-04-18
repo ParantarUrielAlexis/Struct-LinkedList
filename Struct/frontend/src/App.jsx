@@ -15,6 +15,7 @@ import Module from "./pages/Module";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup"; // Assuming you have a Signin page
+import CreateBadgeForm from "./pages/CreateBadgeForm";
 const AppLayout = () => {
   const location = useLocation();
 
@@ -36,6 +37,7 @@ const AppLayout = () => {
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/badges" element={<CreateBadgeForm />} />
           {/* Add other routes here */}
         </Routes>
       </div>
