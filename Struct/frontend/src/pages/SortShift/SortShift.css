@@ -1,0 +1,76 @@
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+  }
+  
+  .tagline {
+    font-style: italic;
+    font-size: 20px;
+    color: #4b5563;
+    margin-bottom: 2rem;
+  }
+  
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2rem;
+    justify-items: center;
+    width: 100%;
+    max-width: 900px;
+  }
+  
+  .level-card {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    background-color: #e5e7eb;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: .2s;
+  }
+  .level-card:hover{
+    transform: scale(1.1);
+  }
+  .overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .level-card:hover .overlay {
+    opacity: 1;
+  }
+  
+  .play-button {
+    padding: 10px 20px;
+    background-color: #ffffffcc;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .play-button:hover {
+    background-color: #ffffff;
+  }
+  hr {
+    border: 2px solid #000000; /* Light gray border */
+    width: 20%; /* Ensure it spans the container */
+  }
