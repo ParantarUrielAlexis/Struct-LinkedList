@@ -69,7 +69,7 @@ const Module = () => {
           </p>
           <ul className="mt-2 ml-4 list-disc text-gray-600">
             <li>You want to store multiple values under one name.</li>
-            <li>You need fast access to elements by index.</li>
+            <li>You need fast access to elements by index man.</li>
             <li>
               You want to perform operations over collections of values (e.g.,
               sums, searches, sorts).
