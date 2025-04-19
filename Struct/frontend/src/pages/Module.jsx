@@ -124,14 +124,22 @@ const Module = () => {
           <p className="mt-2 text-gray-600">
             Use the embedded editor below to experiment with the code:
           </p>
-          <div className="mt-4" style={{ width: "100%", height: "500px" }}>
+          <div
+            className="mt-4 rounded-lg border border-gray-300"
+            style={{
+              width: "100%",
+              height: "1000px", // Increased height to show more content
+              overflow: "hidden", // Prevent parent container from scrolling
+            }}
+          >
             <iframe
               src="https://paiza.io/projects/e/vBuj24nZhWzDYWHr6Le1mg?theme=twilight"
               width="100%"
-              height="500"
-              scrolling="no"
-              seamless="seamless"
-              className="rounded-lg border border-gray-300"
+              height="1000px" // Match the parent container height
+              className="rounded-lg"
+              style={{
+                display: "block",
+              }}
             ></iframe>
           </div>
         </section>

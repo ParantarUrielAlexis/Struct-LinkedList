@@ -5,7 +5,11 @@ export default {
     "./src/**/*.{html,js,jsx,tsx}", // Include all files in src with supported extensions
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["Poppins", "ui-sans-serif", "system-ui"], // Add Satoshi as the default sans font
+      },
+    },
   },
   plugins: [],
 };
