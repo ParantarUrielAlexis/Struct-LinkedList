@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import shape1 from "../assets/shape1.png"; // Import shape images
 import shape2 from "../assets/shape2.png";
+import shape3 from "../assets/shape3.png";
+import shape4 from "../assets/shape4.png";
+
 import design1 from "../assets/design1.png"; // Import design images
 import design2 from "../assets/design2.png";
+import design3 from "../assets/design3.png";
+import design4 from "../assets/design4.png";
 
 const CreateBadgeForm = () => {
   const [badgeType, setBadgeType] = useState("1st");
@@ -10,15 +15,31 @@ const CreateBadgeForm = () => {
   const [badgeDescription, setBadgeDescription] = useState("");
   const [selectedShape, setSelectedShape] = useState("shape1");
   const [selectedDesign, setSelectedDesign] = useState("design1");
-  const [showModal, setShowModal] = useState(false); // State to control modal visibility
+  const [showModal, setShowModal] = useState(false);
+
+  // Array of shapes
+  const shapes = [
+    { id: "shape1", src: shape1, alt: "Shape 1" },
+    { id: "shape2", src: shape2, alt: "Shape 2" },
+    { id: "shape3", src: shape3, alt: "Shape 3" },
+    { id: "shape4", src: shape4, alt: "Shape 4" },
+  ];
+
+  // Array of designs
+  const designs = [
+    { id: "design1", src: design1, alt: "Design 1" },
+    { id: "design2", src: design2, alt: "Design 2" },
+    { id: "design3", src: design3, alt: "Design 3" },
+    { id: "design4", src: design4, alt: "Design 4" },
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setShowModal(true); // Show the modal when the badge is created
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    setShowModal(false); // Close the modal
+    setShowModal(false);
   };
 
   return (
@@ -70,7 +91,7 @@ const CreateBadgeForm = () => {
               value={badgeName}
               onChange={(e) => {
                 if (e.target.value.length <= 30) {
-                  setBadgeName(e.target.value); // Restrict to 30 characters
+                  setBadgeName(e.target.value);
                 }
               }}
               className="mt-1 block w-full px-2 sm:px-3 py-1 sm:py-1.5 border border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 text-xs sm:text-sm"
@@ -95,7 +116,7 @@ const CreateBadgeForm = () => {
               value={badgeDescription}
               onChange={(e) => {
                 if (e.target.value.length <= 150) {
-                  setBadgeDescription(e.target.value); // Restrict to 150 characters
+                  setBadgeDescription(e.target.value);
                 }
               }}
               className="mt-1 block w-full px-2 sm:px-3 py-1 sm:py-1.5 border border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 text-xs sm:text-sm resize-none"
@@ -114,37 +135,23 @@ const CreateBadgeForm = () => {
               Select Badge Shape
             </label>
             <div className="flex items-center space-x-1 sm:space-x-2">
-              {/* Shape 1 */}
-              <div
-                className={`cursor-pointer p-1 sm:p-2 border-2 rounded-lg ${
-                  selectedShape === "shape1"
-                    ? "border-teal-500"
-                    : "border-gray-300"
-                }`}
-                onClick={() => setSelectedShape("shape1")}
-              >
-                <img
-                  src={shape1}
-                  alt="Shape 1"
-                  className="w-7 h-7 sm:w-9 sm:h-9 object-contain"
-                />
-              </div>
-
-              {/* Shape 2 */}
-              <div
-                className={`cursor-pointer p-1 sm:p-2 border-2 rounded-lg ${
-                  selectedShape === "shape2"
-                    ? "border-teal-500"
-                    : "border-gray-300"
-                }`}
-                onClick={() => setSelectedShape("shape2")}
-              >
-                <img
-                  src={shape2}
-                  alt="Shape 2"
-                  className="w-7 h-7 sm:w-9 sm:h-9 object-contain"
-                />
-              </div>
+              {shapes.map((shape) => (
+                <div
+                  key={shape.id}
+                  className={`cursor-pointer p-1 sm:p-2 border-2 rounded-lg ${
+                    selectedShape === shape.id
+                      ? "border-teal-500"
+                      : "border-gray-300"
+                  }`}
+                  onClick={() => setSelectedShape(shape.id)}
+                >
+                  <img
+                    src={shape.src}
+                    alt={shape.alt}
+                    className="w-7 h-7 sm:w-9 sm:h-9 object-contain"
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
@@ -154,37 +161,23 @@ const CreateBadgeForm = () => {
               Select Badge Design
             </label>
             <div className="flex items-center space-x-1 sm:space-x-2">
-              {/* Design 1 */}
-              <div
-                className={`cursor-pointer p-1 sm:p-2 border-2 rounded-lg ${
-                  selectedDesign === "design1"
-                    ? "border-teal-500"
-                    : "border-gray-300"
-                }`}
-                onClick={() => setSelectedDesign("design1")}
-              >
-                <img
-                  src={design1}
-                  alt="Design 1"
-                  className="w-7 h-7 sm:w-9 sm:h-9 object-contain"
-                />
-              </div>
-
-              {/* Design 2 */}
-              <div
-                className={`cursor-pointer p-1 sm:p-2 border-2 rounded-lg ${
-                  selectedDesign === "design2"
-                    ? "border-teal-500"
-                    : "border-gray-300"
-                }`}
-                onClick={() => setSelectedDesign("design2")}
-              >
-                <img
-                  src={design2}
-                  alt="Design 2"
-                  className="w-7 h-7 sm:w-9 sm:h-9 object-contain"
-                />
-              </div>
+              {designs.map((design) => (
+                <div
+                  key={design.id}
+                  className={`cursor-pointer p-1 sm:p-2 border-2 rounded-lg ${
+                    selectedDesign === design.id
+                      ? "border-teal-500"
+                      : "border-gray-300"
+                  }`}
+                  onClick={() => setSelectedDesign(design.id)}
+                >
+                  <img
+                    src={design.src}
+                    alt={design.alt}
+                    className="w-7 h-7 sm:w-9 sm:h-9 object-contain"
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
@@ -207,13 +200,15 @@ const CreateBadgeForm = () => {
             <div className="relative w-80 h-80 mx-auto">
               {/* Badge Shape */}
               <img
-                src={selectedShape === "shape1" ? shape1 : shape2}
+                src={shapes.find((shape) => shape.id === selectedShape)?.src}
                 alt="Badge Shape"
                 className="w-full h-full object-contain"
               />
               {/* Badge Design */}
               <img
-                src={selectedDesign === "design1" ? design1 : design2}
+                src={
+                  designs.find((design) => design.id === selectedDesign)?.src
+                }
                 alt="Badge Design"
                 className="absolute inset-0 w-56 h-56 object-contain m-auto"
               />
