@@ -20,7 +20,7 @@ import SortShift from "./pages/SortShift/SortShift";
 import SortShiftSelection from "./pages/SortShiftSelection/SortShiftSelection";
 import SortShiftBubble from "./pages/SortShiftBubble/SortShiftBubble";
 import SortShiftInsertion from "./pages/SortShiftInsertion/SortShiftInsertion";
-
+import SnakeGame from "./pages/SnakeGame";
 const AppLayout = () => {
   const location = useLocation();
 
@@ -31,6 +31,7 @@ const AppLayout = () => {
     "/sortshiftselection",
     "/sortshiftbubble",
     "/sortshiftinsertion",
+    "/snake-game",
   ];
 
   // Check if the current route is in the header-only routes
@@ -57,6 +58,7 @@ const AppLayout = () => {
             <Route path="/signup" element={<Signup />} />
             <Route path="/badges" element={<CreateBadgeForm />} />
             <Route path="/sortshift" element={<SortShift />} />
+            <Route path="/snake-game" element={<SnakeGame />} />
             <Route
               path="/sortshiftselection"
               element={<SortShiftSelection />}

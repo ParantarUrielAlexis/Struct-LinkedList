@@ -13,6 +13,7 @@ const Header = () => {
     "/sortshiftselection": "Sort Shift Selection",
     "/sortshiftbubble": "Sort Shift Bubble",
     "/sortshiftinsertion": "Sort Shift Insertion",
+    "/snake-game": "Snake Game",
   };
 
   // Get the game name based on the current route
