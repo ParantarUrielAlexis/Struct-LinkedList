@@ -8,7 +8,7 @@ import {
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header"; // Import Header
-import Home from "./pages/Home";
+
 import SortRush from "./pages/SortRush";
 import TypeTest from "./pages/TypeTest";
 import Module from "./pages/Module";
@@ -49,11 +49,10 @@ const AppLayout = () => {
         {!isHeaderOnlyRoute && <Navbar />}
         <main className="flex-1">
           <Routes>
-            <Route path="/" element={<Home />} />
             <Route path="/sort" element={<SortRush />} />
             <Route path="/type-test" element={<TypeTest />} />
             <Route path="/module" element={<Module />} />
-            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/badges" element={<CreateBadgeForm />} />
