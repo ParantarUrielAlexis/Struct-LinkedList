@@ -536,7 +536,9 @@
     }
     
     .tutorial-content h1 {
-    margin-bottom: 24px;
+        font-style: bold;
+        margin-bottom: 5px;
+        font-size: 30px;
     }
     
     .tutorial-content p {
