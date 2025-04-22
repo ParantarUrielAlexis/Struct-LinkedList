@@ -39,6 +39,14 @@ const SortShiftBubble = () => {
         setGrids([randomArray]);
     }, []);
 
+    useEffect(() => {
+        const sound = backgroundSound.current;
+    
+        return () => {
+            sound.pause();
+            sound.currentTime = 0;
+        };
+    }, []);
     const swapSound = new Audio("/sounds/swap.mp3");
     const clickSound = new Audio("/sounds/first_click.mp3");
 
@@ -82,8 +90,7 @@ const SortShiftBubble = () => {
         const sound = backgroundSound.current;
         sound.volume = 0.2; 
         sound.loop = true; 
-        sound.play();
-        
+        sound.play();   
     };
 
 
@@ -301,6 +308,9 @@ const SortShiftBubble = () => {
                             </p>
                             
                             <img src={iterationGIF} alt="Iteration GIF" className="iteration_gif" />
+                            <p>
+                                <strong>Reminder: </strong> The simulation shows only the first iteration. You can try to implement the rest of the iterations yourself.
+                            </p>
                         </div>
                         <div className={styles["line-break"]}>
                             <hr></hr>
@@ -308,17 +318,17 @@ const SortShiftBubble = () => {
                         <div className={styles["game-introduction"]}>
                             <h2>Welcome to Sort Shift!</h2>
                             <p>
-                                Sort Shift is an interactive game designed to help you understand and practice the Bubble Sort algorithm. 
+                                <strong>Sort Shift </strong>is an interactive game designed to help you understand and practice the Bubble Sort algorithm. 
                                 Your task is to sort a series of numbers in ascending order by swapping adjacent elements, just like in Bubble Sort.
                                 The game challenges you to think critically and apply the sorting steps efficiently. Each move you make will be evaluated, 
                                 and your score will reflect how accurately and efficiently you complete the sorting process.
                             </p>
                             <h2>How to Play:</h2>
-                            <ul>
+                            <ol className={styles["steps-list"]}>
                                 <li>Click on two adjacent boxes to swap their positions.</li>
                                 <li>Repeat this process until the array is fully sorted.</li>
                                 <li>Remember, you can only swap adjacent elements!</li>
-                            </ul>
+                            </ol>
                         </div>
                         <div className={styles["line-break"]}>
                             <hr></hr>

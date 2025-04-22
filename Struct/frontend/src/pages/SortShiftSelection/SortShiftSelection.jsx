@@ -38,6 +38,14 @@ const SortShiftSelection= () => {
         setOriginalArray(randomArray);
         setGrids([randomArray]);
     }, []);
+    useEffect(() => {
+        const sound = backgroundSound.current;
+    
+        return () => {
+            sound.pause();
+            sound.currentTime = 0;
+        };
+    }, []);
 
     const swapSound = new Audio("/sounds/swap.mp3");
     const clickSound = new Audio("/sounds/first_click.mp3");
@@ -316,19 +324,19 @@ const SortShiftSelection= () => {
                         <div className={styles["game-introduction"]}>
                             <h2>Welcome to Sort Shift!</h2>
                             <p>
-                                Sort Shift is an interactive game designed to help you understand and practice the Selection Sort algorithm. 
+                                <strong>Sort Shift</strong> is an interactive game designed to help you understand and practice the Selection Sort algorithm. 
                                 Your task is to sort a series of numbers in ascending order by selecting the smallest element from the unsorted portion of the array 
                                 and swapping it with the first element of the unsorted portion. This process continues until the entire array is sorted.
                                 The game challenges you to think critically and apply the sorting steps efficiently. Each move you make will be evaluated, 
                                 and your score will reflect how accurately and efficiently you complete the sorting process.
                             </p>
                             <h2>How to Play:</h2>
-                            <ul>
+                            <ol className={styles["steps-list"]}>
                                 <li>Click on the smallest element in the unsorted portion of the array.</li>
                                 <li>Swap it with the first element of the unsorted portion.</li>
                                 <li>Repeat this process until the array is fully sorted.</li>
                                 <li>If the current position already contains the smallest element, you still need to add an iteration to proceed.</li>
-                            </ul>
+                            </ol>
                         </div>
                         <div className={styles["line-break"]}>
                             <hr></hr>

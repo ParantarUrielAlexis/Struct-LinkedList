@@ -1,76 +1,172 @@
 .container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
+  height: 100px;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+.title{
+  font-size: 35px;
+  font-weight: bold;
+  color: #f3f4f5;
+  margin-top: 30px;
+}
+.tagline {
+  margin-top: 8px;
+  font-style: italic;
+  font-size: 15px;
+  color: #e0e3e6;
+  margin-bottom: 2rem;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem; 
+  justify-items: center;
+  width: 100%;
+  max-width: 900px;
+}
+
+.level-card {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  background-color: #e5e7eb;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: 0.2s;
+}
+.level-card:hover{
+  transform: scale(1.1);
+}
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.level-card:hover .overlay {
+  opacity: 1;
+}
+
+.play-button {
+  padding: 10px 20px;
+  background-color: #ffffffcc;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.play-button:hover {
+  background-color: #ffffff;
+}
+hr {
+  border: 1.5px solid #ffffff;
+  width: 20%; 
+}
+.background-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(45%);
+  z-index: -1;
+}
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure it appears above everything else */
+}
+
+.loading-image {
+  width: 500px;
+  height: 500px;
+  object-fit: cover;
+  opacity: 1; /* Ensure the image is visible */
+  clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%); /* Start fully hidden */
+  animation: revealPieceByPiece 2s ease-out forwards; /* Apply the animation */
+}
+
+.loading-spinner {
+  width: 70px;
+  height: 70px;
+  border: 5px solid #f3f3f3; /* Light gray */
+  border-top: 5px solid #3498db; /* Blue */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-top: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
   }
-  
-  .tagline {
-    font-style: italic;
-    font-size: 20px;
-    color: #4b5563;
-    margin-bottom: 2rem;
+  100% {
+    transform: rotate(360deg);
   }
-  
-  .level-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 2rem;
-    justify-items: center;
-    width: 100%;
-    max-width: 900px;
+}
+@keyframes revealPieceByPiece {
+  0% {
+    clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+    opacity: 0.5;
   }
-  
-  .level-card {
-    position: relative;
-    width: 240px;
-    height: 240px;
-    background-color: #e5e7eb;
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: .2s;
+  25% {
+    clip-path: polygon(0 75%, 100% 75%, 100% 100%, 0 100%);
+    opacity: 0.7;
   }
-  .level-card:hover{
-    transform: scale(1.1);
+  50% {
+    clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+    opacity: 0.8;
   }
-  .overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    top: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(0, 0, 0, 0.4);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  75% {
+    clip-path: polygon(0 25%, 100% 25%, 100% 100%, 0 100%);
+    opacity: 0.85;
   }
-  
-  .level-card:hover .overlay {
+  100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
     opacity: 1;
   }
-  
-  .play-button {
-    padding: 10px 20px;
-    background-color: #ffffffcc;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+}
+
+@keyframes revealFromBottom {
+  0% {
+    mask-position: bottom;
+    -webkit-mask-position: bottom;
+    mask-size: 100% 200%;
+    -webkit-mask-size: 100% 200%;
   }
-  
-  .play-button:hover {
-    background-color: #ffffff;
+  100% {
+    mask-position: top;
+    -webkit-mask-position: top;
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    opacity: 1;
   }
-  hr {
-    border: 2px solid #000000; /* Light gray border */
-    width: 20%; /* Ensure it spans the container */
-  }
+}

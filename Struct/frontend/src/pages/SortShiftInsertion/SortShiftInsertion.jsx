@@ -16,7 +16,6 @@ import simulation from '../../assets/insertion/simulation.gif';
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
 
-
 import styles from './SortShiftInsertion.module.css';
 
 const SortShiftInsertion = () => {
@@ -39,6 +38,14 @@ const SortShiftInsertion = () => {
         const randomArray = generateRandomArray();
         setOriginalArray(randomArray);
         setGrids([randomArray]);
+    }, []);
+    useEffect(() => {
+        const sound = backgroundSound.current;
+    
+        return () => {
+            sound.pause();
+            sound.currentTime = 0;
+        };
     }, []);
 
     const swapSound = new Audio("/sounds/swap.mp3");
@@ -209,7 +216,7 @@ const SortShiftInsertion = () => {
     return (
         <div className={styles['short-shift-container']}>
             <video className={styles['background-video']} autoPlay loop muted>
-            <source src="/video/insertion2_bg.mp4" type="video/mp4" />
+            <source src="/video/insertion_bg.mp4" type="video/mp4" />
             Your browser does not support the video tag.
             </video>
 
@@ -310,19 +317,19 @@ const SortShiftInsertion = () => {
                         <div className={styles["game-introduction"]}>
                             <h2>Welcome to Sort Shift!</h2>
                             <p>
-                                Sort Shift is an interactive game designed to help you understand and practice the Insertion Sort algorithm. 
+                                <strong>Sort Shift</strong> is an interactive game designed to help you understand and practice the Insertion Sort algorithm. 
                                 Your task is to sort a series of numbers in ascending order by repeatedly picking an element from the unsorted portion of the array 
                                 and inserting it into its correct position in the sorted portion. This process continues until the entire array is sorted.
                                 The game challenges you to think critically and apply the sorting steps efficiently. Each move you make will be evaluated, 
                                 and your score will reflect how accurately and efficiently you complete the sorting process.
                             </p>
                             <h2>How to Play:</h2>
-                            <ul>
+                            <ol className={styles["steps-list"]}>
                                 <li>Click on the element you want to insert into the sorted portion of the array.</li>
                                 <li>Move it to its correct position in the sorted portion by swapping it with larger elements.</li>
                                 <li>Repeat this process until the array is fully sorted.</li>
                                 <li>If the element is already in its correct position, you still need to proceed to the next iteration.</li>
-                            </ul>
+                            </ol>
                         </div>
                         <div className={styles["line-break"]}>
                             <hr></hr>
