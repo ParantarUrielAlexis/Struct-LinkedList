@@ -107,7 +107,7 @@ hr {
 
 .loading-image {
   width: 500px;
-  height: 500px;
+  height: 450px;
   object-fit: cover;
   opacity: 1; /* Ensure the image is visible */
   clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%); /* Start fully hidden */
