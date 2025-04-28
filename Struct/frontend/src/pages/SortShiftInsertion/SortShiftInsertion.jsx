@@ -1,17 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import unsortedImg from '../../assets/insertion/unsorted.png';
-import firstIteration from '../../assets/insertion/first_iteration.png';
-import secondIteration from '../../assets/insertion/second_iteration.png';
-import thirdIteration from '../../assets/insertion/third_iteration.png';
-import fourthIteration from '../../assets/insertion/fourth_iteration.png';
-import fifthIteration from '../../assets/insertion/fifth_iteration.png';
-import sixthIteration from '../../assets/insertion/sixth_iteration.png';
-
-import firstSwapped from '../../assets/insertion/swapped1.png';
-import secondSwapped from '../../assets/insertion/swapped2.png';
-import thirdSwapped from '../../assets/insertion/swapped3.png';
-import forthSwapped from '../../assets/insertion/swapped4.png';
-import simulation from '../../assets/insertion/simulation.gif';
+import simulation from '../../assets/insertion/insertion_simulation.gif';
 
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
@@ -33,7 +21,71 @@ const SortShiftInsertion = () => {
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [isTutorialOpen, setIsTutorialOpen] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
+    const [tutorialPage, setTutorialPage] = useState(0); 
 
+    const tutorialPages = [
+    {
+        title: "How Insertion Sort Works",
+        content: (
+            <>
+                <div className="simulation-text">
+                    <p><strong>Insertion Sort</strong> is a simple sorting algorithm that builds the sorted array one element at a time by repeatedly picking the next element and inserting it into its correct position in the sorted portion.</p>
+                </div>
+                <br></br>
+                <h2>Here are the steps:</h2>
+                <ol>
+                    <li>Start with the second element in the array (index 1).</li>
+                    <li>Compare it with the elements in the sorted portion (to its left).</li>
+                    <li>Shift all larger elements one position to the right.</li>
+                    <li>Insert the current element into its correct position.</li>
+                    <li>Repeat this process for all remaining elements in the array.</li>
+                </ol>
+                <p>Watch the simulation to see how the algorithm works in real-time.</p>
+                <img 
+                    src={simulation} 
+                    alt="Insertion Sort Simulation" 
+                    className="simulation-gif" 
+                    style={{ width: '70%', height: 'auto', margin: '20px auto', display: 'block' }} 
+                />
+                <p>Note: Even if the element is already in the correct position, you must still perform the iteration to ensure the process is complete.</p>
+            </>
+        ),
+    },
+    {
+        title: "Game Mechanics",
+        content: (
+            <>
+                <h1>How to Play:</h1>
+                <ol>
+                    <li>Click on a box to select the element you want to move.</li>
+                    <li>Click on the target position in the sorted portion to insert the selected element.</li>
+                    <li>Repeat this process for each iteration until the entire array is sorted.</li>
+                    <li>Ensure that you follow the correct steps for each iteration to avoid penalties.</li>
+                    <li>Click the "Submit" button once you believe the array is sorted correctly.</li>
+                    <li>Use the "+" button to add a new grid/iteration or the "-" button to remove a grid/iteration if needed.</li>
+                    <li>Click the "Tutorial" button to revisit the instructions or the "Music" button to toggle background music.</li>
+                    <li>Earn points based on the accuracy and efficiency of your sorting process.</li>
+                </ol>
+            </>
+        ),
+    },
+    {
+        title: "Scoring Works",
+        content: (
+            <>
+                <h1>How Scoring Works</h1>
+                <ul>
+                    <li><strong>Correct Iterations:</strong> You earn points for each correct iteration. The total points are divided equally among the required iterations.</li>
+                    <li><strong>Incorrect Iterations:</strong> Points are deducted for incorrect iterations.</li>
+                    <li><strong>Extra Iterations:</strong> Points are also deducted if you perform unnecessary extra iterations after the array is already sorted.</li>
+                    <li><strong>Reminder:</strong> Even if the current position already contains the correct element, you must add an iteration to proceed.</li>
+                    <li><strong>Maximum Score:</strong> The maximum score you can achieve is <strong>60 points</strong>.</li>
+                    <li><strong>Passing Score:</strong> To pass, you need to score at least <strong>70%</strong> of the total points (42 points).</li>
+                </ul>
+            </>
+        ),
+    },
+];
     useEffect(() => {
         const randomArray = generateRandomArray();
         setOriginalArray(randomArray);
@@ -75,6 +127,17 @@ const SortShiftInsertion = () => {
             setSelected({ gridIndex: null, itemIndex: null });
         } else {
             setSelected({ gridIndex: null, itemIndex: null });
+        }
+    };
+    const handleNext = () => {
+        if (tutorialPage < tutorialPages.length - 1) {
+            setTutorialPage(tutorialPage + 1);
+        }
+    };
+
+    const handlePrevious = () => {
+        if (tutorialPage > 0) {
+            setTutorialPage(tutorialPage - 1);
         }
     };
 
@@ -217,146 +280,39 @@ const SortShiftInsertion = () => {
         <div className={styles['short-shift-container']}>
             <video className={styles['background-video']} autoPlay loop muted>
             <source src="/video/insertion_bg.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
+                 Your browser does not support the video tag.
             </video>
-
-        {/* Optional Overlay */}
-        
-        <div className={styles['background-overlay']}></div>
              {isTutorialOpen && (
-                <div className={styles["tutorial-modal"]}>
-                    <div className={styles["tutorial-content"]}>
-                        <h1>Insertion Sort</h1>
-                        <hr className={styles["divider"]}></hr>
-                        <p className={styles["description"]}>
-                            <strong>Insertion Sort</strong> is a simple comparison-based sorting algorithm. It builds the final sorted array one element at a time by repeatedly taking the next unsorted element and inserting it into its correct position in the sorted portion of the array.
-                        </p>
-                        <div className={styles["how-it-works"]}>
-                            <h3>How it works:</h3>
-                            <ol className={styles["steps-list"]}>
-                                <li>Start from the second element in the array (index 1).</li>
-                                <li>Compare it with elements before it and shift larger elements to the right.</li>
-                                <li>Insert the current element into its correct position.</li>
-                                <li>Repeat this process for each element in the array.</li>
-                                <li>Continue until all elements are placed in the correct order.</li>
-                            </ol>
-                        </div>
-                        <p className={styles["additional-info"]}>
-                            <strong>Insertion Sort</strong> is an intuitive algorithm that works well for small datasets or nearly sorted arrays. However, like other basic sorting algorithms, its time complexity is O(n²) in the worst case.
-                        </p>
-                        <div className={styles["line-break"]}>
-                            <hr className={styles["divider"]}></hr>
-                        </div>
-                        <div className={styles["manual-run-through"]}>
-                            <h2>Manual Run Through</h2>
-                            <p className={styles["step-description1"]}>
-                                <strong>Step 1: </strong> We start with an unsorted array.
-                                <img src={unsortedImg} alt="Unsorted Array" className={styles["unsorted-image"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                            <strong>Step 2: </strong> Compare (12) with (42). Since (12) is smaller, we shift (42) and insert (12) in the first position.
-                                <img src={firstIteration} alt="First Iteration" className={styles["first-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with first iteration. <br></br>
-                                <img src={firstSwapped} alt="First Swap" className={styles["first-swap"]} /> 
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 3: </strong> Compare (34) with (42). Since 34 is smaller, we shift 42 and insert 34 before it. 
-                                <img src={secondIteration} alt="Second Iteration" className={styles["second-compare"]} /> 
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with second iteration. <br></br>
-                                <img src={secondSwapped} alt="Second Compare" className={styles["second-swap"]} /> 
-                            </p>
-                            <p className={styles["step-description"]}>
-                            <strong>Step 4: </strong> (65) is already greater than all sorted elements, so it stays in place. We are done with third iteration.
-                                <img src={thirdIteration} alt="Third Iteration" className={styles["first-swap"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 5: </strong> Compare (23) with (65), (42), and (34). Shift all of them and insert 23 after 12.<br />
-                                <img src={fourthIteration} alt="Fourth Iteration" className={styles["fourth-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> Elements were shifted and 23 was inserted in its correct spot. We are done with fourth iteration. <br></br>
-                                <img src={thirdSwapped} alt="Third Swapped" className={styles["third-swap"]} /> 
-                            </p>
-                            <p className={styles["step-description"]}>
-                            <strong>Step 6: </strong> (78) is greater than all sorted elements, so it stays in place.
-                                <img src={fifthIteration} alt="Fifth Iteration" className="fifth-iteration" />
-                            </p>
-                            <p>
-                                <strong>Step 7: </strong> Compare (56) with (78) and (65). Shift both, then insert 56 before them.
-                                <img src={sixthIteration} alt="Sixth Iteration" className="sixth-iteration" />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> 56 was inserted at the correct position after shifting larger values. <br></br>
-                                <img src={forthSwapped} alt="Fourth Swapped" className={styles["fourth-swap"]} /> 
-                            </p>
-                        </div>
-                        <p>
-                            The array is now sorted! The final sorted array is: <strong>[12, 23, 34, 42, 56, 65, 78]</strong>.
-                        </p>
-                        <br></br>
-                        <p>
-                            <strong>Remarks:</strong> In <i>Insertion Sort</i>, we build the sorted array one element at a time by comparing each new element with those before it and inserting it into its correct position. Larger elements are shifted to make space when needed.
-                        </p>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["simulation"]}>
-                            <p>
-                                Watch the simulation to see how the algorithm works in real-time.
-                            </p>
-                            
-                            <img src={simulation} alt="Iteration GIF" className="simulation-gif" />
-                        </div>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["game-introduction"]}>
-                            <h2>Welcome to Sort Shift!</h2>
-                            <p>
-                                <strong>Sort Shift</strong> is an interactive game designed to help you understand and practice the Insertion Sort algorithm. 
-                                Your task is to sort a series of numbers in ascending order by repeatedly picking an element from the unsorted portion of the array 
-                                and inserting it into its correct position in the sorted portion. This process continues until the entire array is sorted.
-                                The game challenges you to think critically and apply the sorting steps efficiently. Each move you make will be evaluated, 
-                                and your score will reflect how accurately and efficiently you complete the sorting process.
-                            </p>
-                            <h2>How to Play:</h2>
-                            <ol className={styles["steps-list"]}>
-                                <li>Click on the element you want to insert into the sorted portion of the array.</li>
-                                <li>Move it to its correct position in the sorted portion by swapping it with larger elements.</li>
-                                <li>Repeat this process until the array is fully sorted.</li>
-                                <li>If the element is already in its correct position, you still need to proceed to the next iteration.</li>
-                            </ol>
-                        </div>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["scoring-system"]}>
-                            <h2>How Scoring Works</h2>
-                            <p>
-                                Your score in the Short Shift game is based on how accurately and efficiently you sort the array using the Selection Sort algorithm. Here's how the scoring works:
-                            </p>
-                            <ul>
-                                <li><strong>Correct Iterations:</strong> You earn points for each correct iteration. The total points are divided equally among the required iterations.</li>
-                                <li><strong>Incorrect Iterations:</strong> Points are deducted for incorrect iterations.</li>
-                                <li><strong>Extra Iterations:</strong> Points are also deducted if you perform unnecessary extra iterations after the array is already sorted.</li>
-                                <li><strong>Reminder:</strong> Even if the current position already contains the smallest element, you must add an iteration to proceed.</li>
-                                <li><strong>Maximum Score:</strong> The maximum score you can achieve is <strong>60 points</strong>.</li>
-                                <li><strong>Passing Score:</strong> To pass, you need to score at least <strong>70%</strong> of the total points (42 points).</li>
-                            </ul>
-                            <p>
-                                Aim to complete the sorting process with as few mistakes and extra iterations as possible to maximize your score!
-                            </p>
-                        </div>
-                        <button className={styles["start-btn"]} onClick={closeTutorial}>
-                            Start Game
-                        </button>
-                    </div>
-                </div>
-            )}
+                             <div className={styles["tutorial-modal"]}>
+                                 <div className={styles["tutorial-content"]}>
+                                     <div className={styles["tutorial-header"]}>
+                                         <h1>{tutorialPages[tutorialPage].title}</h1>
+                                         <button className={styles["close-btn"]} onClick={closeTutorial}>
+                                             X
+                                         </button>
+                                     </div>
+                                     <div className={styles["tutorial-body"]}>
+                                         {tutorialPages[tutorialPage].content}
+                                     </div>
+                                     <div className={styles["tutorial-navigation"]}>
+                                         <button
+                                             className={styles["previous-btn"]}
+                                             onClick={handlePrevious}
+                                             disabled={tutorialPage === 0}
+                                         >
+                                             Previous
+                                         </button>
+                                         <button
+                                             className={styles["next-btn"]}
+                                             onClick={handleNext}
+                                             disabled={tutorialPage === tutorialPages.length - 1}
+                                         >
+                                             Next
+                                         </button>
+                                     </div>
+                                 </div>
+                             </div>
+                         )}
             <div className={styles['content']}>
                 {!isTutorialOpen && (
                     <>

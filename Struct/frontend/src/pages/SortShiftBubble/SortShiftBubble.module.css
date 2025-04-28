@@ -8,27 +8,26 @@
         transform: translateY(0); /* End at the original position */
     }
     }
-    
     .title-game{
     font-size: 40px;
     text-align: center;
     margin-top: 20px;
     margin-bottom: 20px;
     font-family: Arial, sans-serif;
-    color:  rgb(255, 255, 255);
+    color: rgb(255, 255, 255);;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
     }
   
     
     .background-video {
-        position: fixed;
+        position: fixed; /* Use fixed to ensure it covers the entire viewport */
         top: 0;
         left: 0;
-        width: 100vw;
-        height: 110vh; 
+        width: 100vw; /* Ensure it spans the full width of the viewport */
+        height: 110vh; /* Ensure it spans the full height of the viewport */
         object-fit: cover;
-        z-index: -1; 
-        filter: brightness(60%); 
+        z-index: -1; /* Ensure it stays behind other content */
+        filter: brightness(0.4);
     }
     .content{
         position: relative;
@@ -56,14 +55,14 @@
     font-size: 16px;
     margin-bottom: 10px;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
-    color:  rgb(255, 255, 255);
+    color: rgb(244, 244, 244);
     }
     
     .array-label {
     font-weight: bold;
     margin-bottom: 10px;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
-    color:  rgb(255, 255, 255);
+    color: rgb(220, 220, 220);
     
     }
     
@@ -92,30 +91,32 @@
     align-items: center;
     justify-content: center;
     border-radius: 5px;
+    border: 2px solid #000000;;
     cursor: pointer;
     transition: .2s;
     }
-    .grid-item:hover {
+    .grid-item:hover{
         transform: scale(1.1);
     }
     
     .orig-grid-item {
     width: 50px;
     height: 50px;
-    color: white;
-    background-color: #173982;
+    background-color:#173982;
+    color: rgb(255, 255, 255);
     font-size: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 5px;
+    border: 2px solid black;
     cursor: pointer;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
     }
     
     .grid-item.selected {
-    border: 2px solid magenta;
-    box-shadow: 0 0 10px magenta;
+    border: 2px solid rgb(185, 5, 191);
+    box-shadow: 0 0 10px rgb(185, 5, 191);
     }
     
     .controls {
@@ -134,8 +135,8 @@
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    border: 2px solid #000000;
     animation: fadeSlideIn 0.8s ease-in-out; /* Apply the animation */
-    border: 2px solid black;
     }
     .add-btn:hover, .remove-btn:hover {
     background-color: #00ADB5;
@@ -144,17 +145,18 @@
     }
     
     .add-btn {
-    background-color: rgb(73, 44, 239);
-    color: rgb(255, 255, 255);
+    background-color: #3960b4;
+    color: rgb(37,37,37);
     }
     .remove-btn {
     font-size: 18px;
+    font-style: bold;
+    background-color: #173982;
     
-    background-color: rgb(57, 34, 171);
-    color: rgb(255, 255, 255);
+    color: rgb(37,37,37);
     }
     .iterations {
-    border: 3px solid rgb(255, 255, 255);
+    border: 3px solid #173982;
     padding: 10px; /* Reduce inner spacing */
     margin: 10px auto; /* Reduce space around */
     width: 630px; /* Adjust width to content */
@@ -179,17 +181,17 @@
     }
     
     .submit-btn {
-    background-color:  rgb(80, 75, 202);
+    background-color: #173982;
     height: 50px;
     width: 300px;
-    color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
     padding: 10px 20px;
     font-size: 16px;
     border: none;
     border-radius: 50px;
     cursor: pointer;
     margin-top: 20px;
-    border: 2px solid black;
+    border: 2px solid #000; 
     }
     .submit-btn:hover {
     background-color: #5b7eee;
@@ -227,7 +229,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.922);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -235,7 +237,8 @@
     }
     
     .modal-content {
-    background-color: #E4E4E4;
+    border: 2px solid #a1a1a1;
+    background-color: #00000000;
     padding: 20px;
     border-radius: 10px;
     width: 85%;
@@ -244,16 +247,18 @@
     overflow-y: auto; /* Enable vertical scrolling */
     text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: white;
     }
     
     .results-container {
+    color: white;
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
     gap: 20px;
     }
     .results-container hr {
-    border: 2px black solid;
+    border: 2px rgb(255, 255, 255) solid;
     width: 60%; /* Reduce the length of the horizontal rule */
     margin: 0 auto; /* Center the horizontal rule */
     }
@@ -404,39 +409,43 @@
     }
     
     .modal-overlay-confirm {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9); /* Semi-transparent black background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
     }
     
     .modal-content-confirm {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        border: 2px solid #a1a1a1;
+        background: rgba(255, 255, 255, 0); /* Slightly transparent white background */
+        padding: 2rem;
+        border-radius: 10px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
     }
     
     .modal-header-confirm h2 {
     margin: 0 0 1rem;
     font-size: 1.8rem;
     text-align: center;
+    color: white;
     }
     
     .modal-body-confirm p {
+        color: white;
     text-align: center;
     font-size: 1.2rem;
     }
     
     .modal-footer-confirm {
+        color: white;
     display: flex;
     justify-content: center;
     gap: 1rem;
@@ -459,7 +468,7 @@
     
     /* Confirm button */
     .submit-btn-confirm {
-    background-color: #007bff;
+    background-color: #565454;
     color: white;
     }
     
@@ -469,7 +478,8 @@
     
     /* Cancel button */
     .cancel-btn-confirm {
-    background-color: #f44336;
+        
+    background-color: #979797;
     color: white;
     }
     
@@ -480,7 +490,9 @@
     .warning-icon {
     font-size: 130px; /* makes emoji larger */
     }
-    
+    .modal-warning{
+        color: rgb(255, 0, 0);
+    }
     
     
     /* Tutorial CSS*/
@@ -493,250 +505,218 @@
     }
     
     }  
+    @keyframes slideInFade {
+        0% {
+            opacity: 0;
+            transform: translateY(-50px); /* Start slightly above */
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0); /* End at the original position */
+        }
+    }
     
     .tutorial-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    animation: fadeIn 2s ease-in-out; 
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: slideInFade 0.5s ease-in-out; /* Apply the animation */
     }
-    
-    .tutorial-content {
-    background-color: white;
+
+.tutorial-content {
+    background-color: rgba(47, 47, 47, 0);
+    width: 90%;
+    height: 85%;
     padding: 20px;
     border-radius: 10px;
-    height: 85%; /* Set a fixed height for the modal */
-    text-align: center;
-    width: 100%;
-    max-width: 1250px;
-    overflow-y: auto; /* Enable vertical scrolling */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow for better visibility */
-    }
-    .tutorial-content hr{
-    width: 35%;
-    border: 2px solid black;
-    margin-bottom: 35px;
-    }
-    .tutorial-content p {
-    text-indent: 50px;
-    text-align: left;
-    font-size: 18px;
-    line-height: 1.7;
-    }
-    .tutorial-content strong {
-    font-size: 20px;
-    font-weight: bold;
-    }
-    
-    .tutorial-content h1 {
-        font-style: bold;
-        margin-bottom: 5px;
-        font-size: 30px;
-    }
-    
-    .tutorial-content p {
-    margin-bottom: 20px;
-    }
-    
-    .tutorial-content ol {
-    text-align: left;
-    margin-bottom: 20px;
-    }
-    
-    .start-btn {
-    background-color: #00ADB5;
-    color: rgb(0, 0, 0);
-    margin-top: 40px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 18px;
-    }
-    
-    .start-btn:hover {
-    background-color: #5b7eee;
-    }
-    .how-it-works{
-    padding: 20px;
-    background-color: #00ADB5;
-    margin-top: 30px;
-    line-height: 1.5;  
-    }
-    .how-it-works h3{
-    margin-top: 20px;
-    text-align: left;
-    }
-    .line-break hr{
-    border: 0.5px solid black;
-    width: 100%;
-    margin: 20px auto; /* Center the line */
-    }
-    .manual-run-through h2{
-    margin-top: 50px;
-    text-align: left;
-    margin-bottom: 20px;
-    }
-    .manual-run-through img{
-        width: 69%;
-        height: 69%;
-        margin-left: 35px;
-    }
-    .first-swap{
-    width: 71.6%;
-    margin-left: 25px
-    }
-    .second-swap{
-    width: 71.6%;
-    margin-left: 10px
-    }
-    .fourth-compare{
-    width: 71.6%;
-    margin-left: 10px
-    }
-    .simulation img{
-    width: 100%;
-    height: auto;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    }
-    .scoring-system {
-    margin-top: 20px;
-    text-align: left;
-    }
-    
-    .scoring-system h2 {
-    margin-bottom: 15px;
-    font-size: 24px;
-    color: #333;
-    }
-    
-    .scoring-system p {
-    font-size: 18px;
-    line-height: 1.6;
-    margin-bottom: 15px;
-    }
-    
-    .scoring-system ul {
-    font-size: 18px;
-    line-height: 1.6;
-    margin-left: 20px;
-    }
-    
-    .scoring-system ul li {
-    margin-bottom: 10px;
-    }
-    .game-introduction {
-    margin-top: 20px;
-    text-align: left;
-    line-height: 2;
-    }
-    
-    .game-introduction h2 {
-    margin-bottom: 15px;
-    font-size: 26px;
-    color: #333;
-    }
-    
-    .game-introduction h3 {
-    margin-top: 20px;
-    font-size: 22px;
-    color: #555;
-    }
-    
-    .game-introduction p {
-    font-size: 18px;
-    line-height: 2;
-    margin-bottom: 15px;
-    }
-    
-    .game-introduction ul {
-    font-size: 18px;
-    line-height: 1.6;
-    margin: 15px 0;
-    text-align: left;
-    display: inline-block;
-    }
-    
-    .game-introduction ul li {
-    margin-bottom: 10px;
-    }
-    
-    
-    /* Game Controls*/
-    .game-controls {
+    border: 2px solid rgb(165, 165, 165);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-right:500px;
-    }
-    
-    .control-btn {
-    background-color: #f0f0f0;
-    border: 2px solid #000000;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.tutorial-content img {
+    margin-top: 60px; /* Adjust the top margin to move the image up or down */
+    display: block; 
+    margin-left: auto;
+    margin-right: auto; 
+    max-width: 100%; 
+    height: auto; 
+    position: relative; 
+    top: 10px; 
+}
+.tutorial-content ul {
+    color: white; /* Set the text color of the list items to white */
+    list-style-type: disc; /* Ensure bullets are displayed */
+    padding-left: 40px; /* Add some padding for better alignment */
     font-size: 18px;
+}
+.tutorial-content p{
+    color: white;
+    text-align: left;
+    text-indent: 50px;
+    font-size: 17px;
+    line-height: 2;
+}
+.tutorial-content h1{
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+.tutorial-content ol {
+    padding-left: 40px; /* Indent the list */
+    color: white; /* Make the text color white */
+    list-style-type: decimal; /* Ensure numbers are displayed */
+}
+
+.tutorial-content li {
+    margin-bottom: 10px; /* Add spacing between list items */
+    color: white; /* Make the numbers and text white */
+    line-height: 1.8; /* Improve readability */
+}
+.tutorial-header {
+    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    margin-bottom: 20px; 
+    margin-top: 40px;
+}
+.tutorial-header h1 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* Center the title */
+    margin: 0;
+    font-size: 1.5rem; /* Adjust font size as needed */
+}
+
+.tutorial-body {
+    flex-grow: 1;
+    overflow: auto;
+    margin: 20px 0;
+    color: white;
+    justify-content: left;
+    text-align: left;
+    line-height: 2;
+}
+
+.tutorial-navigation {
+    display: flex;
+    justify-content: space-between;
+}
+
+.close-btn {
+    position: absolute;
+    top: -60px; /* Move the button 10px upward */
+    right: 0; /* Position the button at the rightmost */
+    background-color: #e80505;
+    color: white;
+    border: 1px solid #000000;
+    border-radius: 50%;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+    background-color: #007a80;
+}
+.previous-btn,
+.next-btn{
+    background-color: #484848;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.previous-btn:hover,
+.next-btn:hover,
+.close-btn:hover {
+    background-color: #b5b5b5;
+}
+
+.previous-btn:disabled,
+.next-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+.game-controls {
+    display: flex; /* Arrange buttons in a row */
+    justify-content: flex-start; /* Align the buttons to the left */
+    gap: 10px; /* Add spacing between the buttons */
+    margin-right: 480px;
+}
+.music-btn {
+    background-color: #173982;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 29px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-    
-    .control-btn:hover {
-    background-color: #ddd;
-    transform: scale(1.1);
-    }
-    
-    .tutorial-btn {
-    color: #007bff;
-    }
-    
-    .music-btn {
-    color: #28a745;
-    }
-    
-    .music-logo-wrapper {
+}
+
+.music-btn:hover {
+    background-color: #00adb5;
+    transform: scale(1.1); /* Slight zoom effect on hover */
+}
+
+.music-logo-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.music-logo {
     width: 20px;
     height: 20px;
-    display: inline-block;
-    }
-    
-    .music-logo {
-    width: 100%;
-    height: 100%;
-    display: block;
-    }
-    
-    .music-logo-wrapper.slashed::after {
+}
+
+.music-logo-wrapper.slashed::after {
     content: "";
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 140%; 
-    height: 2px;
-    background-color: black;
-    transform: translate(-50%, -50%) rotate(45deg);
-    pointer-events: none;
-    border: 1px solid black; 
-    }
-    
-    
-    .tutorial-logo{
-        width: 22px;
-        height: 22px;
-    }
-    .steps-list{
-        list-style-type: decimal;
-        margin-left: 30px;
-    }
+    width: 2px;
+    height: 100%;
+    background-color: rgb(71, 71, 71);
+    transform: rotate(45deg);
+}
+.tutorial-btn {
+    background-color: #173982;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 29px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.tutorial-btn:hover {
+    background-color: #00adb5;
+    transform: scale(1.1); /* Slight zoom effect on hover */
+}
+
+.tutorial-logo {
+    width: 20px;
+    height: 20px;
+}

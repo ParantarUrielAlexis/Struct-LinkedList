@@ -29,10 +29,20 @@ const SortShiftSelection = () => {
             content: (
                 <>
                     <div className="simulation-text">
-                        <p><strong>Selection sort </strong>is a basic sorting algorithm that works by repeatedly finding the smallest (or largest) element from the unsorted part of the list and swapping it with the first element of that part. It continues this process until the entire list is sorted</p><br></br><br></br>
-                        <p>Watch the simulation to see how the algorithm works in real-time.</p>
+                        <p><strong>Selection sort </strong>is a basic sorting algorithm that works by repeatedly finding the smallest (or largest) element from the unsorted part of the list and swapping it with the first element of that part. It continues this process until the entire list is sorted</p>
                     </div>
-                    <img src={simulation} alt="Iteration GIF" className="simulation-gif" />
+                    <br></br>
+                    <h2>Here are the steps: </h2>
+                    <ol>
+                        <li>Start from the beginning of the array and find the smallest element in the unsorted portion.</li>
+                        <li>Swap the smallest element with the first element of the unsorted portion.</li>
+                        <li>Move the boundary of the sorted portion one step to the right.</li>
+                        <li>Repeat this process for the remaining unsorted portion of the array.</li>
+                        <li>Continue until the entire array is sorted.</li>
+                    </ol>
+                                        <p>Watch the simulation to see how the algorithm works in real-time.</p>
+                    <img src={simulation} alt="Iteration GIF" className="simulation-gif" />.
+                    <p>Note: Even if the element is already sorted at the index n. You are still need to add an iteration inorder to get more points/score</p>
                 </>
             ),
         },
@@ -42,14 +52,14 @@ const SortShiftSelection = () => {
                 <>
                 <h1>How to Play:</h1>
                 <ol>
-                    <li>Look at the array displayed on the screen.</li>
-                    <li>Select the smallest number in the unsorted portion of the array by clicking on it.</li>
-                    <li>Swap the selected number with the first number in the unsorted portion by clicking on the target position.</li>
+                    <li>Click on a box to select the element you want to move.</li>
+                    <li>Click on the target position in the sorted portion to insert the selected element.</li>
                     <li>Repeat this process for each iteration until the entire array is sorted.</li>
                     <li>Ensure that you follow the correct steps for each iteration to avoid penalties.</li>
                     <li>Click the "Submit" button once you believe the array is sorted correctly.</li>
-                    <li>Use the "+" button to add a new grid or the "-" button to remove a grid if needed.</li>
+                    <li>Use the "+" button to add a new grid/iteration or the "-" button to remove a grid/iteration if needed.</li>
                     <li>Click the "Tutorial" button to revisit the instructions or the "Music" button to toggle background music.</li>
+                    <li>Earn points based on the accuracy and efficiency of your sorting process.</li>
                 </ol>
             </>
             ),
@@ -59,17 +69,15 @@ const SortShiftSelection = () => {
             content: (
                 <>
                     <h1>How Scoring Works</h1>
-                    <p>
-                        Your score in the Short Shift game is based on how accurately and efficiently you sort the array using the Selection Sort algorithm. Here's how the scoring works:
-                    </p>
-                    <ol>
+                    
+                    <ul>
                         <li><strong>Correct Iterations:</strong> You earn points for each correct iteration. The total points are divided equally among the required iterations.</li>
                         <li><strong>Incorrect Iterations:</strong> Points are deducted for incorrect iterations.</li>
                         <li><strong>Extra Iterations:</strong> Points are also deducted if you perform unnecessary extra iterations after the array is already sorted.</li>
                         <li><strong>Reminder:</strong> Even if the current position already contains the smallest element, you must add an iteration to proceed.</li>
                         <li><strong>Maximum Score:</strong> The maximum score you can achieve is <strong>60 points</strong>.</li>
                         <li><strong>Passing Score:</strong> To pass, you need to score at least <strong>70%</strong> of the total points (42 points).</li>
-                    </ol>
+                    </ul>
                 </>
             ),
         },
@@ -84,7 +92,6 @@ const SortShiftSelection = () => {
         const sound = backgroundSound.current;
         sound.volume = 0.3;
         sound.loop = true;
-        sound.play();
     
         // Cleanup function to stop the music when the component unmounts
         return () => {

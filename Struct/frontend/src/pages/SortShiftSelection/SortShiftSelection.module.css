@@ -542,8 +542,8 @@
     justify-content: space-between;
 }
 .tutorial-content img {
-    margin-top: 60px; /* Adjust the top margin to move the image up or down */
- 
+    margin-top: 50px; /* Adjust the top margin to move the image up or down */
+    margin-bottom: 30px;
     display: block; 
     margin-left: auto;
     margin-right: auto; 
@@ -556,7 +556,7 @@
     color: white;
     text-align: left;
     text-indent: 50px;
-    font-size: 21px;
+    font-size: 18px;
     line-height: 2;
 }
 .tutorial-content h1{
@@ -568,11 +568,17 @@
     color: white; /* Make the text color white */
     list-style-type: decimal; /* Ensure numbers are displayed */
 }
-
+.tutorial-content ul {
+    color: white; /* Set the text color of the list items to white */
+    list-style-type: disc; /* Ensure bullets are displayed */
+    padding-left: 40px; /* Add some padding for better alignment */
+    font-size: 18px;
+}
 .tutorial-content li {
     margin-bottom: 10px; /* Add spacing between list items */
     color: white; /* Make the numbers and text white */
     line-height: 1.8; /* Improve readability */
+    font-size: 17px;
 }
 .tutorial-header {
     color: white;
