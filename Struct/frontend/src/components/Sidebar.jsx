@@ -25,12 +25,12 @@ const Sidebar = () => {
         </Link>
 
         {/* Badges Icon */}
-        <Link
+        {/* <Link
           to="/badges"
           className="w-10 h-10 bg-teal-300 hover:bg-teal-500 rounded-lg flex items-center justify-center"
         >
           <FaMedal className="text-white text-lg" />
-        </Link>
+        </Link> */}
       </nav>
     </aside>
   );

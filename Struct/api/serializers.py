@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from .models import Class
 
 User = get_user_model()
 
@@ -35,3 +36,26 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+
+class ClassSerializer(serializers.ModelSerializer):
+    students_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Class
+        fields = ['id', 'name', 'description', 'code', 'created_at', 'students_count']
+        read_only_fields = ['code']
+
+    def get_students_count(self, obj):
+        return obj.students.count()
+
+class ClassCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Class
+        fields = ['id', 'name', 'description', 'code']
+        read_only_fields = ['code']
+
+    def create(self, validated_data):
+        # Set the current user as the teacher
+        user = self.context['request'].user
+        validated_data['teacher'] = user
+        return super().create(validated_data)

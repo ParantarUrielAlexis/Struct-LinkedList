@@ -23,6 +23,7 @@ import SortShiftBubble from "./pages/SortShiftBubble/SortShiftBubble";
 import SortShiftInsertion from "./pages/SortShiftInsertion/SortShiftInsertion";
 import SnakeGame from "./pages/SnakeGame";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ClassProvider } from "./contexts/ClassContext";
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -165,7 +166,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppLayout />
+        <ClassProvider>
+          <AppLayout />
+        </ClassProvider>
       </AuthProvider>
     </Router>
   );

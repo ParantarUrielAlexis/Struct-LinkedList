@@ -1,10 +1,12 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from .serializers import UserRegistrationSerializer
+from .models import Class
+from .serializers import ClassSerializer, ClassCreateSerializer
 
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
@@ -52,3 +54,61 @@ class LoginView(APIView):
             'username': user.username,
             'user_type': user.user_type
         }, status=status.HTTP_200_OK)
+
+class ClassCreateView(generics.CreateAPIView):
+    serializer_class = ClassCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(teacher=self.request.user)
+
+class JoinClassView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        code = request.data.get('code')
+
+        if not code:
+            return Response({"error": "Class code is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            class_obj = Class.objects.get(code=code)
+
+            # If user is already enrolled or is the teacher
+            if request.user in class_obj.students.all() or class_obj.teacher == request.user:
+                return Response({
+                    "success": True,
+                    "message": "You are already enrolled in this class",
+                    "class": ClassSerializer(class_obj).data
+                })
+
+            # Add user to the class
+            class_obj.students.add(request.user)
+
+            return Response({
+                "success": True,
+                "message": "Successfully joined the class",
+                "class": ClassSerializer(class_obj).data
+            })
+
+        except Class.DoesNotExist:
+            return Response({"error": "Invalid class code"}, status=status.HTTP_404_NOT_FOUND)
+
+class UserClassesView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        user_classes = {}
+
+        # Get classes where user is a student
+        enrolled_classes = user.enrolled_classes.all()
+
+        # Get classes where user is a teacher
+        teaching_classes = user.teaching_classes.all()
+
+        return Response({
+            "enrolled_classes": ClassSerializer(enrolled_classes, many=True).data,
+            "teaching_classes": ClassSerializer(teaching_classes, many=True).data,
+            "user_type": user.user_type  # Assuming user_type is available
+        })
