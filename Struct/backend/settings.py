@@ -28,6 +28,22 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+# Use your custom user model
+AUTH_USER_MODEL = 'api.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+# Enable CORS if your frontend is served separately
+CORS_ALLOW_ALL_ORIGINS = True  # For development only; restrict in production
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +53,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -48,11 +68,41 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173/",  # Vite default URL
-]
+# # Explicitly list allowed origins
+# CORS_ALLOWED_ORIGINS = [
+#     'https://your-production-domain.com',
+#     'https://www.your-production-domain.com',
+#     # Add any other domains that need access to your API
+# ]
+
+# # Optional: Allow credentials (cookies, authorization headers)
+# CORS_ALLOW_CREDENTIALS = True
+
+# # Optional: Specify allowed HTTP methods
+# CORS_ALLOW_METHODS = [
+#     'GET',
+#     'POST',
+#     'PUT',
+#     'PATCH',
+#     'DELETE',
+#     'OPTIONS',
+# ]
+
+# # Optional: Specify allowed headers
+# CORS_ALLOW_HEADERS = [
+#     'accept',
+#     'accept-encoding',
+#     'authorization',
+#     'content-type',
+#     'dnt',
+#     'origin',
+#     'user-agent',
+#     'x-csrftoken',
+#     'x-requested-with',
+# ]
 
 ROOT_URLCONF = 'backend.urls'
 

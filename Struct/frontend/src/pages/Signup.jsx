@@ -1,8 +1,63 @@
 import React, { useState } from "react";
-import logo from "../assets/logo.png"; // Import your Struct logo
+import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+    user_type: "student", // Default value
+  });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData({ ...formData, [id]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:8000/api/register/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle validation errors
+        const errorMessage = data.email
+          ? `Email: ${data.email[0]}`
+          : data.username
+          ? `Username: ${data.username[0]}`
+          : data.password
+          ? `Password: ${data.password[0]}`
+          : "Registration failed. Please try again.";
+
+        throw new Error(errorMessage);
+      }
+
+      // Registration successful
+      alert("Registration successful!");
+      navigate("/login"); // Redirect to login page
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-gradient-to-r from-teal-700 to-teal-600 min-h-screen flex items-center justify-center">
@@ -20,18 +75,30 @@ const Signup = () => {
           Join Struct Academy and start your learning journey today.
         </p>
 
+        {/* Error Message */}
+        {error && (
+          <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+            role="alert"
+          >
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
         {/* Sign Up Form */}
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label
-              htmlFor="name"
+              htmlFor="username"
               className="block text-xs font-medium text-gray-700"
             >
               Username
             </label>
             <input
               type="text"
-              id="name"
+              id="username"
+              value={formData.username}
+              onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
               placeholder="Enter your username"
               required
@@ -47,6 +114,8 @@ const Signup = () => {
             <input
               type="email"
               id="email"
+              value={formData.email}
+              onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
               placeholder="Enter your email"
               required
@@ -62,6 +131,8 @@ const Signup = () => {
             <input
               type={showPassword ? "text" : "password"}
               id="password"
+              value={formData.password}
+              onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
               placeholder="Create a password"
               required
@@ -69,19 +140,38 @@ const Signup = () => {
           </div>
           <div>
             <label
-              htmlFor="confirm-password"
+              htmlFor="confirm_password"
               className="block text-xs font-medium text-gray-700"
             >
               Confirm Password
             </label>
             <input
               type={showPassword ? "text" : "password"}
-              id="confirm-password"
+              id="confirm_password"
+              value={formData.confirm_password}
+              onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
               placeholder="Confirm your password"
               required
             />
           </div>
+          {/* <div>
+            <label
+              htmlFor="user_type"
+              className="block text-xs font-medium text-gray-700"
+            >
+              I am a:
+            </label>
+            <select
+              id="user_type"
+              value={formData.user_type}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
+            >
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+            </select>
+          </div> */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -99,9 +189,10 @@ const Signup = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-teal-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-teal-600 transition duration-300 text-sm"
+            disabled={loading}
+            className="w-full bg-teal-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-teal-600 transition duration-300 text-sm disabled:bg-teal-300"
           >
-            Sign Up
+            {loading ? "Processing..." : "Sign Up"}
           </button>
         </form>
 
