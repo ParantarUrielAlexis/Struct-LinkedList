@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+import { useAuth } from "../contexts/AuthContext";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
@@ -49,15 +51,45 @@ const Signup = () => {
         throw new Error(errorMessage);
       }
 
-      // Registration successful
-      alert("Registration successful!");
-      navigate("/login"); // Redirect to login page
+      // If registration is successful, log the user in
+      const loginResponse = await fetch("http://localhost:8000/api/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (loginResponse.ok) {
+        // Use auth context login function
+        login(loginData.token, {
+          id: loginData.user_id,
+          email: loginData.email,
+          username: loginData.username,
+          userType: loginData.user_type,
+        });
+
+        // Redirect to home page
+        navigate("/");
+      } else {
+        // Registration worked but login failed, redirect to login page
+        alert("Registration successful! Please log in.");
+        navigate("/login");
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  // Rest of the component remains the same as before
+  // ...
 
   return (
     <div className="bg-gradient-to-r from-teal-700 to-teal-600 min-h-screen flex items-center justify-center">
