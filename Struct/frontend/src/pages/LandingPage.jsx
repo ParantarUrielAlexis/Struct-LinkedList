@@ -29,11 +29,6 @@ const LandingPage = () => {
           Learn More
         </Link>
       </div>
-
-      {/* Footer Section */}
-      <footer className="absolute bottom-4 text-center text-sm text-white/80">
-        <p>© 2025 Struct Academy. All rights reserved.</p>
-      </footer>
     </div>
   );
 };

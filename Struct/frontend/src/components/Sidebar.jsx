@@ -1,9 +1,17 @@
 import React from "react";
-import PropTypes from "prop-types"; // Import PropTypes
+import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
-import { FaGamepad, FaBook, FaMedal } from "react-icons/fa";
+import {
+  FaGamepad,
+  FaBook,
+  FaMedal,
+  FaChalkboardTeacher,
+} from "react-icons/fa";
+import { useAuth } from "../contexts/AuthContext";
 
 const Sidebar = () => {
+  const { user } = useAuth();
+
   return (
     <aside className="w-14 h-screen fixed top-0 left-0 bg-teal-400 flex flex-col items-center pt-24 space-y-4">
       {/* Navigation Links */}
@@ -23,6 +31,16 @@ const Sidebar = () => {
         >
           <FaGamepad className="text-white text-lg" />
         </Link>
+
+        {/* Teacher Dashboard Icon (Visible only for teachers) */}
+        {user?.userType === "teacher" && (
+          <Link
+            to="/teacher-dashboard"
+            className="w-10 h-10 bg-teal-300 hover:bg-teal-500 rounded-lg flex items-center justify-center"
+          >
+            <FaChalkboardTeacher className="text-white text-lg" />
+          </Link>
+        )}
 
         {/* Badges Icon */}
         {/* <Link
@@ -53,4 +71,4 @@ AppLayout.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export default AppLayout;
+export default Sidebar;

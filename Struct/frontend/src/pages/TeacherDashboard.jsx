@@ -1,15 +1,12 @@
-// src/pages/TeacherDashboard.js
 import React from "react";
 import { FaUserGraduate, FaGamepad, FaUserClock } from "react-icons/fa";
-import { useClass } from "../context/ClassContext";
+import { useClass } from "../contexts/ClassContext";
 import ClassInfo from "../components/ClassInfo";
 import ClassRequiredWrapper from "../components/ClassRequiredWrapper";
 
-// This is just a preview of the teacher dashboard that will be implemented next
 const TeacherDashboard = () => {
   const { activeClass } = useClass();
 
-  // Sample student data for the preview
   const students = [
     {
       id: 1,
@@ -50,14 +47,14 @@ const TeacherDashboard = () => {
 
   return (
     <ClassRequiredWrapper>
-      <div className="container mx-auto px-4 py-6">
+      <div className="w-full px-4 py-8 mt-8 max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
           Teacher Dashboard
         </h1>
 
         <ClassInfo />
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm mt-6">
           <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
             <h2 className="text-lg font-medium text-gray-800">
               Students in {activeClass?.name}
@@ -71,28 +68,16 @@ const TeacherDashboard = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Student Name
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Sort Rush Score
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Typing Test WPM
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Last Active
                   </th>
                 </tr>
@@ -102,7 +87,7 @@ const TeacherDashboard = () => {
                   <tr key={student.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8 bg-teal-100 rounded-full flex items-center justify-center">
+                        <div className="h-8 w-8 flex items-center justify-center bg-teal-100 rounded-full">
                           <FaUserGraduate className="text-teal-600" />
                         </div>
                         <div className="ml-4">
@@ -113,22 +98,18 @@ const TeacherDashboard = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
+                      <div className="flex items-center text-sm text-gray-900">
                         <FaGamepad className="text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">
-                          {student.sortRushScore}
-                        </span>
+                        {student.sortRushScore}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {student.typeTestWPM} WPM
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {student.typeTestWPM} WPM
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center">
                         <FaUserClock className="text-gray-400 mr-2" />
-                        <span>{student.lastActive}</span>
+                        {student.lastActive}
                       </div>
                     </td>
                   </tr>

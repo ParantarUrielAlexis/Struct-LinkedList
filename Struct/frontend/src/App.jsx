@@ -22,6 +22,7 @@ import SortShiftSelection from "./pages/SortShiftSelection/SortShiftSelection";
 import SortShiftBubble from "./pages/SortShiftBubble/SortShiftBubble";
 import SortShiftInsertion from "./pages/SortShiftInsertion/SortShiftInsertion";
 import SnakeGame from "./pages/SnakeGame";
+import TeacherDashboard from "./pages/TeacherDashboard";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ClassProvider } from "./contexts/ClassContext";
 
@@ -36,6 +37,22 @@ const ProtectedRoute = ({ children }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
+// Teacher route component
+const TeacherRoute = ({ children }) => {
+  const { isAuthenticated, user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated || user?.userType !== "teacher") {
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   return children;
@@ -153,6 +170,14 @@ const AppLayout = () => {
                 <ProtectedRoute>
                   <SortShiftInsertion />
                 </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher-dashboard"
+              element={
+                <TeacherRoute>
+                  <TeacherDashboard />
+                </TeacherRoute>
               }
             />
           </Routes>
