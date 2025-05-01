@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef} from "react";
+import { useNavigate } from "react-router-dom";
 import simulation from '../../assets/selection/selection_simulation.gif';
 
 import musicLogo from '../../assets/music.png';
@@ -7,13 +8,14 @@ import tutorialLogo from '../../assets/tutorial.png';
 import styles from './SortShiftSelection.module.css';
 
 const SortShiftSelection = () => {
+    const navigate = useNavigate();
     const backgroundSound = useRef(new Audio("/sounds/selection_background.mp3")); 
 
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
+    
     const [originalArray, setOriginalArray] = useState([]);
-   
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
     const [iterationResults, setIterationResults] = useState([]);
@@ -501,22 +503,15 @@ const SortShiftSelection = () => {
                             </div>
                         </div>
                         <div className={styles["reset-container"]}>
-                            <button
-                                className={styles["previous-btn"]}
-                                onClick={() => window.location.reload()}
-                                disabled={remarks === "Fail"}
-                            >
-                                PREVIOUS
-                            </button>
                             <button className={styles["reset-btn"]} onClick={() => window.location.reload()}>
-                                RESET
+                                Reset
                             </button>
                             <button
                                 className={styles["next-btn"]}
-                                onClick={() => window.location.reload()}
+                                onClick={() => navigate('/sortshift')} // Navigate to Bubble Sort page
                                 disabled={remarks === "Fail"}
                             >
-                                NEXT
+                                Go Back
                             </button>
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-;
+import { useNavigate } from "react-router-dom";
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
 
@@ -9,7 +9,7 @@ import styles from './SortShiftBubble.module.css';
 
 const SortShiftBubble = () => {
     const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
-
+    const navigate = useNavigate();
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
@@ -492,22 +492,15 @@ const SortShiftBubble = () => {
                             </div>
                         </div>
                         <div className={styles["reset-container"]}>
-                            <button
-                                className={styles["previous-btn"]}
-                                onClick={() => window.location.reload()}
-                                disabled={remarks === "Fail"}
-                            >
-                                PREVIOUS
-                            </button>
                             <button className={styles["reset-btn"]} onClick={() => window.location.reload()}>
-                                RESET
+                                Reset
                             </button>
                             <button
                                 className={styles["next-btn"]}
-                                onClick={() => window.location.reload()}
+                                onClick={() => navigate("/sortshift")}
                                 disabled={remarks === "Fail"}
                             >
-                                NEXT
+                                Go Back
                             </button>
                         </div>
                     </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import simulation from '../../assets/insertion/insertion_simulation.gif';
 
 import musicLogo from '../../assets/music.png';
@@ -8,7 +9,7 @@ import styles from './SortShiftInsertion.module.css';
 
 const SortShiftInsertion = () => {
     const backgroundSound = useRef(new Audio("/sounds/insertion_background.mp3")); 
-    
+    const navigate = useNavigate();
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
@@ -492,14 +493,14 @@ const SortShiftInsertion = () => {
                         <div className={styles["reset-container"]}>
                             
                             <button className={styles["reset-btn"]} onClick={() => window.location.reload()}>
-                                RESET
+                                Reset
                             </button>
                             <button
                                 className={styles["next-btn"]}
-                                onClick={() => window.location.reload()}
+                                onClick={() => navigate("/sortshift")}
                                 disabled={remarks === "Fail"}
                             >
-                                NEXT
+                                Go back
                             </button>
                         </div>
                     </div>

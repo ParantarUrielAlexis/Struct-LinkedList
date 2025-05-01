@@ -331,17 +331,23 @@
     gap: 20px
     }
     
+   .reset-btn, .next-btn {
+    width: 150px; /* Set a fixed width */
+    height: 50px; /* Set a fixed height */
+    padding: 10px 20px; /* Ensure consistent padding */
+    font-size: 16px; /* Ensure consistent font size */
+    border-radius: 5px; /* Ensure consistent border radius */
+    text-align: center; /* Center text */
+    display: inline-block; /* Ensure buttons behave the same */
+    }
     .reset-btn {
-    background-color: #ff4d4d;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
+        background-color: #686767;
+        color: white;
+        border: none;
+        cursor: pointer;
     }
     .reset-btn:hover {
-    background-color: #cc0000;
+        background-color: #880505;
     }
     .next-btn {
     background-color: #00adb5;

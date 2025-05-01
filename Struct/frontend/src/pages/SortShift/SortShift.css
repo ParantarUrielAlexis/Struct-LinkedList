@@ -170,3 +170,15 @@ hr {
     opacity: 1;
   }
 }
+
+.level-card.locked {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.locked-text {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 50%;
+}
