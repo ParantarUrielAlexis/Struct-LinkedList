@@ -1,25 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
-import unsortedImg from '../../assets/bubble/unsorted.png';
-import firstCompare from '../../assets/bubble/first_compare.png';
-import secondCompare from '../../assets/bubble/second_compare.png';
-import thirdCompare from '../../assets/bubble/third_compare.png';
-import fourthCompare from '../../assets/bubble/fourth_compare.png';
-import fifthCompare from '../../assets/bubble/fifth_compare.png';
-import sixthCompare from '../../assets/bubble/sixth_compare.png';
-import firstSwap from '../../assets/bubble/first_swap.png';
-import secondSwap from '../../assets/bubble/second_swap.png';
-import thirdSwap from '../../assets/bubble/third_swap.png';
-import fourthSwap from '../../assets/bubble/fourth_swap.png';
+import { useNavigate } from "react-router-dom";
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
 
-import iterationGIF from '../../assets/bubble/first_iteration.gif';
+import iterationGIF from '../../assets/bubble/bubble_simulation.gif';
 
 import styles from './SortShiftBubble.module.css';
 
 const SortShiftBubble = () => {
     const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
-
+    const navigate = useNavigate();
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
@@ -32,7 +22,69 @@ const SortShiftBubble = () => {
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [isTutorialOpen, setIsTutorialOpen] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
-
+    const [tutorialPage, setTutorialPage] = useState(0); 
+    const tutorialPages = [
+        {
+            title: "How Bubble Sort Works",
+            content: (
+                <>
+                    <div className="simulation-text">
+                    <p><strong>Bubble Sort</strong> is a straightforward sorting algorithm that repeatedly traverses the list, compares adjacent elements, and swaps them if they are in the wrong order. This process is repeated until the entire list is sorted in ascending order.</p>
+                    </div>
+                    <br></br>
+                    <h2>Here are the steps: </h2>
+                    <ol>
+                        <li>Start from the beginning of the array and compare the first two adjacent elements.</li>
+                        <li>If the first element is greater than the second, swap them. Otherwise, move to the next pair.</li>
+                        <li>Repeat this process for the entire array. After one pass, the largest element will be at the end.</li>
+                        <li>Ignore the last sorted element(s) and repeat the process for the remaining unsorted portion of the array.</li>
+                        <li>Continue until no swaps are needed, indicating that the array is fully sorted.</li>
+                    </ol>
+                    <p>Watch the simulation to see how the algorithm works in real-time.</p>
+                    <img 
+                        src={iterationGIF} 
+                        alt="Bubble Sort Simulation" 
+                        className="simulation-gif" 
+                        style={{ width: '65%', height: 'auto', margin: '20px auto', display: 'block' }} 
+                    />
+                    <p>Note: This is only the first iteration of the entire sorting process.</p>
+                </>
+            ),
+        },
+        {
+            title: "Game Mechanics",
+            content: (
+                <>
+                   <h1>How to Play:</h1>
+                    <ol>
+                        <li>Click on a box to select the element you want to move.</li>
+                        <li>Click on the target position in the sorted portion to insert the selected element.</li>
+                        <li>Repeat this process for each iteration until the entire array is sorted.</li>
+                        <li>Ensure that you follow the correct steps for each iteration to avoid penalties.</li>
+                        <li>Click the "Submit" button once you believe the array is sorted correctly.</li>
+                        <li>Use the "+" button to add a new grid/iteration or the "-" button to remove a grid/iteration if needed.</li>
+                        <li>Click the "Tutorial" button to revisit the instructions or the "Music" button to toggle background music.</li>
+                        <li>Earn points based on the accuracy and efficiency of your sorting process.</li>
+                    </ol>
+                </>
+            ),
+        },
+        {
+            title: "Scoring Works",
+            content: (
+                <>
+                    <h1>How Scoring Works</h1>
+                    <ul>
+                        <li><strong>Correct Iterations:</strong> You earn points for each correct iteration. The total points are divided equally among the required iterations.</li>
+                        <li><strong>Incorrect Iterations:</strong> Points are deducted for incorrect iterations.</li>
+                        <li><strong>Extra Iterations:</strong> Points are also deducted if you perform unnecessary extra iterations after the array is already sorted.</li>
+                        <li><strong>Maximum Score:</strong> The maximum score you can achieve is <strong>60 points</strong>.</li>
+                        <li><strong>Passing Score:</strong> To pass, you need to score at least <strong>70%</strong> of the total points (42 points).</li>
+                    </ul>
+                </>
+            ),
+        },
+    ];
     useEffect(() => {
         const randomArray = generateRandomArray();
         setOriginalArray(randomArray);
@@ -60,6 +112,17 @@ const SortShiftBubble = () => {
             setIsPlaying(false);
         }
     }
+    const handleNext = () => {
+        if (tutorialPage < tutorialPages.length - 1) {
+            setTutorialPage(tutorialPage + 1);
+        }
+    };
+
+    const handlePrevious = () => {
+        if (tutorialPage > 0) {
+            setTutorialPage(tutorialPage - 1);
+        }
+    };
 
     const handleSelect = (gridIndex, itemIndex) => {
 
@@ -220,138 +283,37 @@ const SortShiftBubble = () => {
     return (
         <div className={styles['short-shift-container']}>
              <video className={styles['background-video']} autoPlay loop muted>
-                        <source src="/video/bubble_bg.mp4" type="video/mp4" />
-                        Your browser does not support the video tag.
-            </video>
-
-             {isTutorialOpen && (
+            <source src="/video/bubble_bg.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+        </video>
+            {isTutorialOpen && (
                 <div className={styles["tutorial-modal"]}>
                     <div className={styles["tutorial-content"]}>
-                        <h1>Bubble Sort</h1>
-                        <hr className={styles["divider"]}></hr>
-                        <p className={styles["description"]}>
-                            <strong>Bubble sort</strong> is a simple comparison-based sorting algorithm. It repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. This process continues until the list is sorted. The algorithm gets its name because smaller elements "bubble" to the top (beginning of the list), while larger elements sink to the bottom (end of the list) with each pass.
-                        </p>
-                        <div className={styles["how-it-works"]}>
-                            <h3>How it works:</h3>
-                            <ol className={styles["steps-list"]}>
-                                <li>Start at the beginning of the array.</li>
-                                <li>Compare the current element with the next one.</li>
-                                <li>If the current element is greater than the next, swap them.</li>
-                                <li>Move to the next pair and repeat until the end of the array.</li>
-                                <li>Repeat the whole process for the remaining unsorted part.</li>
-                                <li>Stop when no swaps are needed in a full pass.</li>
-                            </ol>
+                        <div className={styles["tutorial-header"]}>
+                            <h1>{tutorialPages[tutorialPage].title}</h1>
+                            <button className={styles["close-btn"]} onClick={closeTutorial}>
+                                X
+                            </button>
                         </div>
-                        <p className={styles["additional-info"]}>
-                        Continue reading to fully understand the Bubble Sort algorithm and how to implement it yourself.
-                        </p>
-                        <div className={styles["line-break"]}>
-                            <hr className={styles["divider"]}></hr>
+                        <div className={styles["tutorial-body"]}>
+                            {tutorialPages[tutorialPage].content}
                         </div>
-                        <div className={styles["manual-run-through"]}>
-                            <h2>Manual Run Through</h2>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 1: </strong> We start with an unsorted array.
-                                <img src={unsortedImg} alt="Unsorted Array" className={styles["unsorted-image"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 2: </strong> We look at the two first values. Does the lowest value come first? Yes, so we don't need to swap them.
-                                <img src={firstCompare} alt="First Compare" className={styles["first-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 3: </strong>  Take one step forward and look at values 10 and 8. Does the lowest value come first? No.
-                                <img src={secondCompare} alt="Second Compare" className={styles["second-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 4: </strong>  So we need to swap them so that 8 comes first.
-                                <img src={firstSwap} alt="First Swap" className={styles["first-swap"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 5: </strong>  Taking one step forwards and look at value 10 and 4. Does the lowest value come first? No.
-                                <img src={thirdCompare} alt="Third Compare" className={styles["third-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 6: </strong>  Let's swap them so that 4 comes first.
-                                <img src={secondSwap} alt="Second Swap" className={styles["second-swap"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 7: </strong>  Looking at 10 and 9. Do we need to swap them? Yes.
-                                <img src={fourthCompare} alt="Fourth Compare" className={styles["fourth-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 8: </strong>  We must swap them so that 9 comes first.
-                                <img src={thirdSwap} alt="Third Swap" className="fourth-compare" />
-                            </p>
-                            <p>
-                                <strong>Step 9: </strong>  Now take a look at 10 and 56. Do we need to swap them? No.
-                                <img src={fifthCompare} alt="Fifth Compare" className="fourth-compare" />
-                            </p>
-                            <p>
-                                <strong>Step 10: </strong> Now we look at 56 and 6. Do we need to swap them? Yes.
-                                <img src={sixthCompare} alt="Sixth Compare" className="fourth-compare" />
-                            </p>
-                            <p>
-                                <strong>Step 11: </strong> Now we look at 56 and 6. Do we need to swap them? Yes.
-                                <img src={fourthSwap} alt="Fourth Swap" className="fourth-compare" />
-                            </p>
+                        <div className={styles["tutorial-navigation"]}>
+                            <button
+                                className={styles["previous-btn"]}
+                                onClick={handlePrevious}
+                                disabled={tutorialPage === 0}
+                            >
+                                Previous
+                            </button>
+                            <button
+                                className={styles["next-btn"]}
+                                onClick={handleNext}
+                                disabled={tutorialPage === tutorialPages.length - 1}
+                            >
+                                Next
+                            </button>
                         </div>
-                        <p>
-                            Now we have completed one iteration. The largest number (56) has "bubbled" to the end of the array. We repeat the process for the remaining unsorted part of the array until no swaps are needed in a full pass.
-                        </p>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["simulation"]}>
-                            <p>
-                                Watch the simulation to see how the algorithm works in real-time.
-                            </p>
-                            
-                            <img src={iterationGIF} alt="Iteration GIF" className="iteration_gif" />
-                            <p>
-                                <strong>Reminder: </strong> The simulation shows only the first iteration. You can try to implement the rest of the iterations yourself.
-                            </p>
-                        </div>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["game-introduction"]}>
-                            <h2>Welcome to Sort Shift!</h2>
-                            <p>
-                                <strong>Sort Shift </strong>is an interactive game designed to help you understand and practice the Bubble Sort algorithm. 
-                                Your task is to sort a series of numbers in ascending order by swapping adjacent elements, just like in Bubble Sort.
-                                The game challenges you to think critically and apply the sorting steps efficiently. Each move you make will be evaluated, 
-                                and your score will reflect how accurately and efficiently you complete the sorting process.
-                            </p>
-                            <h2>How to Play:</h2>
-                            <ol className={styles["steps-list"]}>
-                                <li>Click on two adjacent boxes to swap their positions.</li>
-                                <li>Repeat this process until the array is fully sorted.</li>
-                                <li>Remember, you can only swap adjacent elements!</li>
-                            </ol>
-                        </div>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["scoring-system"]}>
-                        <h2>How Scoring Works</h2>
-                        <p>
-                            Your score in the Short Shift game is based on how accurately and efficiently you sort the array using the Bubble Sort algorithm. Here's how the scoring works:
-                        </p>
-                        <ul>
-                            <li><strong>Correct Iterations:</strong> You earn points for each correct iteration. The total points are divided equally among the required iterations.</li>
-                            <li><strong>Incorrect Iterations:</strong> Points are deducted for incorrect iterations.</li>
-                            <li><strong>Extra Iterations:</strong> Points are also deducted if you perform unnecessary extra iterations after the array is already sorted.</li>
-                            <li><strong>Maximum Score:</strong> The maximum score you can achieve is <strong>60 points</strong>.</li>
-                            <li><strong>Passing Score:</strong> To pass, you need to score at least <strong>70%</strong> of the total points (42 points).</li>
-                        </ul>
-                        <p>
-                            Aim to complete the sorting process with as few mistakes and extra iterations as possible to maximize your score!
-                        </p>
-                    </div>
-                    <button className={styles["start-btn"]} onClick={closeTutorial}>
-                                Start Game
-                    </button>
                     </div>
                 </div>
             )}
@@ -530,22 +492,15 @@ const SortShiftBubble = () => {
                             </div>
                         </div>
                         <div className={styles["reset-container"]}>
-                            <button
-                                className={styles["previous-btn"]}
-                                onClick={() => window.location.reload()}
-                                disabled={remarks === "Fail"}
-                            >
-                                PREVIOUS
-                            </button>
                             <button className={styles["reset-btn"]} onClick={() => window.location.reload()}>
-                                RESET
+                                Reset
                             </button>
                             <button
                                 className={styles["next-btn"]}
-                                onClick={() => window.location.reload()}
+                                onClick={() => navigate("/sortshift")}
                                 disabled={remarks === "Fail"}
                             >
-                                NEXT
+                                Go Back
                             </button>
                         </div>
                     </div>

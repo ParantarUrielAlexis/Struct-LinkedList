@@ -1,30 +1,21 @@
-import React, { useEffect, useState, useRef } from "react";
-import unsortedImg from '../../assets/selection/unsorted.png';
-import firstIteration from '../../assets/selection/first_iteration.png';
-import secondIteration from '../../assets/selection/second_iteration.png';
-import thirdIteration from '../../assets/selection/third_iteration.png';
-import fourthIteration from '../../assets/selection/fourth_iteration.png';
-import fifthIteration from '../../assets/selection/fifth_iteration.png';
-import sixthIteration from '../../assets/selection/sixth_iteration.png';
-import firstSwapped from '../../assets/selection/swapped1.png';
-import secondSwapped from '../../assets/selection/swapped2.png';
-import thirdSwapped from '../../assets/selection/swapped3.png';
-import forthSwapped from '../../assets/selection/swapped4.png';
-import simulation from '../../assets/selection/simulation.gif';
+import React, { useEffect, useState, useRef} from "react";
+import { useNavigate } from "react-router-dom";
+import simulation from '../../assets/selection/selection_simulation.gif';
 
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
 
 import styles from './SortShiftSelection.module.css';
 
-const SortShiftSelection= () => {
+const SortShiftSelection = () => {
+    const navigate = useNavigate();
     const backgroundSound = useRef(new Audio("/sounds/selection_background.mp3")); 
 
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
+    
     const [originalArray, setOriginalArray] = useState([]);
-   
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
     const [iterationResults, setIterationResults] = useState([]);
@@ -32,6 +23,67 @@ const SortShiftSelection= () => {
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [isTutorialOpen, setIsTutorialOpen] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
+    const [tutorialPage, setTutorialPage] = useState(0); // Track the current tutorial page
+
+    const tutorialPages = [
+        {
+            title: "How Selection Sort Works",
+            content: (
+                <>
+                    <div className="simulation-text">
+                        <p><strong>Selection sort </strong>is a basic sorting algorithm that works by repeatedly finding the smallest (or largest) element from the unsorted part of the list and swapping it with the first element of that part. It continues this process until the entire list is sorted</p>
+                    </div>
+                    <br></br>
+                    <h2>Here are the steps: </h2>
+                    <ol>
+                        <li>Start from the beginning of the array and find the smallest element in the unsorted portion.</li>
+                        <li>Swap the smallest element with the first element of the unsorted portion.</li>
+                        <li>Move the boundary of the sorted portion one step to the right.</li>
+                        <li>Repeat this process for the remaining unsorted portion of the array.</li>
+                        <li>Continue until the entire array is sorted.</li>
+                    </ol>
+                                        <p>Watch the simulation to see how the algorithm works in real-time.</p>
+                    <img src={simulation} alt="Iteration GIF" className="simulation-gif" />.
+                    <p>Note: Even if the element is already sorted at the index n. You are still need to add an iteration inorder to get more points/score</p>
+                </>
+            ),
+        },
+        {
+            title: "Mechanics",
+            content: (
+                <>
+                <h1>How to Play:</h1>
+                <ol>
+                    <li>Click on a box to select the element you want to move.</li>
+                    <li>Click on the target position in the sorted portion to insert the selected element.</li>
+                    <li>Repeat this process for each iteration until the entire array is sorted.</li>
+                    <li>Ensure that you follow the correct steps for each iteration to avoid penalties.</li>
+                    <li>Click the "Submit" button once you believe the array is sorted correctly.</li>
+                    <li>Use the "+" button to add a new grid/iteration or the "-" button to remove a grid/iteration if needed.</li>
+                    <li>Click the "Tutorial" button to revisit the instructions or the "Music" button to toggle background music.</li>
+                    <li>Earn points based on the accuracy and efficiency of your sorting process.</li>
+                </ol>
+            </>
+            ),
+        },
+        {
+            title: "Scoring Works",
+            content: (
+                <>
+                    <h1>How Scoring Works</h1>
+                    
+                    <ul>
+                        <li><strong>Correct Iterations:</strong> You earn points for each correct iteration. The total points are divided equally among the required iterations.</li>
+                        <li><strong>Incorrect Iterations:</strong> Points are deducted for incorrect iterations.</li>
+                        <li><strong>Extra Iterations:</strong> Points are also deducted if you perform unnecessary extra iterations after the array is already sorted.</li>
+                        <li><strong>Reminder:</strong> Even if the current position already contains the smallest element, you must add an iteration to proceed.</li>
+                        <li><strong>Maximum Score:</strong> The maximum score you can achieve is <strong>60 points</strong>.</li>
+                        <li><strong>Passing Score:</strong> To pass, you need to score at least <strong>70%</strong> of the total points (42 points).</li>
+                    </ul>
+                </>
+            ),
+        },
+    ];
 
     useEffect(() => {
         const randomArray = generateRandomArray();
@@ -40,10 +92,13 @@ const SortShiftSelection= () => {
     }, []);
     useEffect(() => {
         const sound = backgroundSound.current;
+        sound.volume = 0.3;
+        sound.loop = true;
     
+        // Cleanup function to stop the music when the component unmounts
         return () => {
             sound.pause();
-            sound.currentTime = 0;
+            sound.currentTime = 0; // Reset the music to the beginning
         };
     }, []);
 
@@ -85,11 +140,23 @@ const SortShiftSelection= () => {
         setGrids(newGrids);
     };
     
+    const handleNext = () => {
+        if (tutorialPage < tutorialPages.length - 1) {
+            setTutorialPage(tutorialPage + 1);
+        }
+    };
+
+    const handlePrevious = () => {
+        if (tutorialPage > 0) {
+            setTutorialPage(tutorialPage - 1);
+        }
+    };
+
     const closeTutorial = () => {
         setIsTutorialOpen(false);
         const sound = backgroundSound.current;
-        sound.volume = 0.3; 
-        sound.loop = true; 
+        sound.volume = 0.3;
+        sound.loop = true;
         sound.play();
         
     };
@@ -225,142 +292,39 @@ const SortShiftSelection= () => {
     const remarks = score >= passingScore ? "Pass" : "Fail";
 
     return (
-        <div className={styles['short-shift-container']}>
-            <video className={styles['background-video']} autoPlay loop muted>
+        <div className={styles["short-shift-container"]}>
+            <video className={styles["background-video"]} autoPlay loop muted>
                 <source src="/video/selection_bg.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
-             {isTutorialOpen && (
+            {isTutorialOpen && (
                 <div className={styles["tutorial-modal"]}>
                     <div className={styles["tutorial-content"]}>
-                        <h1>Selection Sort</h1>
-                        <hr className={styles["divider"]}></hr>
-                        <p className={styles["description"]}>
-                            <strong>Selection Sort</strong> is a simple comparison-based sorting algorithm. It repeatedly selects the smallest (or largest, depending on the order) element from the unsorted portion of the array and places it in its correct position. This process continues until the entire array is sorted.
-                        </p>
-                        <div className={styles["how-it-works"]}>
-                            <h3>How it works:</h3>
-                            <ol className={styles["steps-list"]}>
-                                <li>Start with the first element in the array.</li>
-                                <li>Find the smallest element in the unsorted portion of the array.</li>
-                                <li>Swap the smallest element with the first element of the unsorted portion.</li>
-                                <li>Move to the next element and repeat the process for the remaining unsorted portion of the array.</li>
-                                <li>Continue until the entire array is sorted.</li>
-                            </ol>
+                        <div className={styles["tutorial-header"]}>
+                            <h1>{tutorialPages[tutorialPage].title}</h1>
+                            <button className={styles["close-btn"]} onClick={closeTutorial}>
+                                X
+                            </button>
                         </div>
-                        <p className={styles["additional-info"]}>
-                            <strong>Selection Sort </strong>is an intuitive algorithm that works well for small datasets. However, it is not efficient for large datasets due to its time complexity of O(n²). Continue reading to learn how to implement it in the game.
-                        </p>
-                        <div className={styles["line-break"]}>
-                            <hr className={styles["divider"]}></hr>
+                        <div className={styles["tutorial-body"]}>
+                            {tutorialPages[tutorialPage].content}
                         </div>
-                        <div className={styles["manual-run-through"]}>
-                            <h2>Manual Run Through</h2>
-                            <p className={styles["step-description1"]}>
-                                <strong>Step 1: </strong> We start with an unsorted array.
-                                <img src={unsortedImg} alt="Unsorted Array" className={styles["unsorted-image"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 2: </strong>The first element 12 is already the smallest in the array, so no swap is needed and we are done with first iteration.
-                                <img src={firstIteration} alt="First Iteration" className={styles["first-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 3: </strong>  Move to the second position. Find the smallest element in the unsorted portion (23). 
-                                <img src={secondIteration} alt="Second Iteration" className={styles["second-compare"]} /> 
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with second iteration. <br></br>
-                                <img src={firstSwapped} alt="First Swap" className={styles["first-swap"]} /> 
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 4: </strong> You can see here that the smallest element is 34, which already in the correct position, so no swap is needed.
-                                <img src={thirdIteration} alt="Third Iteration" className={styles["first-swap"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 5: </strong>  Move the fourth position. Find the smallest element in the unsorted portion (45).
-                                <img src={fourthIteration} alt="Fourth Iteration" className={styles["fourth-compare"]} />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with fourth iteration. <br></br>
-                                <img src={secondSwapped} alt="Second Compare" className={styles["second-swap"]} /> 
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Step 6: </strong> Move to the fifth position. Find the smallest element in the unsorted portion (56).
-                                <img src={fifthIteration} alt="Fifth Iteration" className="fifth-iteration" />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with fifth iteration. <br></br>
-                                <img src={thirdSwapped} alt="Third Swapped" className={styles["third-swap"]} /> 
-                            </p>
-                            <p>
-                                <strong>Step 7: </strong>  Move to the sixth position. Find the smallest element in the unsorted portion (67).
-                                <img src={sixthIteration} alt="Sixth Iteration" className="sixth-iteration" />
-                            </p>
-                            <p className={styles["step-description"]}>
-                                <strong>Swapped: </strong> We swap them and we are done with sixth iteration. <br></br>
-                                <img src={forthSwapped} alt="Fourth Swapped" className={styles["fourth-swap"]} /> 
-                            </p>
+                        <div className={styles["tutorial-navigation"]}>
+                            <button
+                                className={styles["previous-btn"]}
+                                onClick={handlePrevious}
+                                disabled={tutorialPage === 0}
+                            >
+                                Previous
+                            </button>
+                            <button
+                                className={styles["next-btn"]}
+                                onClick={handleNext}
+                                disabled={tutorialPage === tutorialPages.length - 1}
+                            >
+                                Next
+                            </button>
                         </div>
-                        <p>
-                            The array is now sorted! The final sorted array is: [12, 23, 34, 45, 56, 67, 78]. 
-                        </p>
-                        <br></br>
-                        <p>
-                            <strong>Remarks:</strong>  Find the smallest element in the unsorted portion of the array and swap it with the first element of the unsorted portion. Repeat this process until the entire array is sorted.
-                        </p>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["simulation"]}>
-                            <p>
-                                Watch the simulation to see how the algorithm works in real-time.
-                            </p>
-                            
-                            <img src={simulation} alt="Iteration GIF" className="simulation-gif" />
-                        </div>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["game-introduction"]}>
-                            <h2>Welcome to Sort Shift!</h2>
-                            <p>
-                                <strong>Sort Shift</strong> is an interactive game designed to help you understand and practice the Selection Sort algorithm. 
-                                Your task is to sort a series of numbers in ascending order by selecting the smallest element from the unsorted portion of the array 
-                                and swapping it with the first element of the unsorted portion. This process continues until the entire array is sorted.
-                                The game challenges you to think critically and apply the sorting steps efficiently. Each move you make will be evaluated, 
-                                and your score will reflect how accurately and efficiently you complete the sorting process.
-                            </p>
-                            <h2>How to Play:</h2>
-                            <ol className={styles["steps-list"]}>
-                                <li>Click on the smallest element in the unsorted portion of the array.</li>
-                                <li>Swap it with the first element of the unsorted portion.</li>
-                                <li>Repeat this process until the array is fully sorted.</li>
-                                <li>If the current position already contains the smallest element, you still need to add an iteration to proceed.</li>
-                            </ol>
-                        </div>
-                        <div className={styles["line-break"]}>
-                            <hr></hr>
-                        </div>
-                        <div className={styles["scoring-system"]}>
-                            <h2>How Scoring Works</h2>
-                            <p>
-                                Your score in the Short Shift game is based on how accurately and efficiently you sort the array using the Selection Sort algorithm. Here's how the scoring works:
-                            </p>
-                            <ul>
-                                <li><strong>Correct Iterations:</strong> You earn points for each correct iteration. The total points are divided equally among the required iterations.</li>
-                                <li><strong>Incorrect Iterations:</strong> Points are deducted for incorrect iterations.</li>
-                                <li><strong>Extra Iterations:</strong> Points are also deducted if you perform unnecessary extra iterations after the array is already sorted.</li>
-                                <li><strong>Reminder:</strong> Even if the current position already contains the smallest element, you must add an iteration to proceed.</li>
-                                <li><strong>Maximum Score:</strong> The maximum score you can achieve is <strong>60 points</strong>.</li>
-                                <li><strong>Passing Score:</strong> To pass, you need to score at least <strong>70%</strong> of the total points (42 points).</li>
-                            </ul>
-                            <p>
-                                Aim to complete the sorting process with as few mistakes and extra iterations as possible to maximize your score!
-                            </p>
-                        </div>
-                        <button className={styles["start-btn"]} onClick={closeTutorial}>
-                            Start Game
-                        </button>
                     </div>
                 </div>
             )}
@@ -539,22 +503,15 @@ const SortShiftSelection= () => {
                             </div>
                         </div>
                         <div className={styles["reset-container"]}>
-                            <button
-                                className={styles["previous-btn"]}
-                                onClick={() => window.location.reload()}
-                                disabled={remarks === "Fail"}
-                            >
-                                PREVIOUS
-                            </button>
                             <button className={styles["reset-btn"]} onClick={() => window.location.reload()}>
-                                RESET
+                                Reset
                             </button>
                             <button
                                 className={styles["next-btn"]}
-                                onClick={() => window.location.reload()}
+                                onClick={() => navigate('/sortshift')} // Navigate to Bubble Sort page
                                 disabled={remarks === "Fail"}
                             >
-                                NEXT
+                                Go Back
                             </button>
                         </div>
                     </div>

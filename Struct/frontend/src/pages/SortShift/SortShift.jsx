@@ -16,22 +16,28 @@ export default function SortShift() {
   
   const gameStartSound = useRef(new Audio('/sounds/game_start_sound.mp3'));
   const backgroundSound = useRef(new Audio('/sounds/sortshift_background.mp3'));
-  const [isLoading, setIsLoading] = useState(false); // State for loading animation
-  const [loadingImage, setLoadingImage] = useState(null); // State for the loading image
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingImage, setLoadingImage] = useState(null);
   const [fadeIn, setFadeIn] = useState(false);
+  const [progress, setProgress] = useState(() => {
+    // Retrieve progress from localStorage or default to level 1
+    return parseInt(localStorage.getItem('progress')) || 1;
+  });
 
   useEffect(() => {
     const sound = backgroundSound.current;
-    sound.loop = true; // Loop the background music
-    sound.play(); // Play the background music when the component mounts
+    sound.loop = true;
+    sound.play();
 
     return () => {
-      sound.pause(); // Stop the background music when the component unmounts
+      sound.pause();
       sound.currentTime = 0;
     };
   }, []);
 
-  const handlePlayClick = (path, image) => {
+  const handlePlayClick = (path, image, levelId) => {
+    if (levelId > progress) return; // Prevent access to locked levels
+
     const bgSound = backgroundSound.current;
     const startSound = gameStartSound.current;
 
@@ -40,13 +46,18 @@ export default function SortShift() {
 
     startSound.play();
 
-    setLoadingImage(image); // Set the loading image
+    setLoadingImage(image);
     setIsLoading(true);
     setFadeIn(false);
     setTimeout(() => {
       setFadeIn(true);
-    }, 100); 
+    }, 100);
     setTimeout(() => {
+      if (levelId === progress) {
+        const newProgress = progress + 1;
+        setProgress(newProgress);
+        localStorage.setItem('progress', newProgress); 
+      }
       navigate(path);
     }, 4000);
   };
@@ -56,10 +67,10 @@ export default function SortShift() {
       {isLoading && (
         <div className={`loading-overlay ${isLoading ? 'loading-active' : 'loading-done'}`}>
           <img
-              src={loadingImage}
-              alt="Loading Level"
-              className={`loading-image ${fadeIn ? 'fade-in' : ''}`}
-            />
+            src={loadingImage}
+            alt="Loading Level"
+            className={`loading-image ${fadeIn ? 'fade-in' : ''}`}
+          />
           <div className="loading-spinner"></div>
         </div>
       )}
@@ -74,17 +85,22 @@ export default function SortShift() {
         {levels.map((level) => (
           <div
             key={level.id}
-            className="level-card"
-            onClick={() => handlePlayClick(level.path, level.backgroundImage)}
+            className={`level-card ${level.id > progress ? 'locked' : ''}`}
+            onClick={() => handlePlayClick(level.path, level.backgroundImage, level.id)}
             style={{
               backgroundImage: `url(${level.backgroundImage})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              cursor: 'pointer',
+              cursor: level.id > progress ? 'not-allowed' : 'pointer',
+              opacity: level.id > progress ? 0.5 : 1, // Dim locked levels
             }}
           >
             <div className="overlay">
-              <button className="play-button">Play</button>
+              {level.id > progress ? (
+                <span className="locked-text">Locked</span>
+              ) : (
+                <button className="play-button">Play</button>
+              )}
             </div>
           </div>
         ))}
