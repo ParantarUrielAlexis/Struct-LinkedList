@@ -26,37 +26,8 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ClassProvider } from "./contexts/ClassContext";
 
-// Protected route component
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-  const location = useLocation();
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return children;
-};
-
-// Teacher route component
-const TeacherRoute = ({ children }) => {
-  const { isAuthenticated, user, loading } = useAuth();
-  const location = useLocation();
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated || user?.userType !== "teacher") {
-    return <Navigate to="/" state={{ from: location }} replace />;
-  }
-
-  return children;
-};
+import ProtectedRoute from "./routes/ProtectedRoute";
+import TeacherRoute from "./routes/TeacherRoute";
 
 const AppLayout = () => {
   const location = useLocation();
