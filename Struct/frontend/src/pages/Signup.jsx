@@ -92,7 +92,7 @@ const Signup = () => {
   // ...
 
   return (
-    <div className="bg-gradient-to-r from-teal-700 to-teal-600 min-h-screen flex items-center justify-center">
+    <div className="bg-gradient-to-r from-blue-500 to-blue-600 min-h-screen flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md relative">
         {/* Struct Logo */}
         <div className="absolute top-2 right-2">
@@ -100,7 +100,7 @@ const Signup = () => {
         </div>
 
         {/* Header */}
-        <h2 className="text-2xl font-bold text-teal-500 text-center mb-4">
+        <h2 className="text-2xl font-bold text-blue-500 text-center mb-4">
           Create an Account
         </h2>
         <p className="text-sm text-gray-600 text-center mb-2">
@@ -131,7 +131,7 @@ const Signup = () => {
               id="username"
               value={formData.username}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               placeholder="Enter your username"
               required
             />
@@ -148,7 +148,7 @@ const Signup = () => {
               id="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               placeholder="Enter your email"
               required
             />
@@ -165,7 +165,7 @@ const Signup = () => {
               id="password"
               value={formData.password}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               placeholder="Create a password"
               required
             />
@@ -182,7 +182,7 @@ const Signup = () => {
               id="confirm_password"
               value={formData.confirm_password}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
               placeholder="Confirm your password"
               required
             />
@@ -198,7 +198,7 @@ const Signup = () => {
               id="user_type"
               value={formData.user_type}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
             >
               <option value="student">Student</option>
               <option value="teacher">Teacher</option>
@@ -208,7 +208,7 @@ const Signup = () => {
             <input
               type="checkbox"
               id="show-password"
-              className="h-4 w-4 text-teal-500 border-gray-300 rounded"
+              className="h-4 w-4 text-blue-500 border-gray-300 rounded"
               checked={showPassword}
               onChange={() => setShowPassword(!showPassword)}
             />
@@ -222,7 +222,7 @@ const Signup = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-teal-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-teal-600 transition duration-300 text-sm disabled:bg-teal-300"
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 transition duration-300 text-sm disabled:bg-blue-300"
           >
             {loading ? "Processing..." : "Sign Up"}
           </button>
@@ -233,7 +233,7 @@ const Signup = () => {
           Already have an account?{" "}
           <a
             href="/login"
-            className="text-teal-500 font-medium hover:underline"
+            className="text-blue-500 font-medium hover:underline"
           >
             Log in
           </a>

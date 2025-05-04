@@ -19,7 +19,7 @@ const Module = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-purple-600 via-teal-500 to-cyan-400">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-sky-50 via-indigo-50 to-blue-100">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 max-w-4xl">
         {topics.map((topic, index) => (
           <TopicButton

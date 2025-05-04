@@ -20,7 +20,7 @@ const Header = () => {
   const gameName = gameNames[location.pathname] || "Game";
 
   return (
-    <header className="bg-teal-600 text-white p-4 shadow-md flex items-center justify-between">
+    <header className="bg-blue-600 text-white p-4 shadow-md flex items-center justify-between">
       {/* Game Name */}
       <h1 className="text-2xl font-bold">{gameName}</h1>
       {/* Back Button */}

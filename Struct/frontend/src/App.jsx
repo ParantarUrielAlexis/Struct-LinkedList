@@ -6,6 +6,7 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -22,7 +23,11 @@ import SortShiftSelection from "./pages/SortShiftSelection/SortShiftSelection";
 import SortShiftBubble from "./pages/SortShiftBubble/SortShiftBubble";
 import SortShiftInsertion from "./pages/SortShiftInsertion/SortShiftInsertion";
 import SnakeGame from "./pages/SnakeGame";
+
+import GameShowcase from "./pages/GameShowcase";
+
 import TeacherDashboard from "./pages/TeacherDashboard";
+
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ClassProvider } from "./contexts/ClassContext";
 
@@ -143,6 +148,16 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/games"
+              element={
+                <ProtectedRoute>
+                  <GameShowcase />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/teacher-dashboard"
               element={

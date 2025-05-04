@@ -32,7 +32,7 @@ const ClassSelector = ({ onJoinClick, onCreateClick }) => {
     <div className="relative min-w-[200px]" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full gap-2 bg-teal-100 hover:bg-teal-200 text-teal-800 px-3 py-2 rounded-md text-sm font-medium transition"
+        className="flex items-center justify-between w-full gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-md text-sm font-medium transition"
       >
         <span className="truncate max-w-[10rem]">
           {activeClass
@@ -64,7 +64,7 @@ const ClassSelector = ({ onJoinClick, onCreateClick }) => {
                     onClick={() => handleClassSelect(classObj)}
                     className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
                       activeClass?.id === classObj.id
-                        ? "bg-teal-50 text-teal-700 font-medium"
+                        ? "bg-blue-50 text-blue-700 font-medium"
                         : "text-gray-700"
                     }`}
                   >
@@ -87,7 +87,7 @@ const ClassSelector = ({ onJoinClick, onCreateClick }) => {
                     setIsOpen(false);
                     onCreateClick();
                   }}
-                  className="flex items-center w-full px-4 py-2 text-sm text-teal-600 hover:bg-gray-100"
+                  className="flex items-center w-full px-4 py-2 text-sm text-blue-700 hover:bg-gray-100"
                 >
                   <FaPlus className="mr-2" /> Create New Class
                 </button>
@@ -97,7 +97,7 @@ const ClassSelector = ({ onJoinClick, onCreateClick }) => {
                     setIsOpen(false);
                     onJoinClick();
                   }}
-                  className="flex items-center w-full px-4 py-2 text-sm text-teal-600 hover:bg-gray-100"
+                  className="flex items-center w-full px-4 py-2 text-sm text-blue-700 hover:bg-gray-100"
                 >
                   <FaPlus className="mr-2" /> Join Class with Code
                 </button>

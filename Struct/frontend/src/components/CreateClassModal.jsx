@@ -47,7 +47,7 @@ const CreateClassModal = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-teal-600 mb-4">
+        <h2 className="text-2xl font-bold text-blue-700 mb-4">
           Create a New Class
         </h2>
 
@@ -74,7 +74,7 @@ const CreateClassModal = ({ isOpen, onClose }) => {
             <input
               type="text"
               id="className"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g. Data Structures & Algorithms"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
@@ -92,7 +92,7 @@ const CreateClassModal = ({ isOpen, onClose }) => {
             </label>
             <textarea
               id="description"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter class description..."
               rows="3"
               value={description}
@@ -112,7 +112,7 @@ const CreateClassModal = ({ isOpen, onClose }) => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 disabled:bg-teal-300"
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
               disabled={loading}
             >
               {loading ? "Creating..." : "Create Class"}
