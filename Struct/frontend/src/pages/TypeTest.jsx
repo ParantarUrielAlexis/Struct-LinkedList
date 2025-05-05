@@ -1,12 +1,18 @@
+// definitions not centered
 import React, { useState, useEffect, useRef } from "react";
-import "./TypeTest.css";
-
-import { useNavigate } from "react-router-dom";
-
-import { FaRedo } from "react-icons/fa";
-import { FaClock } from "react-icons/fa";
-import { FaVolumeUp, FaVolumeMute } from "react-icons/fa";
-import { FaArrowLeft } from "react-icons/fa";
+import {
+  FaRedo,
+  FaClock,
+  FaVolumeUp,
+  FaVolumeMute,
+  FaArrowLeft,
+  FaFire,
+  FaKeyboard,
+  FaTrophy,
+  FaCheck,
+  FaCode,
+  FaChevronRight,
+} from "react-icons/fa";
 
 import typingSoundFile from "../assets/typing.mp3";
 import pingSoundFile from "../assets/ping.mp3";
@@ -59,6 +65,9 @@ function TypeTest() {
   const [mistakes, setMistakes] = useState(0);
   const [scoreAnimation, setScoreAnimation] = useState(false);
   const [multiplierAnimation, setMultiplierAnimation] = useState(false);
+  const [wordAnimation, setWordAnimation] = useState(false);
+  const [streakCount, setStreakCount] = useState(0);
+  const [showStreak, setShowStreak] = useState(false);
 
   const [difficulty, setDifficulty] = useState("Easy");
 
@@ -69,11 +78,12 @@ function TypeTest() {
   const [showNavbar, setShowNavbar] = useState(true);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
 
-  // const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showDefinition, setShowDefinition] = useState(false);
+  const [completedWords, setCompletedWords] = useState([]);
 
-  // const [pulseEffect, setPulseEffect] = useState(false);
-
-  const navigate = useNavigate();
+  // Game background states
+  const [backgroundState, setBackgroundState] = useState("normal");
+  const [levelProgress, setLevelProgress] = useState(0);
 
   const startGame = () => {
     if (!gameStarted) {
@@ -90,6 +100,11 @@ function TypeTest() {
     setScore(0);
     setMultiplier(1);
     setMistakes(0);
+    setStreakCount(0);
+    setShowStreak(false);
+    setBackgroundState("normal");
+    setLevelProgress(0);
+    setCompletedWords([]);
 
     // automatic focus on input field
     setTimeout(() => {
@@ -121,6 +136,10 @@ function TypeTest() {
     setScore(0);
     setMultiplier(1);
     setMistakes(0);
+    setStreakCount(0);
+    setShowStreak(false);
+    setBackgroundState("normal");
+    setLevelProgress(0);
   };
 
   const toggleMute = () => {
@@ -149,8 +168,13 @@ function TypeTest() {
     setScore(0);
     setMultiplier(1);
     setMistakes(0);
+    setStreakCount(0);
+    setShowStreak(false);
+    setBackgroundState("normal");
+    setLevelProgress(0);
+    setCompletedWords([]);
 
-    // matic focus on input field
+    // automatic focus on input field
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
@@ -183,13 +207,31 @@ function TypeTest() {
     const currentWord = words[currentWordIndex];
 
     if (value === currentWord) {
-      // Trigger pulse effect
-      // setPulseEffect(true);
-      // setTimeout(() => setPulseEffect(false), 500);
-      // Play ping sound when a word is completed (only if not muted)
+      // play ping sound if correct
       if (!isMuted) {
         pingSound.currentTime = 0;
         pingSound.play();
+      }
+      // Add to completed words
+      setCompletedWords([...completedWords, currentWord]);
+
+      // Word complete animation
+      setWordAnimation(true);
+      setTimeout(() => setWordAnimation(false), 300);
+
+      // Increase streak
+      setStreakCount((prevStreak) => prevStreak + 1);
+      if (streakCount + 1 >= 3) {
+        setShowStreak(true);
+        setTimeout(() => setShowStreak(false), 1500);
+      }
+
+      // Update background state based on streak
+      if (streakCount + 1 >= 5) {
+        setBackgroundState("hot");
+        setLevelProgress(100);
+      } else {
+        setLevelProgress((prev) => Math.min(100, prev + 20));
       }
 
       // score and multiplier calculation
@@ -219,6 +261,16 @@ function TypeTest() {
       // checking mistake
       if (!currentWord.startsWith(value)) {
         setMistakes((prevMistakes) => prevMistakes + 1);
+
+        // Reset streak on mistake
+        setStreakCount(0);
+        setShowStreak(false);
+
+        // Decrease background intensity
+        if (backgroundState === "hot") {
+          setBackgroundState("normal");
+        }
+        setLevelProgress((prev) => Math.max(0, prev - 15));
 
         // multiplier decreases if mistakes is 2
         if (mistakes + 1 === 2) {
@@ -273,160 +325,173 @@ function TypeTest() {
 
   const renderHighlightedWord = () => {
     const currentWord = words[currentWordIndex];
-    return currentWord.split("").map((char, index) => {
-      const isCorrect = inputValue[index] === char;
-      const isTyped = index < inputValue.length;
+    return (
+      <div className="text-gray-200">
+        {currentWord.split("").map((char, index) => {
+          const isCorrect = inputValue[index] === char;
+          const isTyped = index < inputValue.length;
 
-      return (
-        <span
-          key={index}
-          className={`letter ${
-            isTyped ? (isCorrect ? "correct" : "incorrect") : ""
-          }`}
-        >
-          {char}
-        </span>
-      );
-    });
+          return (
+            <span
+              key={index}
+              className={`${
+                isTyped ? (isCorrect ? "text-green-500" : "text-red-500") : ""
+              } ${wordAnimation ? "animate-bounce" : ""}`}
+            >
+              {char}
+            </span>
+          );
+        })}
+      </div>
+    );
   };
 
   const renderDefinitions = () => {
-    return words.slice(0, currentWordIndex + 1).map((word, index) => (
-      <div key={index} className="definition-card">
-        <div className="definition-word">{word}</div>
-        <div className="definition-text">
+    return completedWords.map((word, index) => (
+      <div
+        key={index}
+        className="bg-gray-800 p-4 rounded-lg shadow hover:shadow-lg hover:-translate-y-1 transition-all border border-blue-400"
+      >
+        <div className="text-lg font-bold text-blue-400 mb-2">{word}</div>
+        <div className="text-gray-300">
           {wordDefinitions[word] || "Definition not available."}
         </div>
       </div>
     ));
   };
 
-  // const toggleDarkMode = () => {
-  //   setIsDarkMode((prev) => !prev);
-  // };
+  const getProgressBarColor = () => {
+    if (levelProgress < 30) return "bg-blue-500";
+    if (levelProgress < 60) return "bg-green-500";
+    if (levelProgress < 90) return "bg-yellow-500";
+    return "bg-red-500";
+  };
 
   return (
-    <div className="type-test-wrapper">
+    <div
+      className={`flex flex-col items-center justify-center min-h-screen w-full transition-all duration-500 ${
+        backgroundState === "hot"
+          ? "bg-gradient-to-b from-red-900 to-red-800"
+          : "bg-gradient-to-b from-gray-900 to-gray-800"
+      }`}
+    >
       {/* Navigation Bar */}
       {showNavbar && !hasStartedTyping && (
-        <nav className="type-test-navbar">
-          <div className="modes">
+        <nav className="flex flex-col md:flex-row justify-between items-center w-full max-w-6xl p-4 bg-gray-800 shadow rounded-lg border border-gray-700 mb-2">
+          <div className="flex flex-wrap justify-center gap-3 mb-4 md:mb-0">
             <button
-              className={`mode-button ${
-                mode === "Competitive" ? "active" : ""
+              className={`px-3 py-2 text-sm font-bold rounded transition-colors ${
+                mode === "Competitive"
+                  ? "bg-blue-600 text-white"
+                  : "border border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
               }`}
               onClick={() => handleModeChange("Competitive")}
             >
-              Competitive Mode
+              <span className="flex items-center gap-2">
+                <FaTrophy /> Competitive Mode
+              </span>
             </button>
             <button
-              className={`mode-button ${mode === "Practice" ? "active" : ""}`}
+              className={`px-3 py-2 text-sm font-bold rounded transition-colors ${
+                mode === "Practice"
+                  ? "bg-blue-600 text-white"
+                  : "border border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
+              }`}
               onClick={() => handleModeChange("Practice")}
             >
-              Practice Mode
+              <span className="flex items-center gap-2">
+                <FaKeyboard /> Practice Mode
+              </span>
             </button>
 
             {/* Mute Button */}
-            <button className="mute-button" onClick={toggleMute}>
-              {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+            <button
+              className="text-blue-400 hover:text-blue-200 transition-colors p-2"
+              onClick={toggleMute}
+            >
+              {isMuted ? <FaVolumeMute size={20} /> : <FaVolumeUp size={20} />}
             </button>
-            {/* Dark Mode Toggle
-            <button className="dark-mode-button" onClick={toggleDarkMode}>
-              {isDarkMode ? "Light Mode" : "Dark Mode"}
-            </button> */}
           </div>
 
-          <div className="difficulty">
-            <div className="difficulty-options">
-              <div
-                className={`difficulty-item ${
-                  difficulty === "Easy" ? "selected" : ""
-                }`}
-                onClick={() => handleDifficultyChange("Easy")}
-              >
-                Easy
+          <div className="flex flex-col w-full md:w-auto space-y-4 md:space-y-0">
+            {mode === "Competitive" && (
+              <div className="flex justify-center items-center mt-4 md:mt-0">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`px-3 py-2 text-sm font-bold rounded cursor-pointer ${
+                      selectedTimer === 15
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    }`}
+                    onClick={() => handleTimerChange(15)}
+                  >
+                    15s
+                  </div>
+
+                  <div
+                    className={`px-3 py-2 text-sm font-bold rounded cursor-pointer ${
+                      selectedTimer === 30
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    }`}
+                    onClick={() => handleTimerChange(30)}
+                  >
+                    30s
+                  </div>
+
+                  <div
+                    className={`px-3 py-2 text-sm font-bold rounded cursor-pointer ${
+                      selectedTimer === 60
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    }`}
+                    onClick={() => handleTimerChange(60)}
+                  >
+                    60s
+                  </div>
+
+                  <div
+                    className="px-3 py-2 text-sm font-bold bg-gray-700 text-blue-400 rounded cursor-pointer hover:bg-gray-600"
+                    onClick={() => setShowCustomTimeModal(true)}
+                  >
+                    <FaClock />
+                  </div>
+
+                  {/* <div className="px-3 py-2 text-sm font-bold bg-gray-700 text-blue-400 rounded cursor-pointer hover:bg-gray-600 ml-2">
+                    <FaArrowLeft />
+                  </div> */}
+                </div>
               </div>
-              <div
-                className={`difficulty-item ${
-                  difficulty === "Medium" ? "selected" : ""
-                }`}
-                onClick={() => handleDifficultyChange("Medium")}
-              >
-                Medium
-              </div>
-              <div
-                className={`difficulty-item ${
-                  difficulty === "Hard" ? "selected" : ""
-                }`}
-                onClick={() => handleDifficultyChange("Hard")}
-              >
-                Hard
-              </div>
-            </div>
+            )}
           </div>
-          {mode === "Competitive" && (
-            <div className="timers">
-              <div className="timer-options">
-                <div
-                  className={`timer-item ${
-                    selectedTimer === 15 ? "selected" : ""
-                  }`}
-                  onClick={() => handleTimerChange(15)}
-                >
-                  15
-                </div>
-                <div className="line"></div>
-                <div
-                  className={`timer-item ${
-                    selectedTimer === 30 ? "selected" : ""
-                  }`}
-                  onClick={() => handleTimerChange(30)}
-                >
-                  30
-                </div>
-                <div className="line"></div>
-                <div
-                  className={`timer-item ${
-                    selectedTimer === 60 ? "selected" : ""
-                  }`}
-                  onClick={() => handleTimerChange(60)}
-                >
-                  60
-                </div>
-                <div className="line"></div>
-                <div
-                  className="timer-item custom-timer"
-                  onClick={() => setShowCustomTimeModal(true)}
-                >
-                  <FaClock /> {/* React clock icon */}
-                </div>
-                {/* Back Arrow */}
-                <div
-                  className="timer-item back-arrow"
-                  onClick={() => navigate("/module")} // Navigate back to Module.jsx
-                >
-                  <FaArrowLeft /> {/* React back arrow icon */}
-                </div>
-              </div>
-            </div>
-          )}
         </nav>
       )}
 
       {/* Custom Timer Modal */}
       {showCustomTimeModal && (
-        <div className="custom-timer-modal">
-          <div className="custom-timer-modal-content">
-            <h3>Set Custom Timer</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md border border-blue-500">
+            <h3 className="text-xl font-bold text-blue-400 mb-4">
+              Set Custom Timer
+            </h3>
             <input
               type="number"
               placeholder="Enter custom time (seconds)"
               value={customTime}
               onChange={(e) => setCustomTime(e.target.value)}
+              className="w-full p-3 border border-gray-600 bg-gray-700 text-white rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <div className="modal-buttons">
-              <button onClick={handleCustomTimeSubmit}>Set Timer</button>
-              <button onClick={() => setShowCustomTimeModal(false)}>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={handleCustomTimeSubmit}
+                className="px-4 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition-colors"
+              >
+                Set Timer
+              </button>
+              <button
+                onClick={() => setShowCustomTimeModal(false)}
+                className="px-4 py-2 bg-red-600 text-white font-bold rounded hover:bg-red-700 transition-colors"
+              >
                 Cancel
               </button>
             </div>
@@ -434,86 +499,164 @@ function TypeTest() {
         </div>
       )}
 
-      {/* Add gradient background and pulse effect based on game state */}
-      {/* <div
-        className={`game-container ${gameStarted ? "gradient" : ""} ${
-          pulseEffect ? "pulse" : ""
-        }`}
-      > */}
       {/* Game Container */}
-      <div className="game-container">
-        {/* Score and Multiplier */}
-        <div className="score-multiplier-container">
-          <div
-            className={`score-multiplier ${scoreAnimation ? "animate" : ""}`}
-          >
-            <span
-              className={`score-display ${scoreAnimation ? "animate" : ""}`}
-            >
-              Score: {score}
-            </span>
-            <span
-              className={`multiplier-display ${
-                multiplierAnimation ? "animate" : ""
-              }`}
-            >
-              Multiplier: x{multiplier.toFixed(1)}
-            </span>
+      <div className="relative bg-gray-800 shadow-xl w-full max-w-6xl p-6 rounded-lg border border-gray-700 backdrop-filter backdrop-blur-sm bg-opacity-80">
+        {showStreak && (
+          <div className="absolute top-4 right-4 bg-orange-600 text-white font-bold px-4 py-2 rounded-lg animate-pulse flex items-center">
+            <FaFire className="mr-2" /> {streakCount} COMBO!
           </div>
+        )}
+
+        {/* Progress Bar */}
+        {gameStarted && (
+          <div className="w-full h-2 mb-4 bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 ${getProgressBarColor()}`}
+              style={{ width: `${levelProgress}%` }}
+            ></div>
+          </div>
+        )}
+
+        {/* Score and Multiplier */}
+        <div className="flex justify-center gap-6 mb-6 text-lg font-bold">
+          <span
+            className={`text-white ${scoreAnimation ? "animate-pulse" : ""}`}
+          >
+            Score: <span className="text-yellow-400">{score}</span>
+          </span>
+          <span
+            className={`text-blue-400 ${
+              multiplierAnimation ? "animate-pulse" : ""
+            }`}
+          >
+            Multiplier:{" "}
+            <span className="text-green-400">x{multiplier.toFixed(1)}</span>
+          </span>
         </div>
 
         {!gameStarted && !gameOver && (
-          <button onClick={startGame} className="start-button">
-            Start Game
-          </button>
+          <div className="flex flex-col items-center justify-center p-10">
+            <h1 className="text-4xl font-bold text-blue-400 mb-6">
+              Array Syntax Speed Typer
+            </h1>
+            <p className="text-gray-300 mb-8 text-center">
+              Test your array syntax typing speed and accuracy
+            </p>
+            <div className="mb-8 flex justify-center">
+              <div className="relative">
+                <span className="absolute -top-2 -left-2 bg-blue-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center text-white">
+                  1
+                </span>
+                <FaCode className="text-5xl text-blue-400" />
+              </div>
+              <FaChevronRight className="text-gray-500 mx-4 text-2xl mt-3" />
+              <div className="relative">
+                <span className="absolute -top-2 -left-2 bg-blue-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center text-white">
+                  2
+                </span>
+                <FaKeyboard className="text-5xl text-green-400" />
+              </div>
+              <FaChevronRight className="text-gray-500 mx-4 text-2xl mt-3" />
+              <div className="relative">
+                <span className="absolute -top-2 -left-2 bg-blue-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center text-white">
+                  3
+                </span>
+                <FaTrophy className="text-5xl text-yellow-400" />
+              </div>
+            </div>
+            <button
+              onClick={startGame}
+              className="px-8 py-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-xl shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-1"
+            >
+              <span className="flex items-center">
+                Start Typing <FaKeyboard className="ml-2" />
+              </span>
+            </button>
+          </div>
         )}
+
         {gameStarted && (
-          <div className="game-layout">
+          <div className="flex flex-col md:flex-row w-full h-full">
             {/* Left side: Words answered */}
-            <div className="answered-words">
+            <div className="hidden md:flex flex-col items-center justify-center flex-1 p-4">
               {words
                 .slice(Math.max(0, currentWordIndex - 1), currentWordIndex)
                 .map((word, index) => (
-                  <div key={index} className="word-item">
-                    {word}
+                  <div
+                    key={index}
+                    className="text-green-500 text-xl font-bold flex items-center"
+                  >
+                    <FaCheck className="mr-2" /> {word}
                   </div>
                 ))}
             </div>
 
             {/* Middle: Current word */}
-            <div className="current-word">
-              <div className="word-display">{renderHighlightedWord()}</div>
+            <div className="flex flex-col items-center justify-center flex-2 p-6 w-full md:w-auto">
+              <div
+                className={`text-3xl font-bold mb-6 p-4 border-b-2 border-blue-500 ${
+                  wordAnimation ? "scale-110 transition-all" : ""
+                }`}
+              >
+                {renderHighlightedWord()}
+              </div>
               <input
                 type="text"
-                className="input-field"
+                className="w-full md:w-4/5 p-4 border-2 border-blue-500 bg-gray-700 text-white rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 value={inputValue}
                 onChange={handleInputChange}
                 placeholder="Type the word here"
                 ref={inputRef}
               />
-              <div className="info-display">
-                <span
-                  className={`wpm-display ${
-                    mode === "Practice" ? "centered-wpm" : ""
-                  }`}
-                >
-                  WPM: {calculateWPM()}
-                </span>
+              <div className="flex justify-center items-center gap-x-4 w-full md:w-4/5 mb-6">
+                <div className="flex items-center bg-gray-700 px-4 py-2">
+                  <FaFire className="text-orange-500 mr-2" />
+                  <span
+                    className={`text-lg font-bold text-white ${
+                      mode === "Practice" ? "mx-auto" : ""
+                    }`}
+                  >
+                    WPM:{" "}
+                    <span className="text-yellow-400">{calculateWPM()}</span>
+                  </span>
+                </div>
                 {mode === "Competitive" && (
-                  <span className="timer-display">Time Left: {timeLeft}s</span>
+                  <div className="flex items-center bg-gray-700 px-4 py-2">
+                    <FaClock className="text-blue-400 mr-2" />
+                    <span className="text-lg font-bold text-white">
+                      Time:{" "}
+                      <span
+                        className={`${
+                          timeLeft <= 5
+                            ? "text-red-500 animate-pulse"
+                            : "text-white"
+                        }`}
+                      >
+                        {timeLeft}s
+                      </span>
+                    </span>
+                  </div>
                 )}
               </div>
-              <button className="restart-button" onClick={restartGame}>
-                <FaRedo className="restart-icon" /> Restart
+              <button
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-1"
+                onClick={restartGame}
+              >
+                <FaRedo /> Restart
               </button>
             </div>
 
             {/* Right side: Upcoming words */}
-            <div className="upcoming-words">
+            <div className="hidden md:flex flex-col items-center justify-center flex-1 p-4">
               {words
                 .slice(currentWordIndex + 1, currentWordIndex + 2)
                 .map((word, index) => (
-                  <div key={index} className="word-item">
+                  <div
+                    key={index}
+                    className={`text-gray-400 text-xl font-bold my-2 ${
+                      index === 0 ? "" : ""
+                    }`}
+                  >
                     {word}
                   </div>
                 ))}
@@ -523,16 +666,86 @@ function TypeTest() {
 
         {/* Game Over Section */}
         {gameOver && (
-          <div className="game-over-container">
-            <h2 className="game-over-title">Game Over!</h2>
-            <p className="game-over-wpm">Your WPM: {calculateWPM()}</p>
-            <div className="definitions-container">
-              <h3>Words and Definitions:</h3>
-              {renderDefinitions()}
+          <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-xl p-6 animate-fade-in border border-blue-500">
+            <div className="bg-blue-600 -mt-12 rounded-full p-4 shadow-lg mb-4">
+              <FaTrophy className="text-4xl text-yellow-300" />
             </div>
-            <button onClick={restartGame} className="restart-button">
-              <FaRedo className="restart-icon" /> Restart
-            </button>
+            <h2 className="text-3xl font-bold text-blue-400 mb-4">
+              Game Complete!
+            </h2>
+            <p className="text-xl font-bold text-white mb-6">
+              Your WPM:{" "}
+              <span className="text-yellow-400">{calculateWPM()}</span>
+            </p>
+
+            <div className="flex justify-around w-full mb-8">
+              <div className="text-center">
+                <div className="text-4xl font-bold text-yellow-400 mb-2">
+                  {score}
+                </div>
+                <div className="text-gray-400">Final Score</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-green-400 mb-2">
+                  {completedWords.length}
+                </div>
+                <div className="text-gray-400">Words Typed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-blue-400 mb-2">
+                  {multiplier.toFixed(1)}x
+                </div>
+                <div className="text-gray-400">Max Multiplier</div>
+              </div>
+            </div>
+
+            <div className="w-full bg-gray-900 rounded-lg shadow-inner p-6 mb-6 max-h-96 overflow-y-auto border border-gray-700">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-blue-400">
+                  Words and Definitions:
+                </h3>
+                <button
+                  onClick={() => setShowDefinition(!showDefinition)}
+                  className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  {showDefinition ? "Hide Definitions" : "Show Definitions"}
+                </button>
+              </div>
+              {showDefinition ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {renderDefinitions()}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {completedWords.map((word, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-700 px-3 py-1 rounded text-blue-400 border border-gray-600"
+                    >
+                      {word}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={restartGame}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-1"
+              >
+                <FaRedo /> Play Again
+              </button>
+              <button
+                onClick={() => {
+                  setGameOver(false);
+                  setShowNavbar(true);
+                }}
+                className="flex items-center gap-2 px-6 py-3 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-600 transition-all"
+              >
+                <FaArrowLeft /> Main Menu
+              </button>
+            </div>
           </div>
         )}
       </div>
