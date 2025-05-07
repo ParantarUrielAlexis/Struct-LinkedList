@@ -170,6 +170,101 @@ export const ClassProvider = ({ children }) => {
     }
   };
 
+  const deleteClass = async (classId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(
+        `http://localhost:8000/api/classes/delete/${classId}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Remove the class from teaching classes
+        setTeachingClasses(teachingClasses.filter((c) => c.id !== classId));
+
+        // If active class was deleted, set to another class or clear
+        if (activeClass?.id === classId) {
+          if (teachingClasses.length > 1) {
+            // Find first class that's not the one being deleted
+            const newActiveClass = teachingClasses.find(
+              (c) => c.id !== classId
+            );
+            setActiveClassAndStore(newActiveClass);
+          } else {
+            clearActiveClass();
+          }
+        }
+
+        return { success: true, message: "Class deleted successfully" };
+      } else {
+        const errorData = await response.json();
+        return {
+          success: false,
+          message: errorData.error || "Failed to delete class",
+        };
+      }
+    } catch (error) {
+      console.error("Error deleting class:", error);
+      return {
+        success: false,
+        message: "An error occurred while deleting the class",
+      };
+    }
+  };
+
+  // Leave a class (for students)
+  const leaveClass = async (classId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(
+        `http://localhost:8000/api/classes/leave/${classId}/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Remove the class from enrolled classes
+        setEnrolledClasses(enrolledClasses.filter((c) => c.id !== classId));
+
+        // If active class was left, set to another class or clear
+        if (activeClass?.id === classId) {
+          if (enrolledClasses.length > 1) {
+            // Find first class that's not the one being left
+            const newActiveClass = enrolledClasses.find(
+              (c) => c.id !== classId
+            );
+            setActiveClassAndStore(newActiveClass);
+          } else {
+            clearActiveClass();
+          }
+        }
+
+        return { success: true, message: "Successfully left the class" };
+      } else {
+        const errorData = await response.json();
+        return {
+          success: false,
+          message: errorData.error || "Failed to leave class",
+        };
+      }
+    } catch (error) {
+      console.error("Error leaving class:", error);
+      return {
+        success: false,
+        message: "An error occurred while leaving the class",
+      };
+    }
+  };
+
   // Clear active class
   const clearActiveClass = () => {
     setActiveClass(null);
@@ -185,6 +280,8 @@ export const ClassProvider = ({ children }) => {
         loading,
         joinClass,
         createClass,
+        deleteClass,
+        leaveClass,
         setActiveClass: setActiveClassAndStore,
         clearActiveClass,
       }}

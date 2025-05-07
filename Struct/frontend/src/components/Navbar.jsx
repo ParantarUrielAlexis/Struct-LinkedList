@@ -29,12 +29,12 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="w-full bg-white shadow-sm px-4 py-3 flex items-center justify-between fixed top-0 left-0 z-50 border-b border-blue-100">
+      <nav className="w-full bg-white shadow-sm px-4 py-3 flex items-center justify-between fixed top-0 left-0 z-50 border-b border-teal-100">
         {/* Logo Section */}
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="Logo" className="h-8 w-auto" />
-            <h2 className="text-xl font-bold text-blue-700">
+            <h2 className="text-xl font-bold text-teal-700">
               STRUCT | ACADEMY
             </h2>
           </Link>
@@ -43,7 +43,7 @@ const Navbar = () => {
         {/* Hamburger Menu Button */}
         <button
           onClick={toggleMenu}
-          className="lg:hidden text-blue-600 text-2xl focus:outline-none"
+          className="lg:hidden text-teal-600 text-2xl focus:outline-none"
         >
           {isMenuOpen ? <FaTimes /> : <FaBars />}
         </button>
@@ -63,20 +63,20 @@ const Navbar = () => {
 
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 {user?.userType === "teacher" ? (
-                  <FaChalkboardTeacher className="text-blue-600" />
+                  <FaChalkboardTeacher className="text-teal-600" />
                 ) : (
-                  <FaUserGraduate className="text-blue-600" />
+                  <FaUserGraduate className="text-teal-600" />
                 )}
                 <span className="font-medium">{user?.username}</span>
                 <span className="text-gray-400">|</span>
-                <span className="capitalize text-blue-600">
+                <span className="capitalize text-teal-600">
                   {user?.userType}
                 </span>
               </div>
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 px-4 rounded-md text-sm transition"
+                className="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-2 px-4 rounded-md text-sm transition"
               >
                 Logout
                 <FaSignOutAlt />
@@ -86,13 +86,13 @@ const Navbar = () => {
             <div className="flex flex-col lg:flex-row lg:items-center gap-3">
               <Link
                 to="/login"
-                className="text-sm text-blue-600 font-medium py-2 px-4 border border-blue-600 rounded-md hover:bg-blue-50 transition"
+                className="text-sm text-teal-600 font-medium py-2 px-4 border border-teal-600 rounded-md hover:bg-teal-50 transition"
               >
                 Log in
               </Link>
               <Link
                 to="/signup"
-                className="text-sm bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                className="text-sm bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 transition"
               >
                 Sign up
               </Link>

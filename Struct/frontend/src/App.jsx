@@ -31,6 +31,8 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ClassProvider } from "./contexts/ClassContext";
 
+import ClassRequiredWrapper from "./components/ClassRequiredWrapper";
+
 import ProtectedRoute from "./routes/ProtectedRoute";
 import TeacherRoute from "./routes/TeacherRoute";
 
@@ -80,7 +82,9 @@ const AppLayout = () => {
               path="/sort"
               element={
                 <ProtectedRoute>
-                  <SortRush />
+                  <ClassRequiredWrapper>
+                    <SortRush />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
@@ -88,7 +92,9 @@ const AppLayout = () => {
               path="/type-test"
               element={
                 <ProtectedRoute>
-                  <TypeTest />
+                  <ClassRequiredWrapper>
+                    <TypeTest />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
@@ -96,7 +102,9 @@ const AppLayout = () => {
               path="/module"
               element={
                 <ProtectedRoute>
-                  <Module />
+                  <ClassRequiredWrapper>
+                    <Module />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
@@ -112,7 +120,9 @@ const AppLayout = () => {
               path="/sortshift"
               element={
                 <ProtectedRoute>
-                  <SortShift />
+                  <ClassRequiredWrapper>
+                    <SortShift />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
@@ -120,7 +130,9 @@ const AppLayout = () => {
               path="/snake-game"
               element={
                 <ProtectedRoute>
-                  <SnakeGame />
+                  <ClassRequiredWrapper>
+                    <SnakeGame />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
@@ -128,7 +140,9 @@ const AppLayout = () => {
               path="/sortshiftselection"
               element={
                 <ProtectedRoute>
-                  <SortShiftSelection />
+                  <ClassRequiredWrapper>
+                    <SortShiftSelection />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
@@ -136,7 +150,9 @@ const AppLayout = () => {
               path="/sortshiftbubble"
               element={
                 <ProtectedRoute>
-                  <SortShiftBubble />
+                  <ClassRequiredWrapper>
+                    <SortShiftBubble />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
@@ -144,7 +160,9 @@ const AppLayout = () => {
               path="/sortshiftinsertion"
               element={
                 <ProtectedRoute>
-                  <SortShiftInsertion />
+                  <ClassRequiredWrapper>
+                    <SortShiftInsertion />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
@@ -153,7 +171,9 @@ const AppLayout = () => {
               path="/games"
               element={
                 <ProtectedRoute>
-                  <GameShowcase />
+                  <ClassRequiredWrapper>
+                    <GameShowcase />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />

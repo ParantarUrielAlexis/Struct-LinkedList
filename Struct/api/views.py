@@ -112,3 +112,46 @@ class UserClassesView(APIView):
             "teaching_classes": ClassSerializer(teaching_classes, many=True).data,
             "user_type": user.user_type  # Assuming user_type is available
         })
+
+# Add these new views
+
+class DeleteClassView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            class_obj = Class.objects.get(pk=pk)
+
+            # Only the teacher can delete the class
+            if request.user != class_obj.teacher:
+                return Response({"error": "You do not have permission to delete this class"},
+                               status=status.HTTP_403_FORBIDDEN)
+
+            class_obj.delete()
+            return Response({"success": True, "message": "Class deleted successfully"})
+
+        except Class.DoesNotExist:
+            return Response({"error": "Class not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class LeaveClassView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            class_obj = Class.objects.get(pk=pk)
+
+            # Check if user is enrolled in the class
+            if request.user not in class_obj.students.all():
+                return Response({"error": "You are not enrolled in this class"},
+                               status=status.HTTP_400_BAD_REQUEST)
+
+            # Remove student from class
+            class_obj.students.remove(request.user)
+
+            return Response({
+                "success": True,
+                "message": "Successfully left the class"
+            })
+
+        except Class.DoesNotExist:
+            return Response({"error": "Class not found"}, status=status.HTTP_404_NOT_FOUND)

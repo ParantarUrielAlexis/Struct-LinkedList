@@ -67,7 +67,7 @@ const Login = () => {
 
   // Rest of the component stays the same
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-blue-500 min-h-screen flex items-center justify-center">
+    <div className="bg-gradient-to-r from-teal-600 to-teal-500 min-h-screen flex items-center justify-center">
       <div className="bg-white p-10 rounded-lg shadow-lg w-full max-w-lg relative">
         {/* Struct Logo */}
         <div className="absolute top-4 right-4">
@@ -75,7 +75,7 @@ const Login = () => {
         </div>
 
         {/* Header */}
-        <h2 className="text-4xl font-bold text-blue-500 text-center mb-6">
+        <h2 className="text-4xl font-bold text-teal-500 text-center mb-6">
           Welcome Back!
         </h2>
         <p className="text-gray-600 text-center mb-8">
@@ -104,7 +104,7 @@ const Login = () => {
             <input
               type="email"
               id="email"
-              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500"
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
@@ -121,7 +121,7 @@ const Login = () => {
             <input
               type="password"
               id="password"
-              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500"
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
@@ -133,7 +133,7 @@ const Login = () => {
               <input
                 type="checkbox"
                 id="rememberMe"
-                className="h-4 w-4 text-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-teal-500 border-gray-300 rounded"
                 checked={formData.rememberMe}
                 onChange={handleChange}
               />
@@ -142,7 +142,7 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
+            className="w-full bg-teal-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-teal-600 transition duration-300"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Log In"}
@@ -154,7 +154,7 @@ const Login = () => {
           Don't have an account?{" "}
           <a
             href="/signup"
-            className="text-blue-500 font-medium hover:underline"
+            className="text-teal-500 font-medium hover:underline"
           >
             Sign up
           </a>

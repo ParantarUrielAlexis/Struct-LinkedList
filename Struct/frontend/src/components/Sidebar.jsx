@@ -13,41 +13,41 @@ const Sidebar = () => {
   const { user } = useAuth();
 
   return (
-    <aside className="w-14 h-screen fixed top-0 left-0 bg-blue-100 flex flex-col items-center pt-24 space-y-4 border-r border-blue-200">
+    <aside className="w-14 h-screen fixed top-0 left-0 bg-teal-100 flex flex-col items-center pt-24 space-y-4 border-r border-teal-200">
       {/* Navigation Links */}
       <nav className="flex flex-col items-center space-y-4">
         {/* Lessons Icon */}
         <Link
           to="/module"
-          className="w-10 h-10 bg-blue-200 hover:bg-blue-400 rounded-lg flex items-center justify-center transition-colors duration-200"
+          className="w-10 h-10 bg-teal-200 hover:bg-teal-400 rounded-lg flex items-center justify-center transition-colors duration-200"
         >
-          <FaBook className="text-blue-700 text-lg" />
+          <FaBook className="text-teal-700 text-lg" />
         </Link>
 
         {/* Game Icon */}
         <Link
           to="/games"
-          className="w-10 h-10 bg-blue-200 hover:bg-blue-400 rounded-lg flex items-center justify-center transition-colors duration-200"
+          className="w-10 h-10 bg-teal-200 hover:bg-teal-400 rounded-lg flex items-center justify-center transition-colors duration-200"
         >
-          <FaGamepad className="text-blue-700 text-lg" />
+          <FaGamepad className="text-teal-700 text-lg" />
         </Link>
 
         {/* Teacher Dashboard Icon (Visible only for teachers) */}
         {user?.userType === "teacher" && (
           <Link
             to="/teacher-dashboard"
-            className="w-10 h-10 bg-blue-200 hover:bg-blue-400 rounded-lg flex items-center justify-center transition-colors duration-200"
+            className="w-10 h-10 bg-teal-200 hover:bg-teal-400 rounded-lg flex items-center justify-center transition-colors duration-200"
           >
-            <FaChalkboardTeacher className="text-blue-700 text-lg" />
+            <FaChalkboardTeacher className="text-teal-700 text-lg" />
           </Link>
         )}
 
         {/* Badges Icon */}
         {/* <Link
           to="/badges"
-          className="w-10 h-10 bg-blue-200 hover:bg-blue-400 rounded-lg flex items-center justify-center transition-colors duration-200"
+          className="w-10 h-10 bg-teal-200 hover:bg-teal-400 rounded-lg flex items-center justify-center transition-colors duration-200"
         >
-          <FaMedal className="text-blue-700 text-lg" />
+          <FaMedal className="text-teal-700 text-lg" />
         </Link> */}
       </nav>
     </aside>
