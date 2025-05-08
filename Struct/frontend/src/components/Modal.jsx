@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  FaTimes,
-  FaArrowRight,
-  FaArrowLeft,
-  FaLightbulb,
-  FaCode,
-  FaPuzzlePiece,
-  FaGamepad,
-  FaTrophy,
-} from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaLightbulb } from "react-icons/fa";
 
 const Modal = ({ index, onClose, setIndex, content }) => {
   const currentSlide = content[index];
@@ -20,10 +11,10 @@ const Modal = ({ index, onClose, setIndex, content }) => {
   // Progress through content when keyboard arrows used
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "ArrowRight" && index < content.length - 1) {
-        setIndex(index + 1);
-      } else if (e.key === "ArrowLeft" && index > 0) {
-        setIndex(index - 1);
+      if (e.key === "ArrowRight") {
+        nextSlide();
+      } else if (e.key === "ArrowLeft") {
+        prevSlide();
       } else if (e.key === "Escape") {
         onClose();
       }
@@ -36,20 +27,28 @@ const Modal = ({ index, onClose, setIndex, content }) => {
   // Reset animation state when slide changes
   useEffect(() => {
     setAnimationComplete(false);
-    const timer = setTimeout(() => setAnimationComplete(true), 500);
-    return () => clearTimeout(timer);
+    setTimeout(() => setAnimationComplete(true), 500);
   }, [index]);
 
   // Award points for interaction
   const awardPoints = (points = 5) => {
     setInteractionScore((prev) => prev + points);
+    // Display floating point indicator
+    const pointsEl = document.createElement("div");
+    pointsEl.className = "points-popup";
+    pointsEl.textContent = `+${points}`;
+    document.body.appendChild(pointsEl);
+    setTimeout(() => pointsEl.remove(), 1000);
   };
 
   // Navigation controls
   const nextSlide = () => {
     if (index < content.length - 1) {
       setIndex(index + 1);
-      awardPoints(2);
+      awardPoints(1); // Small points for progression
+    } else {
+      awardPoints(20); // Bonus for completing section
+      onClose();
     }
   };
 
@@ -64,162 +63,87 @@ const Modal = ({ index, onClose, setIndex, content }) => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70"
     >
-      {/* Modal container */}
       <motion.div
-        className="relative w-11/12 max-w-6xl max-h-[90vh] rounded-2xl bg-gray-900 border border-gray-700 shadow-2xl overflow-hidden"
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ type: "spring", damping: 20 }}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden"
       >
-        {/* Header with title and close button */}
-        <div className="sticky top-0 px-8 py-4 bg-gradient-to-r from-purple-900 to-blue-900 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">
-            {currentSlide.title}
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4">
+          <h2 className="text-xl font-bold">
+            {currentSlide?.title || "Learning Content"}
           </h2>
-          <div className="flex items-center gap-4">
-            <div className="bg-gray-800 rounded-lg py-1 px-3 text-sm">
-              <span className="text-purple-300">Score: </span>
-              <span className="text-white font-bold">{interactionScore}</span>
-            </div>
-            <button
-              onClick={onClose}
-              className="bg-gray-800/50 hover:bg-red-800 p-2 rounded-lg transition"
-            >
-              <FaTimes className="text-white" />
-            </button>
+          <div className="w-full bg-white/30 h-2 rounded-full mt-2">
+            <div
+              className="bg-white h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            />
           </div>
         </div>
 
-        {/* Content area with scrolling */}
-        <div className="overflow-y-auto max-h-[calc(90vh-160px)] p-8">
+        {/* Content */}
+        <div className="p-6">
           <motion.div
+            key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            key={`slide-${index}`} // Force re-animation when slide changes
-            className="prose prose-invert max-w-none"
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="min-h-[200px]"
           >
-            {currentSlide.content}
+            {currentSlide?.content}
+
+            {/* Interactive elements will be rendered here when present */}
+            {currentSlide?.interactive && (
+              <div className="mt-4 border-t pt-4">
+                {currentSlide.interactive}
+              </div>
+            )}
           </motion.div>
-
-          {/* Interactive tools section */}
-          <div className="mt-8 flex flex-wrap gap-4">
-            <button
-              onClick={() => {
-                setShowHints(!showHints);
-                awardPoints(3);
-              }}
-              className="flex items-center gap-2 bg-yellow-800/50 hover:bg-yellow-700/50 text-yellow-300 px-4 py-2 rounded-lg transition"
-            >
-              <FaLightbulb /> {showHints ? "Hide Hints" : "Show Hints"}
-            </button>
-
-            <a
-              href="https://paiza.io/projects/e/vBuj24nZhWzDYWHr6Le1mg?theme=twilight"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => awardPoints(10)}
-              className="flex items-center gap-2 bg-cyan-800/50 hover:bg-cyan-700/50 text-cyan-300 px-4 py-2 rounded-lg transition"
-            >
-              <FaCode /> Try it yourself
-            </a>
-
-            <button
-              onClick={() => {
-                // Open a mini-game or challenge related to this topic
-                awardPoints(15);
-              }}
-              className="flex items-center gap-2 bg-green-800/50 hover:bg-green-700/50 text-green-300 px-4 py-2 rounded-lg transition"
-            >
-              <FaGamepad /> Practice Game
-            </button>
-
-            <button
-              onClick={() => {
-                // Send completion status to parent
-                awardPoints(20);
-              }}
-              className="flex items-center gap-2 bg-purple-800/50 hover:bg-purple-700/50 text-purple-300 px-4 py-2 rounded-lg transition"
-            >
-              <FaTrophy /> Complete & Earn Badge
-            </button>
-          </div>
-
-          {showHints && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="mt-6 p-4 bg-yellow-900/30 border-l-4 border-yellow-500 rounded-r"
-            >
-              <h4 className="font-bold flex items-center gap-2 text-yellow-300">
-                <FaLightbulb /> Learning Tips
-              </h4>
-              <ul className="mt-2 space-y-2 text-sm">
-                <li>
-                  Try implementing the code examples yourself in the sandbox
-                </li>
-                <li>Visualize the arrays as boxes with labels (indices)</li>
-                <li>Practice explaining array operations in your own words</li>
-                <li>Experiment with different array sizes and operations</li>
-                {index === 0 && (
-                  <li>
-                    Arrays are fundamental to programming - take your time to
-                    understand them deeply
-                  </li>
-                )}
-                {currentSlide.title.includes("Algorithms") && (
-                  <li>
-                    Focus on understanding the algorithm step-by-step before
-                    coding
-                  </li>
-                )}
-              </ul>
-            </motion.div>
-          )}
         </div>
 
-        {/* Progress bar and navigation */}
-        <div className="sticky bottom-0 bg-gray-900 border-t border-gray-800 px-8 py-4">
-          <div className="flex justify-between items-center">
+        {/* Footer */}
+        <div className="bg-gray-100 p-4 flex items-center justify-between">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowHints(!showHints)}
+              className="p-2 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
+            >
+              <FaLightbulb />
+            </button>
+            {showHints && currentSlide?.hints && (
+              <div className="text-sm text-gray-600 ml-2">
+                {currentSlide.hints}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center">
+            <div className="text-sm text-indigo-600 mr-4 font-medium">
+              Score: {interactionScore}
+            </div>
             <button
               onClick={prevSlide}
               disabled={index === 0}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              className={`p-2 rounded-full ${
                 index === 0
-                  ? "bg-gray-800/30 text-gray-500 cursor-not-allowed"
-                  : "bg-gray-800 hover:bg-gray-700 text-white"
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              <FaArrowLeft /> Previous
+              <FaChevronLeft />
             </button>
-
-            <div className="text-center">
-              <div className="text-sm text-gray-400 mb-2">
-                {index + 1} of {content.length}
-              </div>
-              <div className="w-60 h-2 bg-gray-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-            </div>
-
             <button
               onClick={nextSlide}
-              disabled={index === content.length - 1}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                index === content.length - 1
-                  ? "bg-gray-800/30 text-gray-500 cursor-not-allowed"
-                  : "bg-purple-700 hover:bg-purple-600 text-white"
-              }`}
+              className="p-2 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200 ml-2"
             >
-              Next <FaArrowRight />
+              {index === content.length - 1 ? "Finish" : <FaChevronRight />}
             </button>
           </div>
         </div>
