@@ -72,10 +72,16 @@ const Modal = ({ index, onClose, setIndex, content }) => {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col"
+        style={{
+          width: "1200px",  
+          height: "90vh", // Changed to viewport height
+          maxWidth: "95vw",
+          maxHeight: "90vh" // Added max height
+        }}
       >
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4">
+        {/* Header - Fixed at top */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 flex-shrink-0">
           <h2 className="text-xl font-bold">
             {currentSlide?.title || "Learning Content"}
           </h2>
@@ -87,15 +93,15 @@ const Modal = ({ index, onClose, setIndex, content }) => {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Content - Scrollable with flex-grow */}
+        <div className="overflow-y-auto flex-grow">
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="min-h-[200px]"
+            className="p-6"
           >
             {currentSlide?.content}
 
@@ -108,8 +114,8 @@ const Modal = ({ index, onClose, setIndex, content }) => {
           </motion.div>
         </div>
 
-        {/* Footer */}
-        <div className="bg-gray-100 p-4 flex items-center justify-between">
+        {/* Footer - Fixed at bottom */}
+        <div className="bg-gray-100 p-4 flex items-center justify-between flex-shrink-0">
           <div className="flex space-x-2">
             <button
               onClick={() => setShowHints(!showHints)}
