@@ -42,6 +42,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateUser = (updatedUserData) => {
+    // Update both state and localStorage
+    const updatedUser = { ...user, ...updatedUserData };
+    setUser(updatedUser);
+    
+    // Also update in localStorage to persist across refreshes
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    
+    return updatedUser;
+  };
+
   return (
     <AuthContext.Provider
       value={{

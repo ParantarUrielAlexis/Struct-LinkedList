@@ -1,11 +1,14 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-from .serializers import UserRegistrationSerializer
-from .models import Class
+from django.core.files.storage import default_storage
+
+from .serializers import UserRegistrationSerializer, UserProfileSerializer
+from .models import Class, User
 from .serializers import ClassSerializer, ClassCreateSerializer
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -46,13 +49,22 @@ class LoginView(APIView):
                             status=status.HTTP_401_UNAUTHORIZED)
 
         token, created = Token.objects.get_or_create(user=user)
+        
+        # Include profile photo URL if available
+        profile_photo_url = None
+        if user.profile_photo:
+            profile_photo_url = request.build_absolute_uri(user.profile_photo.url)
 
         return Response({
             'token': token.key,
             'user_id': user.id,
             'email': user.email,
             'username': user.username,
-            'user_type': user.user_type
+            'user_type': user.user_type,
+            'profile_photo_url': profile_photo_url,
+            'points': user.points,
+            'hearts': user.hearts,
+            'hints': user.hints
         }, status=status.HTTP_200_OK)
 
 class ClassCreateView(generics.CreateAPIView):
@@ -113,8 +125,6 @@ class UserClassesView(APIView):
             "user_type": user.user_type  # Assuming user_type is available
         })
 
-# Add these new views
-
 class DeleteClassView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -155,3 +165,47 @@ class LeaveClassView(APIView):
 
         except Class.DoesNotExist:
             return Response({"error": "Class not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_profile_photo(request):
+    """API endpoint to update user profile photo"""
+    if 'photo' not in request.FILES:
+        return Response({'error': 'No photo provided'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = request.user
+    
+    # Delete old profile photo if it exists
+    if user.profile_photo and hasattr(user.profile_photo, 'path') and default_storage.exists(user.profile_photo.path):
+        default_storage.delete(user.profile_photo.path)
+    
+    # Save new photo
+    user.profile_photo = request.FILES['photo']
+    user.save()
+    
+    # Return the URL of the uploaded photo
+    profile_photo_url = None
+    if user.profile_photo:
+        profile_photo_url = request.build_absolute_uri(user.profile_photo.url)
+    
+    return Response({
+        'success': True,
+        'message': 'Profile photo updated successfully',
+        'profile_photo_url': profile_photo_url
+    }, status=status.HTTP_200_OK)
+
+class UserProfileView(APIView):
+    """API endpoint to get user profile data"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        serializer = UserProfileSerializer(request.user, context={'request': request})
+        return Response(serializer.data)
+    
+    def patch(self, request):
+        """Update user profile data"""
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

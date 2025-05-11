@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/', include('api.urls')),  # All API routes will be prefixed with /api/
 ]
 
-# # Add this only for development
-# if settings.DEBUG:
-#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Add this only for development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
