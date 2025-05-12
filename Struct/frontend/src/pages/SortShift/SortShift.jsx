@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaHeart } from 'react-icons/fa'; // Import heart icon
 import selectionLogo from '../../assets/selection/selection_sort.png';
 import insertionLogo from '../../assets/insertion/insertion_sort.png';
 import bubbleLogo from '../../assets/bubble/bubble_sort.png';
 import './SortShift.css';
+import { useAuth } from '../../contexts/AuthContext'; // Import auth context
+import axios from 'axios'; // Add this import
 
 const levels = [
   { id: 1, title: 'Selection Sort', backgroundImage: selectionLogo, path: '/sortshiftselection' },
@@ -13,6 +16,8 @@ const levels = [
 
 export default function SortShift() {
   const navigate = useNavigate();
+  const { isAuthenticated, user: authUser, updateUser } = useAuth(); // Get user and updateUser from auth context
+  const [hearts, setHearts] = useState(3); // Default to 3 hearts
   
   const gameStartSound = useRef(new Audio('/sounds/game_start_sound.mp3'));
   const backgroundSound = useRef(new Audio('/sounds/sortshift_background.mp3'));
@@ -23,6 +28,13 @@ export default function SortShift() {
     // Retrieve progress from localStorage or default to level 1
     return parseInt(localStorage.getItem('progress')) || 1;
   });
+
+  // Fetch hearts from authenticated user
+  useEffect(() => {
+    if (isAuthenticated && authUser) {
+      setHearts(authUser.hearts || 3);
+    }
+  }, [isAuthenticated, authUser]);
 
   useEffect(() => {
     const sound = backgroundSound.current;
@@ -35,8 +47,56 @@ export default function SortShift() {
     };
   }, []);
 
+  const decreaseHeart = async () => {
+    if (!isAuthenticated || !authUser) return;
+    
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+      
+      const newHeartCount = hearts - 1;
+      setHearts(newHeartCount); // Update UI immediately
+      
+      // Update user data in the backend using the existing user API
+      const API_BASE_URL = 'http://localhost:8000';
+      const response = await axios.patch(
+        `${API_BASE_URL}/api/user/profile/`,  // Use the existing user profile endpoint
+        { hearts: newHeartCount },            // Only send the hearts field to update
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          }
+        }
+      );
+      
+      console.log('Heart update response:', response.data);
+      
+      // Update user in context if updateUser function is available
+      if (typeof updateUser === 'function' && response.data) {
+        updateUser({
+          ...authUser,
+          hearts: newHeartCount
+        });
+      }
+    } catch (error) {
+      console.error('Error updating heart count:', error);
+      // Revert heart count if API call fails
+      setHearts(hearts);
+    }
+  };
+
   const handlePlayClick = (path, image, levelId) => {
     if (levelId > progress) return; // Prevent access to locked levels
+    
+    // Check if user has hearts
+    if (hearts <= 0) {
+      alert("You don't have any hearts left! Get more hearts to play.");
+      return;
+    }
+    
+    // Decrease heart count
+    decreaseHeart();
 
     const bgSound = backgroundSound.current;
     const startSound = gameStartSound.current;
@@ -80,8 +140,16 @@ export default function SortShift() {
       </video>
       <h1 className="title">SortShift</h1>
       <hr />
-      <p className="tagline">“Click. Swap. Sort your way to victory”</p>
+      <p className="tagline">"Click. Swap. Sort your way to victory"</p>
+      
+      {/* Heart indicator */}
+      <div className="heart-counter">
+        <FaHeart className="heart-icon" />
+        <span className="heart-count">{hearts}</span>
+      </div>
+      
       <div className="level-grid">
+        
         {levels.map((level) => (
           <div
             key={level.id}
@@ -95,6 +163,7 @@ export default function SortShift() {
               opacity: level.id > progress ? 0.5 : 1, // Dim locked levels
             }}
           >
+            
             <div className="overlay">
               {level.id > progress ? (
                 <span className="locked-text">Locked</span>

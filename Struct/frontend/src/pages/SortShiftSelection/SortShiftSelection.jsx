@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import simulation from '../../assets/selection/selection_simulation.gif';
+import { useAuth } from '../../contexts/AuthContext'; // Import auth context
+import axios from 'axios'; // Add this import
 
+import { FaHeart } from 'react-icons/fa'; // Import heart icon
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
 
@@ -10,6 +13,9 @@ import styles from './SortShiftSelection.module.css';
 const SortShiftSelection = () => {
     const navigate = useNavigate();
     const backgroundSound = useRef(new Audio("/sounds/selection_background.mp3")); 
+    const { isAuthenticated, user: authUser, updateUser } = useAuth(); // Get user and updateUser from auth context
+    const [hearts, setHearts] = useState(3); // Default to 3 hearts
+    const [hasDeductedHeart, setHasDeductedHeart] = useState(false);
 
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
@@ -291,6 +297,120 @@ const SortShiftSelection = () => {
     const passingScore = 0.7 * totalPoints;
     const remarks = score >= passingScore ? "Pass" : "Fail";
 
+    // Fetch hearts from authenticated user
+    useEffect(() => {
+        if (isAuthenticated && authUser) {
+            setHearts(authUser.hearts || 3);
+        }
+    }, [isAuthenticated, authUser]);
+
+    // Handle page refresh heart deduction
+    useEffect(() => {
+        // Set up event listener for page refresh
+        const handleBeforeUnload = (e) => {
+            // Standard way to show a confirmation dialog on refresh/navigation away
+            const message = 'Are you sure you want to leave? This will cost you 1 heart.';
+            e.preventDefault();
+            e.returnValue = message; // This is what shows in the confirmation dialog
+            
+            // Store information that the page is being refreshed intentionally
+            sessionStorage.setItem('refreshIntended', 'true');
+            
+            return message; // For older browsers
+        };
+
+        // Check if there was an intended refresh
+        const checkForRefresh = () => {
+            const wasRefreshIntended = sessionStorage.getItem('refreshIntended') === 'true';
+            
+            // If this is a refresh (not first load) and heart hasn't been deducted yet
+            if (wasRefreshIntended && !hasDeductedHeart && isAuthenticated && authUser) {
+                deductHeart();
+                // Clear the flag
+                sessionStorage.removeItem('refreshIntended');
+            }
+        };
+        
+        // Function to deduct a heart
+        const deductHeart = async () => {
+            try {
+                const token = localStorage.getItem("authToken");
+                if (!token) return;
+                
+                const newHeartCount = Math.max(0, (authUser.hearts || 3) - 1);
+                setHearts(newHeartCount);
+                setHasDeductedHeart(true);
+                
+                // Update in the backend
+                const API_BASE_URL = 'http://localhost:8000';
+                const response = await axios.patch(
+                    `${API_BASE_URL}/api/user/profile/`,
+                    { hearts: newHeartCount },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Token ${token}`
+                        }
+                    }
+                );
+                
+                // Update user in context
+                if (typeof updateUser === 'function' && response.data) {
+                    updateUser({
+                        ...authUser,
+                        hearts: newHeartCount
+                    });
+                }
+                
+                // If no hearts left, redirect
+                if (newHeartCount <= 0) {
+                    alert("You don't have enough hearts to continue playing!");
+                    navigate('/sortshift');
+                }
+            } catch (error) {
+                console.error('Error updating heart count:', error);
+            }
+        };
+
+        // Add the event listener
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        // On component mount, check if this is a refresh
+        checkForRefresh();
+        
+        // On first load, set a flag to indicate the page has been visited
+        if (!sessionStorage.getItem('pageVisited')) {
+            sessionStorage.setItem('pageVisited', 'true');
+            // Clear any previous refresh intentions
+            sessionStorage.removeItem('refreshIntended');
+        }
+        
+        // Cleanup
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [isAuthenticated, authUser, hasDeductedHeart, navigate, updateUser]);
+
+    // Add this at the start of your component's render method
+    if (!isAuthenticated) {
+        return (
+            <div className={styles["not-authenticated"]}>
+                <h2>Please log in to access this game</h2>
+                <button onClick={() => navigate('/login')}>Go to Login</button>
+            </div>
+        );
+    }
+
+    if (authUser && authUser.hearts <= 0) {
+        return (
+            <div className={styles["no-hearts"]}>
+                <h2>You don't have enough hearts to play!</h2>
+                <p>Go back to the menu and collect more hearts.</p>
+                <button onClick={() => navigate('/sortshift')}>Back to Menu</button>
+            </div>
+        );
+    }
+
     return (
         <div className={styles["short-shift-container"]}>
             <video className={styles["background-video"]} autoPlay loop muted>
@@ -340,7 +460,10 @@ const SortShiftSelection = () => {
                             </div>
                         ))}
                     </div>
-
+                    <div className={styles["heart-counter"]}>
+                        <FaHeart className={styles["heart-icon"]} />
+                        <span className={styles["heart-count"]}>{hearts}</span>
+                    </div>
                     <div className={styles["iterations"]}>
                         <h2 className={styles["bubble-sort-title"]}>Selection Sort</h2>
                         <div className={styles["game-controls"]}>

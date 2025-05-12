@@ -182,3 +182,25 @@ hr {
   text-align: center;
   margin-top: 50%;
 }
+
+/* Heart counter styles - scoped to SortShift */
+.heart-counter {
+  position: absolute;
+  left: 20rem;
+  top: 13rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.heart-counter .heart-icon {
+  color: #847171; 
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.heart-counter .heart-count {
+  color: #ffffff; /* White text for the number */
+}
