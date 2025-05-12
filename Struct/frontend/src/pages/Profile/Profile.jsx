@@ -21,8 +21,18 @@ const Profile = () => {
     badges: []
   });
 
-const [isDataLoading, setIsDataLoading] = useState(false);
-// Replace your existing useEffect with this one
+  const [isDataLoading, setIsDataLoading] = useState(false);
+
+  useEffect(() => {
+    // Prevent scrolling on the body when this component is mounted
+    document.body.style.overflow = 'hidden';
+    
+    // Cleanup: restore scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (isAuthenticated) {
@@ -207,7 +217,7 @@ const [isDataLoading, setIsDataLoading] = useState(false);
   }
 
   return (
-    <div className="p-6 max-w-7xl mt-16 mx-auto">
+    <div className="p-6 max-w-7xl mt-16 mx-auto h-[calc(100vh-4rem)] overflow-hidden">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-6">
           <motion.div 
