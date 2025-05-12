@@ -168,7 +168,7 @@ Don't forget to give the project a star! Thanks again!
 
 For any questions, feel free to reach out!
 
-- **Project Link**: [https://github.com/ParantarUrielAlexis/Booksmith](https://github.com/ParantarUrielAlexis/Booksmith)
+- **Project Link**: https://github.com/ParantarUrielAlexis/Struct.git
 - **Email**: https.structacademy@gmail.com
 
 Thank you for checking out StructAcademy
