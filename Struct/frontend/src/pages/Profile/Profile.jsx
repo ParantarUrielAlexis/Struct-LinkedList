@@ -12,7 +12,7 @@ const Profile = () => {
   const [uploadError, setUploadError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [localProfilePhoto, setLocalProfilePhoto] = useState(authUser?.profile_photo_url || null);
+  const [localProfilePhoto, setLocalProfilePhoto] = useState(null);
   const [profileData, setProfileData] = useState({
     points: 0,
     hearts: 0,
@@ -32,13 +32,9 @@ const Profile = () => {
         hints: authUser.hints || 0
       }));
 
-      // Set local profile photo from authUser or localStorage
-      const savedProfilePhoto = localStorage.getItem('profilePhotoUrl');
+      // Set local profile photo from authUser if available
       if (authUser.profile_photo_url) {
         setLocalProfilePhoto(authUser.profile_photo_url);
-        localStorage.setItem('profilePhotoUrl', authUser.profile_photo_url);
-      } else if (savedProfilePhoto) {
-        setLocalProfilePhoto(savedProfilePhoto);
       }
 
       // Set sample data if needed
@@ -132,12 +128,10 @@ const Profile = () => {
       console.log('Upload response:', response.data);
       
       if (response.data.success && response.data.profile_photo_url) {
-        // Store the profile photo URL in localStorage for persistence
-        localStorage.setItem('profilePhotoUrl', response.data.profile_photo_url);
-        
         // Update context if possible
         if (typeof updateUserFromContext === 'function') {
           try {
+            // Only update the current user's profile photo in context
             updateUserFromContext({
               ...authUser,
               profile_photo_url: response.data.profile_photo_url
@@ -147,7 +141,7 @@ const Profile = () => {
           }
         }
         
-        // Update local state
+        // Update local state for current user's profile photo
         setLocalProfilePhoto(response.data.profile_photo_url);
         
         // Reset file selection

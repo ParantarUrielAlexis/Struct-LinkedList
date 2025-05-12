@@ -15,8 +15,8 @@ class User(AbstractUser):
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='student')
     profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
     points = models.IntegerField(default=0)
-    hearts = models.IntegerField(default=0)
-    hints = models.IntegerField(default=0)
+    hearts = models.IntegerField(default=3)
+    hints = models.IntegerField(default=3)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'user_type']
