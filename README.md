@@ -37,7 +37,7 @@
 
 ## About The Project
 
-**Sruct Academy** is a gamified web platform designed to make learning Data Structures and Algorithms (DSA) engaging, visual, and interactive. Through mini-games, lessons, and quizzes, learners can grasp DSA concepts while having fun and tracking their progress.
+**Sruct Academy** is a gamified web platform designed to make learning Data Structures and Algorithms (DSA) engaging, visual, and interactive. Through mini-games and lessons, learners can grasp DSA concepts while having fun and tracking their progress.
 
 ### Why Struct Academy?
 
@@ -46,7 +46,6 @@
 - **Curriculum-Driven**: Aligned with core academic data structures and algorithms topics commonly taught in universities.
 - **Play While You Learn**: Encourages engagement by blending education with hands-on games.
 - **Minimal Distractions**: No AI or leaderboard mechanics—focused solely on learning and mastering concepts at your own pace.
-- **Offline-Friendly**: Core lessons and games can be accessed without a continuous internet connection.
 - **Feedback Through Gameplay**: Mistakes are learning opportunities, visualized through interactive errors and hints.
 - **Encourages Mastery**: Replay levels to improve understanding rather than compete for scores.
 
