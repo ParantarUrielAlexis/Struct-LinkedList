@@ -42,10 +42,7 @@
 ### Why Struct Academy?
 
 - **Gamified Learning**: Reinforce DSA concepts through levels, challenges, and interactive visualizations.
-- **Real-Time Feedback**: Get instant feedback from AI-powered assistants to improve understanding.
-- **Personalized Pathways**: Adapt learning tracks based on users' pace and performance.
 - **Designed for Beginners**: Tailored for students new to coding and problem-solving.
-- **Interactive Quizzes & Puzzles**: Test your knowledge in a fun and stress-free environment.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -53,11 +50,8 @@
 ## Features
 - **Interactive Lessons** – Learn DSA step-by-step with visuals and coding exercises.
 - **Mini-Games** – Practice arrays, stacks, queues, and trees through engaging games.
-- **Quiz System** – Assess your knowledge with timed quizzes and earn XP.
 - **User Profiles** – Track progress, badges, and personalized learning stats.
-- **AI Assistance** – In-game helper bots give hints and suggest improvements.
-- **Leaderboard & Rewards** – Compete with others and unlock achievements.
-- **Dark Mode Support** – User-friendly interface with theme toggling.
+- **Rewards** – Compete with others and unlock achievements.
 - **Progress Saving** – Resume lessons and games anytime from where you left off.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
