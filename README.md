@@ -43,8 +43,15 @@
 
 - **Gamified Learning**: Reinforce DSA concepts through levels, challenges, and interactive visualizations.
 - **Designed for Beginners**: Tailored for students new to coding and problem-solving.
+- **Curriculum-Driven**: Aligned with core academic data structures and algorithms topics commonly taught in universities.
+- **Play While You Learn**: Encourages engagement by blending education with hands-on games.
+- **Minimal Distractions**: No AI or leaderboard mechanics—focused solely on learning and mastering concepts at your own pace.
+- **Offline-Friendly**: Core lessons and games can be accessed without a continuous internet connection.
+- **Feedback Through Gameplay**: Mistakes are learning opportunities, visualized through interactive errors and hints.
+- **Encourages Mastery**: Replay levels to improve understanding rather than compete for scores.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 
 
 ## Features
@@ -75,13 +82,14 @@
 
 To get a local copy of the BookSmith project up and running, follow these simple steps.
 
-### Prerequisites
+## Prerequisites
 
-Before you begin, ensure you have the following software installed:
+Before you begin, make sure you have the following software installed on your system:
 
-- **Python 3.x** or later
-- **Django** for back-end development
-- **Pip** for installing Python dependencies
+- **Python 3.x** or later – Required for running the backend with Django.
+- **Django** – The backend web framework used in the project.
+- **pip** – For managing and installing Python dependencies.
+- **Node.js and npm** – Required for managing front-end packages and running the React-based interface.
 
 Install **Django** and **other dependencies**:
 
