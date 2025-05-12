@@ -21,37 +21,78 @@ const Profile = () => {
     badges: []
   });
 
-  // Fetch user's profile data
+const [isDataLoading, setIsDataLoading] = useState(false);
+// Replace your existing useEffect with this one
   useEffect(() => {
-    if (isAuthenticated && authUser) {
-      // Update profile data from authUser
-      setProfileData(prevData => ({
-        ...prevData,
-        points: authUser.points || 0,
-        hearts: authUser.hearts || 0,
-        hints: authUser.hints || 0
-      }));
-
-      // Set local profile photo from authUser if available
-      if (authUser.profile_photo_url) {
-        setLocalProfilePhoto(authUser.profile_photo_url);
+    const fetchUserData = async () => {
+      if (isAuthenticated) {
+        setIsDataLoading(true);
+        
+        try {
+          const token = localStorage.getItem("authToken");
+          if (!token) {
+            console.error("No authentication token found");
+            return;
+          }
+          
+          const API_BASE_URL = 'http://localhost:8000';
+          
+          // Fetch the latest user data directly from the API
+          const response = await axios.get(
+            `${API_BASE_URL}/api/user/profile/`,
+            {
+              headers: {
+                'Authorization': `Token ${token}`
+              }
+            }
+          );
+          
+          console.log("Fetched user data:", response.data);
+          
+          if (response.data) {
+            // Update user in context if needed
+            if (typeof updateUserFromContext === 'function') {
+              updateUserFromContext(response.data);
+            }
+            
+            // Update profile data with real values from the database
+            setProfileData(prevData => ({
+              ...prevData,
+              points: response.data.points || 0,
+              hearts: response.data.hearts || 0, // Default to 3 if not provided
+              hints: response.data.hints || 0    // Default to 3 if not provided
+            }));
+            
+            // Set profile photo if available
+            if (response.data.profile_photo_url) {
+              setLocalProfilePhoto(response.data.profile_photo_url);
+            }
+          }
+          
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        } finally {
+          setIsDataLoading(false);
+        }
+        
+        // Set sample modules/badges data if needed (this doesn't affect hearts/hints)
+        if (!profileData.modules.length) {
+          setProfileData(prevData => ({
+            ...prevData,
+            modules: [
+              { id: 1, name: 'Arrays', progress: 100, completed: true },
+              { id: 2, name: 'Stacks', progress: 63, completed: false }
+            ],
+            badges: [
+              { id: 1, name: 'Array Novice', icon: '/path/to/array-badge.png', earned: true }
+            ]
+          }));
+        }
       }
-
-      // Set sample data if needed
-      if (!profileData.modules.length) {
-        setProfileData(prevData => ({
-          ...prevData,
-          modules: [
-            { id: 1, name: 'Arrays', progress: 100, completed: true },
-            { id: 2, name: 'Stacks', progress: 63, completed: false }
-          ],
-          badges: [
-            { id: 1, name: 'Array Novice', icon: '/path/to/array-badge.png', earned: true }
-          ]
-        }));
-      }
-    }
-  }, [isAuthenticated, authUser]);
+    };
+    
+    fetchUserData();
+  }, [isAuthenticated]); // Remove authUser dependency to prevent circular updates
 
   // Handler to open file dialog
   const handlePhotoClick = () => {
