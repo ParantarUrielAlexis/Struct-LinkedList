@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaHeart, FaLightbulb, FaCamera, FaCheck, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const Profile = () => {
@@ -300,8 +301,21 @@ const Profile = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-gray-200 p-6 rounded-lg shadow-md"
+              className="bg-gray-200 p-6 rounded-lg shadow-md relative"
           >
+          {/* Store button in top right corner */}
+          <div className="absolute top-4 right-4">
+            <Link
+              to ="/store"
+              className="flex flex-col items-center text-gray-700 hover:text-teal-600 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span className="text-sm mt-1">Store</span>
+            </Link>
+          </div>
+          
             <div className="text-center mb-6">
               <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
                 <span className="text-4xl font-bold">{profileData.points}</span>
