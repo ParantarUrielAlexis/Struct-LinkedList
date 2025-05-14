@@ -28,11 +28,12 @@ export default function SortShift() {
     // Retrieve progress from localStorage or default to level 1
     return parseInt(localStorage.getItem('progress')) || 1;
   });
+  const [showNoHeartsModal, setShowNoHeartsModal] = useState(false); // Add state for modal
 
   // Fetch hearts from authenticated user
   useEffect(() => {
     if (isAuthenticated && authUser) {
-      setHearts(authUser.hearts || 3);
+      setHearts(authUser.hearts || 0);
     }
   }, [isAuthenticated, authUser]);
 
@@ -89,15 +90,16 @@ export default function SortShift() {
   const handlePlayClick = (path, image, levelId) => {
     if (levelId > progress) return; // Prevent access to locked levels
     
-    // Check if user has hearts
-    if (hearts <= 0) {
-      alert("You don't have any hearts left! Get more hearts to play.");
+    // Check if user has hearts - show modal if they have ZERO hearts
+    if (hearts <= 0) {  // Changed back to <= 0 to be clear
+      setShowNoHeartsModal(true);
       return;
     }
     
-    // Decrease heart count
+    // Deduct heart (this should happen before navigating)
     decreaseHeart();
 
+    // Play sounds and show loading screen
     const bgSound = backgroundSound.current;
     const startSound = gameStartSound.current;
 
@@ -109,9 +111,12 @@ export default function SortShift() {
     setLoadingImage(image);
     setIsLoading(true);
     setFadeIn(false);
+    
     setTimeout(() => {
       setFadeIn(true);
     }, 100);
+    
+    // Navigate after loading animation
     setTimeout(() => {
       if (levelId === progress) {
         const newProgress = progress + 1;
@@ -174,6 +179,48 @@ export default function SortShift() {
           </div>
         ))}
       </div>
+
+      {/* Modal for no hearts */}
+      {showNoHeartsModal && (
+        <div className="modal-overlay">
+          <div className="modal-content no-hearts-modal">
+            <div className="modal-header">
+              <h2>Out of Hearts</h2>
+              <button 
+                className="close-button" 
+                onClick={() => setShowNoHeartsModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="hearts-empty-container">
+                <FaHeart className="heart-icon-large" />
+                <span className="hearts-empty-text">0</span>
+              </div>
+              <p>You don't have any hearts left!</p>
+              <p>Visit the store to get more hearts and continue playing.</p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="store-button"
+                onClick={() => {
+                  setShowNoHeartsModal(false);
+                  navigate('/store');
+                }}
+              >
+                Go to Store
+              </button>
+              <button 
+                className="cancel-button"
+                onClick={() => setShowNoHeartsModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

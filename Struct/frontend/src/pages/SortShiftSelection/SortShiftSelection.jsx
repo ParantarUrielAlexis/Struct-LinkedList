@@ -14,7 +14,7 @@ const SortShiftSelection = () => {
     const navigate = useNavigate();
     const backgroundSound = useRef(new Audio("/sounds/selection_background.mp3")); 
     const { isAuthenticated, user: authUser, updateUser } = useAuth(); // Get user and updateUser from auth context
-    const [hearts, setHearts] = useState(3); // Default to 3 hearts
+    const [hearts, setHearts] = useState(0); // Default to 3 hearts
     const [hasDeductedHeart, setHasDeductedHeart] = useState(false);
 
     const generateRandomArray = () =>{
@@ -300,7 +300,7 @@ const SortShiftSelection = () => {
     // Fetch hearts from authenticated user
     useEffect(() => {
         if (isAuthenticated && authUser) {
-            setHearts(authUser.hearts || 3);
+            setHearts(authUser.hearts || 0);
         }
     }, [isAuthenticated, authUser]);
 
@@ -337,7 +337,7 @@ const SortShiftSelection = () => {
                 const token = localStorage.getItem("authToken");
                 if (!token) return;
                 
-                const newHeartCount = Math.max(0, (authUser.hearts || 3) - 1);
+                const newHeartCount = Math.max(0, authUser.hearts - 1);
                 setHearts(newHeartCount);
                 setHasDeductedHeart(true);
                 
@@ -401,15 +401,16 @@ const SortShiftSelection = () => {
         );
     }
 
-    if (authUser && authUser.hearts <= 0) {
-        return (
-            <div className={styles["no-hearts"]}>
-                <h2>You don't have enough hearts to play!</h2>
-                <p>Go back to the menu and collect more hearts.</p>
-                <button onClick={() => navigate('/sortshift')}>Back to Menu</button>
-            </div>
-        );
-    }
+    // Fixed condition here - changed <= 0 to < 1
+    // if (authUser && authUser.hearts < 1) {
+    //     return (
+    //         <div className={styles["no-hearts"]}>
+    //             <h2>You don't have enough hearts to play!</h2>
+    //             <p>Go back to the menu and collect more hearts.</p>
+    //             <button onClick={() => navigate('/sortshift')}>Back to Menu</button>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className={styles["short-shift-container"]}>

@@ -17,7 +17,7 @@ const SortShiftBubble = () => {
     
     // Add these lines for heart functionality
     const { isAuthenticated, user: authUser, updateUser } = useAuth();
-    const [hearts, setHearts] = useState(3); // Default to 3 hearts
+    const [hearts, setHearts] = useState(0); // Default to 3 hearts
     const [hasDeductedHeart, setHasDeductedHeart] = useState(false);
     const [successTimeoutId, setSuccessTimeoutId] = useState(null);
     
@@ -114,7 +114,7 @@ const SortShiftBubble = () => {
     // Fetch hearts from authenticated user
     useEffect(() => {
         if (isAuthenticated && authUser) {
-            setHearts(authUser.hearts || 3);
+            setHearts(authUser.hearts || 0);
         }
     }, [isAuthenticated, authUser]);
 
@@ -151,7 +151,7 @@ const SortShiftBubble = () => {
                 const token = localStorage.getItem("authToken");
                 if (!token) return;
                 
-                const newHeartCount = Math.max(0, (authUser.hearts || 3) - 1);
+                const newHeartCount = Math.max(0, authUser.hearts - 1);
                 setHearts(newHeartCount);
                 setHasDeductedHeart(true);
                 
