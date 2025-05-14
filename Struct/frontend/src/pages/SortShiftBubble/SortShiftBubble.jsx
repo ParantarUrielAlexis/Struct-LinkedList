@@ -7,9 +7,20 @@ import iterationGIF from '../../assets/bubble/bubble_simulation.gif';
 
 import styles from './SortShiftBubble.module.css';
 
+// Add these imports at the top of the file
+import { useAuth } from '../../contexts/AuthContext';
+import { FaHeart } from 'react-icons/fa';
+import axios from 'axios';
 const SortShiftBubble = () => {
     const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
     const navigate = useNavigate();
+    
+    // Add these lines for heart functionality
+    const { isAuthenticated, user: authUser, updateUser } = useAuth();
+    const [hearts, setHearts] = useState(3); // Default to 3 hearts
+    const [hasDeductedHeart, setHasDeductedHeart] = useState(false);
+    const [successTimeoutId, setSuccessTimeoutId] = useState(null);
+    
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
@@ -99,6 +110,106 @@ const SortShiftBubble = () => {
             sound.currentTime = 0;
         };
     }, []);
+
+    // Fetch hearts from authenticated user
+    useEffect(() => {
+        if (isAuthenticated && authUser) {
+            setHearts(authUser.hearts || 3);
+        }
+    }, [isAuthenticated, authUser]);
+
+    // Handle page refresh heart deduction
+    useEffect(() => {
+        // Set up event listener for page refresh
+        const handleBeforeUnload = (e) => {
+            // Standard way to show a confirmation dialog on refresh/navigation away
+            const message = 'Are you sure you want to leave? This will cost you 1 heart.';
+            e.preventDefault();
+            e.returnValue = message; // This is what shows in the confirmation dialog
+            
+            // Store information that the page is being refreshed intentionally
+            sessionStorage.setItem('refreshIntended', 'true');
+            
+            return message; // For older browsers
+        };
+
+        // Check if there was an intended refresh
+        const checkForRefresh = () => {
+            const wasRefreshIntended = sessionStorage.getItem('refreshIntended') === 'true';
+            
+            // If this is a refresh (not first load) and heart hasn't been deducted yet
+            if (wasRefreshIntended && !hasDeductedHeart && isAuthenticated && authUser) {
+                deductHeart();
+                // Clear the flag
+                sessionStorage.removeItem('refreshIntended');
+            }
+        };
+        
+        // Function to deduct a heart
+        const deductHeart = async () => {
+            try {
+                const token = localStorage.getItem("authToken");
+                if (!token) return;
+                
+                const newHeartCount = Math.max(0, (authUser.hearts || 3) - 1);
+                setHearts(newHeartCount);
+                setHasDeductedHeart(true);
+                
+                // Update in the backend
+                const API_BASE_URL = 'http://localhost:8000';
+                const response = await axios.patch(
+                    `${API_BASE_URL}/api/user/profile/`,
+                    { hearts: newHeartCount },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Token ${token}`
+                        }
+                    }
+                );
+                
+                // Update user in context
+                if (typeof updateUser === 'function' && response.data) {
+                    updateUser({
+                        ...authUser,
+                        hearts: newHeartCount
+                    });
+                }
+                
+                // If no hearts left, redirect
+                if (newHeartCount <= 0) {
+                    alert("You don't have enough hearts to continue playing!");
+                    navigate('/sortshift');
+                }
+            } catch (error) {
+                console.error('Error updating heart count:', error);
+            }
+        };
+
+        // Add the event listener
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        // On component mount, check if this is a refresh
+        checkForRefresh();
+        
+        // On first load, set a flag to indicate the page has been visited
+        if (!sessionStorage.getItem('pageVisited')) {
+            sessionStorage.setItem('pageVisited', 'true');
+            // Clear any previous refresh intentions
+            sessionStorage.removeItem('refreshIntended');
+        }
+        
+        // Cleanup
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            
+            // Clear any lingering timeouts when component unmounts
+            if (successTimeoutId) {
+                clearTimeout(successTimeoutId);
+            }
+        };
+    }, [isAuthenticated, authUser, hasDeductedHeart, navigate, updateUser, successTimeoutId]);
+
     const swapSound = new Audio("/sounds/swap.mp3");
     const clickSound = new Audio("/sounds/first_click.mp3");
 
@@ -328,6 +439,12 @@ const SortShiftBubble = () => {
                                 {num}
                             </div>
                         ))}
+                    </div>
+
+                    {/* Heart counter */}
+                    <div className={styles["heart-counter"]}>
+                        <FaHeart className={styles["heart-icon"]} />
+                        <span className={styles["heart-count"]}>{hearts}</span>
                     </div>
 
                     <div className={styles["iterations"]}>

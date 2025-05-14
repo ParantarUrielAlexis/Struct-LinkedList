@@ -249,6 +249,7 @@
     color: white;
     }
     
+  
     .results-container {
     color: white;
     display: flex;
@@ -316,6 +317,7 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+ 
     }
     
     .modal-header .close-btn {
