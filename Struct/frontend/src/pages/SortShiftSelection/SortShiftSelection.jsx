@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef} from "react";
 import { useNavigate } from "react-router-dom";
-import simulation from '../../assets/selection/selection_simulation.gif';
+import simulation from '../../assets/selection/selection_simulation1.gif';
+import simulation2 from '../../assets/selection/selection_simulation2.gif';
+import simulation3 from '../../assets/selection/selection_simulation3.gif';
+import simulation4 from '../../assets/selection/selection_simulation4.gif';
+import simulation5 from '../../assets/selection/selection_simulation5.gif';
+import simulation6 from '../../assets/selection/selection_simulation6.gif';
+
 import { useAuth } from '../../contexts/AuthContext'; // Import auth context
 import axios from 'axios'; // Add this import
 
@@ -48,9 +54,40 @@ const SortShiftSelection = () => {
                         <li>Repeat this process for the remaining unsorted portion of the array.</li>
                         <li>Continue until the entire array is sorted.</li>
                     </ol>
-                                        <p>Watch the simulation to see how the algorithm works in real-time.</p>
-                    <img src={simulation} alt="Iteration GIF" className="simulation-gif" />.
-                    <p>Note: Even if the element is already sorted at the index n. You are still need to add an iteration inorder to get more points/score</p>
+                    <p>Watch the simulation to see how the algorithm works in real-time.</p>
+                    <div className={styles["simulation-grid"]}>
+                        <div className={styles["simulation-row"]}>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation} alt="1st Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>1st Iteration</p>
+                            </div>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation2} alt="2nd Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>2nd Iteration</p>
+                            </div>
+                        </div>
+                        <div className={styles["simulation-row"]}>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation3} alt="3rd Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>3rd Iteration</p>
+                            </div>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation4} alt="4th Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>4th Iteration</p>
+                            </div>
+                        </div>
+                        <div className={styles["simulation-row"]}>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation5} alt="5th Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>5th Iteration</p>
+                            </div>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation6} alt="6th Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>6th Iteration</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p>Note: Even if the element is already sorted at the index n. You still need to add an iteration in order to get more points/score</p>
                 </>
             ),
         },

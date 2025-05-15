@@ -753,3 +753,40 @@
   font-weight: bold;
   font-size: 18px;
 }
+
+.simulation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 20px auto;
+  max-width: 900px;
+}
+
+.simulation-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.simulation-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.simulation-gif {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+  margin: 0 auto;
+}
+
+.simulation-label {
+  width: 100%;
+  margin-top: 10px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.1rem;
+}
