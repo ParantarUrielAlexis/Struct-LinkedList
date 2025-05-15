@@ -2,7 +2,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
-
+import simulation1 from '../../assets/bubble/simulation1.gif';
+import simulation2 from '../../assets/bubble/simulation2.gif';
+import simulation3 from '../../assets/bubble/simulation3.gif';
+import simulation4 from '../../assets/bubble/simulation4.gif';
 import iterationGIF from '../../assets/bubble/bubble_simulation.gif';
 
 import styles from './SortShiftBubble.module.css';
@@ -52,12 +55,28 @@ const SortShiftBubble = () => {
                         <li>Continue until no swaps are needed, indicating that the array is fully sorted.</li>
                     </ol>
                     <p>Watch the simulation to see how the algorithm works in real-time.</p>
-                    <img 
-                        src={iterationGIF} 
-                        alt="Bubble Sort Simulation" 
-                        className="simulation-gif" 
-                        style={{ width: '65%', height: 'auto', margin: '20px auto', display: 'block' }} 
-                    />
+                    <div className={styles["simulation-grid"]}>
+                        <div className={styles["simulation-row"]}>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation1} alt="1st Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>1st Iteration</p>
+                            </div>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation2} alt="2nd Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>2nd Iteration</p>
+                            </div>
+                        </div>
+                        <div className={styles["simulation-row"]}>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation3} alt="3rd Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>3rd Iteration</p>
+                            </div>
+                            <div className={styles["simulation-cell"]}>
+                                <img src={simulation4} alt="4th Iteration" className={styles["simulation-gif"]} />
+                                <p className={styles["simulation-label"]}>4th Iteration</p>
+                            </div>
+                        </div>
+                    </div>
                     <p>Note: This is only the first iteration of the entire sorting process.</p>
                 </>
             ),
