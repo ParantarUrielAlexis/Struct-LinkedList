@@ -59,25 +59,24 @@ const SortShiftBubble = () => {
                         <div className={styles["simulation-row"]}>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation1} alt="1st Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>1st Iteration</p>
+                                <p className={styles["simulation-label"]}>1st Iteration (swapped)</p>
                             </div>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation2} alt="2nd Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>2nd Iteration</p>
+                                <p className={styles["simulation-label"]}>2nd Iteration (swapped)</p>
                             </div>
                         </div>
                         <div className={styles["simulation-row"]}>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation3} alt="3rd Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>3rd Iteration</p>
+                                <p className={styles["simulation-label"]}>3rd Iteration (swapped)</p>
                             </div>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation4} alt="4th Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>4th Iteration</p>
+                                <p className={styles["simulation-label"]}>4th Iteration (swapped)</p>
                             </div>
                         </div>
                     </div>
-                    <p>Note: This is only the first iteration of the entire sorting process.</p>
                 </>
             ),
         },

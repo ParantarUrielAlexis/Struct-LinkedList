@@ -59,31 +59,31 @@ const SortShiftSelection = () => {
                         <div className={styles["simulation-row"]}>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation} alt="1st Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>1st Iteration</p>
+                                <p className={styles["simulation-label"]}>1st Iteration (swapped)</p>
                             </div>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation2} alt="2nd Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>2nd Iteration</p>
+                                <p className={styles["simulation-label"]}>2nd Iteration (swapped) </p>
                             </div>
                         </div>
                         <div className={styles["simulation-row"]}>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation3} alt="3rd Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>3rd Iteration</p>
+                                <p className={styles["simulation-label"]}>3rd Iteration (swapped)</p>
                             </div>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation4} alt="4th Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>4th Iteration</p>
+                                <p className={styles["simulation-label"]}>4th Iteration (swapped)</p>
                             </div>
                         </div>
                         <div className={styles["simulation-row"]}>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation5} alt="5th Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>5th Iteration</p>
+                                <p className={styles["simulation-label"]}>5th Iteration (no swap)</p>
                             </div>
                             <div className={styles["simulation-cell"]}>
                                 <img src={simulation6} alt="6th Iteration" className={styles["simulation-gif"]} />
-                                <p className={styles["simulation-label"]}>6th Iteration</p>
+                                <p className={styles["simulation-label"]}>6th Iteration (swapped)</p>
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import simulation from '../../assets/insertion/insertion_simulation.gif';
+import simulation from '../../assets/insertion/simulation1.gif';
+import simulation2 from '../../assets/insertion/simulation2.gif';
+import simulation3 from '../../assets/insertion/simulation3.gif';
+import simulation4 from '../../assets/insertion/simulation4.gif';
+import simulation5 from '../../assets/insertion/simulation5.gif';
+import simulation6 from '../../assets/insertion/simulation6.gif';
 import { useAuth } from '../../contexts/AuthContext'; 
 import { FaHeart } from 'react-icons/fa'; 
 import axios from 'axios';
@@ -16,7 +21,7 @@ const SortShiftInsertion = () => {
     
     // Add heart functionality
     const { isAuthenticated, user: authUser, updateUser } = useAuth();
-    const [hearts, setHearts] = useState(0); // Default to 3 hearts
+    const [hearts, setHearts] = useState(0); 
     const [hasDeductedHeart, setHasDeductedHeart] = useState(false);
     const [successTimeoutId, setSuccessTimeoutId] = useState(null);
     
@@ -52,12 +57,38 @@ const SortShiftInsertion = () => {
                     <li>Repeat this process for all remaining elements in the array.</li>
                 </ol>
                 <p>Watch the simulation to see how the algorithm works in real-time.</p>
-                <img 
-                    src={simulation} 
-                    alt="Insertion Sort Simulation" 
-                    className="simulation-gif" 
-                    style={{ width: '70%', height: 'auto', margin: '20px auto', display: 'block' }} 
-                />
+                <div className={styles["simulation-grid"]}>
+                    <div className={styles["simulation-row"]}>
+                        <div className={styles["simulation-cell"]}>
+                            <img src={simulation} alt="1st Iteration" className={styles["simulation-gif"]} />
+                            <p className={styles["simulation-label"]}>1st Iteration (no  swap)</p>
+                        </div>
+                        <div className={styles["simulation-cell"]}>
+                            <img src={simulation2} alt="2nd Iteration" className={styles["simulation-gif"]} />
+                            <p className={styles["simulation-label"]}>2nd Iteration (no swap)</p>
+                        </div>
+                    </div>
+                    <div className={styles["simulation-row"]}>
+                        <div className={styles["simulation-cell"]}>
+                            <img src={simulation3} alt="3rd Iteration" className={styles["simulation-gif"]} />
+                            <p className={styles["simulation-label"]}>3rd Iteration (swapped)</p>
+                        </div>
+                        <div className={styles["simulation-cell"]}>
+                            <img src={simulation4} alt="4th Iteration" className={styles["simulation-gif"]} />
+                            <p className={styles["simulation-label"]}>4th Iteration (swapped)</p>
+                        </div>
+                    </div>
+                    <div className={styles["simulation-row"]}>
+                        <div className={styles["simulation-cell"]}>
+                            <img src={simulation5} alt="5th Iteration" className={styles["simulation-gif"]} />
+                            <p className={styles["simulation-label"]}>5th Iteration (no swap)</p>
+                        </div>
+                        <div className={styles["simulation-cell"]}>
+                            <img src={simulation6} alt="6th Iteration" className={styles["simulation-gif"]} />
+                            <p className={styles["simulation-label"]}>6th Iteration (swapped)</p>
+                        </div>
+                    </div>
+                </div>
                 <p>Note: Even if the element is already in the correct position, you must still perform the iteration to ensure the process is complete.</p>
             </>
         ),
