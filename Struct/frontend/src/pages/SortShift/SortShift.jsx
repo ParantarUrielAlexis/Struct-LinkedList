@@ -17,7 +17,7 @@ const levels = [
 export default function SortShift() {
   const navigate = useNavigate();
   const { isAuthenticated, user: authUser, updateUser } = useAuth(); // Get user and updateUser from auth context
-  const [hearts, setHearts] = useState(3); // Default to 3 hearts
+  const [hearts, setHearts] = useState(0); // Default to 3 hearts
   
   const gameStartSound = useRef(new Audio('/sounds/game_start_sound.mp3'));
   const backgroundSound = useRef(new Audio('/sounds/sortshift_background.mp3'));
