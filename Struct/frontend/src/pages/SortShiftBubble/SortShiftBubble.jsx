@@ -14,6 +14,346 @@ import styles from './SortShiftBubble.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaHeart } from 'react-icons/fa';
 import axios from 'axios';
+
+// Add this component definition before your main SortShiftBubble component
+
+const RealtimeBubbleSort = ({ array }) => {
+    const [currentArray, setCurrentArray] = useState([...array]);
+    const [currentStep, setCurrentStep] = useState(-1);
+    const [sortingSteps, setSortingSteps] = useState([]);
+    const [sortingState, setSortingState] = useState({
+        passIndex: -1,
+        currentIndex: -1,
+        nextIndex: -1,
+        comparing: false,
+        swapping: false,
+        sorted: []
+    });
+    const [isRunning, setIsRunning] = useState(false);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [speed, setSpeed] = useState(1); // 1x is default speed
+
+    // Generate all steps of bubble sort
+    useEffect(() => {
+        const steps = [];
+        const arr = [...array];
+        const n = arr.length;
+        const sortedIndices = [];
+
+        steps.push({
+            array: [...arr],
+            state: {
+                passIndex: -1,
+                currentIndex: -1,
+                nextIndex: -1,
+                comparing: false,
+                swapping: false,
+                sorted: [...sortedIndices]
+            },
+            message: "Initial array"
+        });
+
+        for (let i = 0; i < n - 1; i++) {
+            let swapped = false;
+
+            // Step: Start new pass
+            steps.push({
+                array: [...arr],
+                state: {
+                    passIndex: i,
+                    currentIndex: -1,
+                    nextIndex: -1,
+                    comparing: false,
+                    swapping: false,
+                    sorted: [...sortedIndices]
+                },
+                message: `Starting pass ${i + 1}`
+            });
+
+            for (let j = 0; j < n - i - 1; j++) {
+                // Step: Compare elements
+                steps.push({
+                    array: [...arr],
+                    state: {
+                        passIndex: i,
+                        currentIndex: j,
+                        nextIndex: j + 1,
+                        comparing: true,
+                        swapping: false,
+                        sorted: [...sortedIndices]
+                    },
+                    message: `Comparing ${arr[j]} and ${arr[j + 1]}`
+                });
+
+                if (arr[j] > arr[j + 1]) {
+                    // Step: Begin swap
+                    steps.push({
+                        array: [...arr],
+                        state: {
+                            passIndex: i,
+                            currentIndex: j,
+                            nextIndex: j + 1,
+                            comparing: false,
+                            swapping: true,
+                            sorted: [...sortedIndices]
+                        },
+                        message: `${arr[j]} > ${arr[j + 1]}, swapping`
+                    });
+
+                    [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                    swapped = true;
+                    
+                    // Step: After swap
+                    steps.push({
+                        array: [...arr],
+                        state: {
+                            passIndex: i,
+                            currentIndex: j,
+                            nextIndex: j + 1,
+                            comparing: false,
+                            swapping: false,
+                            sorted: [...sortedIndices]
+                        },
+                        message: `Swapped ${arr[j]} and ${arr[j+1]}`
+                    });
+                } else {
+                    // Step: No swap needed
+                    steps.push({
+                        array: [...arr],
+                        state: {
+                            passIndex: i,
+                            currentIndex: j,
+                            nextIndex: j + 1,
+                            comparing: false,
+                            swapping: false,
+                            sorted: [...sortedIndices]
+                        },
+                        message: `${arr[j]} <= ${arr[j + 1]}, no swap needed`
+                    });
+                }
+            }
+
+            // Mark the last element in this pass as sorted
+            sortedIndices.push(n - i - 1);
+
+            // Step: End of pass
+            steps.push({
+                array: [...arr],
+                state: {
+                    passIndex: i,
+                    currentIndex: -1,
+                    nextIndex: -1,
+                    comparing: false,
+                    swapping: false,
+                    sorted: [...sortedIndices]
+                },
+                message: `End of pass ${i + 1}. Element ${arr[n - i - 1]} is now at its correct position.`
+            });
+
+            // If no swaps were made in this pass, the array is sorted
+            if (!swapped) {
+                // Mark all remaining elements as sorted
+                for (let k = 0; k < n - i - 1; k++) {
+                    if (!sortedIndices.includes(k)) {
+                        sortedIndices.push(k);
+                    }
+                }
+                
+                steps.push({
+                    array: [...arr],
+                    state: {
+                        passIndex: -1,
+                        currentIndex: -1,
+                        nextIndex: -1,
+                        comparing: false,
+                        swapping: false,
+                        sorted: [...sortedIndices].sort((a, b) => a - b)
+                    },
+                    message: "No swaps in this pass. Array is sorted!"
+                });
+                break;
+            }
+        }
+
+        // Final step: All sorted
+        if (sortedIndices.length < n) {
+            sortedIndices.push(0); // Mark the first element as sorted too
+            steps.push({
+                array: [...arr],
+                state: {
+                    passIndex: -1,
+                    currentIndex: -1,
+                    nextIndex: -1,
+                    comparing: false,
+                    swapping: false,
+                    sorted: [...Array(n).keys()] // All indices are sorted
+                },
+                message: "Array is completely sorted!"
+            });
+        }
+
+        setSortingSteps(steps);
+        setCurrentArray([...array]);
+    }, [array]);
+
+    // Function to control the animation
+    useEffect(() => {
+        let timerId;
+        
+        if (isRunning && currentStep < sortingSteps.length - 1 && !isCompleted) {
+            // Calculate timeout based on speed: 800ms for 1x, 400ms for 2x, 267ms for 3x
+            const timeout = 800 / speed;
+            
+            timerId = setTimeout(() => {
+                const nextStep = currentStep + 1;
+                setCurrentStep(nextStep);
+                setCurrentArray([...sortingSteps[nextStep].array]);
+                setSortingState(sortingSteps[nextStep].state);
+                
+                if (nextStep === sortingSteps.length - 1) {
+                    setIsCompleted(true);
+                    setIsRunning(false);
+                }
+            }, timeout);
+        }
+        
+        return () => clearTimeout(timerId);
+    }, [isRunning, currentStep, sortingSteps, isCompleted, speed]);
+
+    const startSorting = () => {
+        // Check if we've already started but are paused
+        if (currentStep >= 0) {
+            // Just resume from current position
+            setIsRunning(true);
+        } else {
+            // This is the initial start
+            setIsRunning(true);
+            setIsCompleted(false);
+            setCurrentStep(-1);
+            setCurrentArray([...array]);
+            setSortingState({
+                passIndex: -1,
+                currentIndex: -1,
+                nextIndex: -1,
+                comparing: false,
+                swapping: false,
+                sorted: []
+            });
+        }
+    };
+
+    const resetSorting = () => {
+        setIsRunning(false);
+        setIsCompleted(false);
+        setCurrentStep(-1);
+        setCurrentArray([...array]);
+        setSortingState({
+            passIndex: -1,
+            currentIndex: -1,
+            nextIndex: -1,
+            comparing: false,
+            swapping: false,
+            sorted: []
+        });
+    };
+
+    const pauseSorting = () => {
+        setIsRunning(false);
+    };
+
+    const handleSpeedChange = (event) => {
+        // Convert the slider value (0-100) to a speed value (1-3)
+        // 0-33 = 1x, 34-66 = 2x, 67-100 = 3x
+        const sliderValue = parseInt(event.target.value, 10);
+        let newSpeed = 1;
+        if (sliderValue > 66) {
+            newSpeed = 3;
+        } else if (sliderValue > 33) {
+            newSpeed = 2;
+        }
+        
+        setSpeed(newSpeed);
+    };
+
+    const getItemClassName = (index) => {
+        const baseClass = styles["realtime-item"];
+        if (sortingState.sorted.includes(index)) return `${baseClass} ${styles["sorted"]}`;
+        if (index === sortingState.currentIndex) return `${baseClass} ${styles["current"]}`;
+        if (index === sortingState.nextIndex) return `${baseClass} ${styles["next"]}`;
+        if (sortingState.comparing && 
+            (index === sortingState.currentIndex || index === sortingState.nextIndex)) 
+            return `${baseClass} ${styles["comparing"]}`;
+        if (sortingState.swapping && 
+            (index === sortingState.currentIndex || index === sortingState.nextIndex)) 
+            return `${baseClass} ${styles["swapping"]}`;
+        return baseClass;
+    };
+
+    return (
+        <div className={styles["realtime-sort-container"]}>
+            <div className={styles["legend"]}>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["sorted-color"]}`}></span>
+                    <span>Sorted</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["current-color"]}`}></span>
+                    <span>Current Position</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["next-color"]}`}></span>
+                    <span>Next Position</span>
+                </div>
+                
+            </div>
+            <div className={styles["realtime-array-container"]}>
+                {currentArray.map((value, index) => (
+                    <div 
+                        key={index} 
+                        className={getItemClassName(index)}
+                    >
+                        {value}
+                    </div>
+                ))}
+            </div>
+            {currentStep >= 0 && currentStep < sortingSteps.length && (
+                <div className={styles["step-message"]}>
+                    {sortingSteps[currentStep].message}
+                </div>
+            )}
+            <div className={styles["controls-container"]}>
+                {!isRunning && !isCompleted && (
+                    <button onClick={startSorting} className={styles["control-button"]}>
+                        Start
+                    </button>
+                )}
+                {isRunning && (
+                    <button onClick={pauseSorting} className={styles["control-button"]}>
+                        Pause
+                    </button>
+                )}
+                {(isRunning || isCompleted || currentStep > -1) && (
+                    <button onClick={resetSorting} className={styles["control-button"]}>
+                        Reset
+                    </button>
+                )}
+            </div>
+            
+            <div className={styles["speed-controls"]}>
+                <span className={styles["speed-label"]}>1.0x</span>
+                <input 
+                    type="range"
+                    min="0"
+                    max="100"
+                    className={styles["speed-slider"]}
+                    value={speed === 1 ? 0 : speed === 2 ? 50 : 100}
+                    onChange={handleSpeedChange}
+                />
+                <span className={styles["speed-label"]}>3x</span>
+            </div>
+        </div>
+    );
+};
 const SortShiftBubble = () => {
     const backgroundSound = useRef(new Audio("/sounds/bubble_background.mp3")); 
     const navigate = useNavigate();
@@ -28,7 +368,7 @@ const SortShiftBubble = () => {
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
     }
     const [originalArray, setOriginalArray] = useState([]);
-
+    const realTimeArray = [23, 54, 82, 71, 12, 93, 28]
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
     const [iterationResults, setIterationResults] = useState([]);
@@ -55,6 +395,10 @@ const SortShiftBubble = () => {
                         <li>Continue until no swaps are needed, indicating that the array is fully sorted.</li>
                     </ol>
                     <p>Watch the simulation to see how the algorithm works in real-time.</p>
+                    <div className={styles["realtime-simulation"]}>
+                        <RealtimeBubbleSort array={realTimeArray} />
+                     </div>
+                     <p>Watch the simulation to see how the algorithm works in each iteration.</p>
                     <div className={styles["simulation-grid"]}>
                         <div className={styles["simulation-row"]}>
                             <div className={styles["simulation-cell"]}>

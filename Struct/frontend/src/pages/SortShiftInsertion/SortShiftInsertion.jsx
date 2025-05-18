@@ -14,7 +14,383 @@ import musicLogo from '../../assets/music.png';
 import tutorialLogo from '../../assets/tutorial.png';
 
 import styles from './SortShiftInsertion.module.css';
+// Add this component before your main SortShiftInsertion component
 
+const RealtimeInsertionSort = ({ array }) => {
+    const [currentArray, setCurrentArray] = useState([...array]);
+    const [currentStep, setCurrentStep] = useState(-1);
+    const [sortingSteps, setSortingSteps] = useState([]);
+    const [sortingState, setSortingState] = useState({
+        sortedEndIndex: 0,
+        currentIndex: -1,
+        keyElement: null,
+        comparingIndex: -1,
+        shifting: false,
+        inserting: false
+    });
+    const [isRunning, setIsRunning] = useState(false);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [speed, setSpeed] = useState(1); // 1x is default speed
+
+    // Generate all steps of insertion sort
+    useEffect(() => {
+        const steps = [];
+        const arr = [...array];
+        const n = arr.length;
+
+        // Initial state: Assume first element is already sorted
+        steps.push({
+            array: [...arr],
+            state: {
+                sortedEndIndex: 0,
+                currentIndex: -1,
+                keyElement: null,
+                comparingIndex: -1,
+                shifting: false,
+                inserting: false
+            },
+            message: "Starting with first element already sorted"
+        });
+
+        // Insertion sort
+        for (let i = 1; i < n; i++) {
+            const key = arr[i];
+            
+            // Mark the current element we're going to insert
+            steps.push({
+                array: [...arr],
+                state: {
+                    sortedEndIndex: i - 1,
+                    currentIndex: i,
+                    keyElement: key,
+                    comparingIndex: -1,
+                    shifting: false,
+                    inserting: false
+                },
+                message: `Taking element ${key} to insert in the sorted portion`
+            });
+            
+            let j = i - 1;
+            
+            // Compare with each element in the sorted portion from right to left
+            while (j >= 0) {
+                steps.push({
+                    array: [...arr],
+                    state: {
+                        sortedEndIndex: i - 1,
+                        currentIndex: i,
+                        keyElement: key,
+                        comparingIndex: j,
+                        shifting: false,
+                        inserting: false
+                    },
+                    message: `Comparing ${key} with ${arr[j]}`
+                });
+                
+                if (arr[j] > key) {
+                    // Shift element to the right
+                    steps.push({
+                        array: [...arr],
+                        state: {
+                            sortedEndIndex: i - 1,
+                            currentIndex: i,
+                            keyElement: key,
+                            comparingIndex: j,
+                            shifting: true,
+                            inserting: false
+                        },
+                        message: `${arr[j]} > ${key}, shift ${arr[j]} to the right`
+                    });
+                    
+                    arr[j + 1] = arr[j];
+                    
+                    // Show shifted state
+                    steps.push({
+                        array: [...arr],
+                        state: {
+                            sortedEndIndex: i - 1,
+                            currentIndex: -1, // Hide the current element during shifting
+                            keyElement: key,
+                            comparingIndex: j,
+                            shifting: false,
+                            inserting: false
+                        },
+                        message: `Shifted ${arr[j]} to position ${j + 1}`
+                    });
+                    
+                    j--;
+                } else {
+                    // Element is in correct position, no need to shift
+                    steps.push({
+                        array: [...arr],
+                        state: {
+                            sortedEndIndex: i - 1,
+                            currentIndex: i,
+                            keyElement: key,
+                            comparingIndex: j,
+                            shifting: false,
+                            inserting: false
+                        },
+                        message: `${arr[j]} <= ${key}, no more shifting needed`
+                    });
+                    break;
+                }
+            }
+            
+            // Insert the key element at the correct position
+            steps.push({
+                array: [...arr],
+                state: {
+                    sortedEndIndex: i - 1,
+                    currentIndex: -1,
+                    keyElement: key,
+                    comparingIndex: -1,
+                    shifting: false,
+                    inserting: true
+                },
+                message: `Inserting ${key} at position ${j + 1}`
+            });
+            
+            arr[j + 1] = key;
+            
+            // Show the array after insertion
+            steps.push({
+                array: [...arr],
+                state: {
+                    sortedEndIndex: i,
+                    currentIndex: -1,
+                    keyElement: null,
+                    comparingIndex: -1,
+                    shifting: false,
+                    inserting: false
+                },
+                message: `Inserted ${key}. Elements up to index ${i} are now sorted.`
+            });
+        }
+
+        // Final state: Array is sorted
+        steps.push({
+            array: [...arr],
+            state: {
+                sortedEndIndex: n - 1,
+                currentIndex: -1,
+                keyElement: null,
+                comparingIndex: -1,
+                shifting: false,
+                inserting: false
+            },
+            message: "Array is completely sorted!"
+        });
+
+        setSortingSteps(steps);
+        setCurrentArray([...array]);
+    }, [array]);
+
+    // Function to control the animation
+    useEffect(() => {
+        let timerId;
+        
+        if (isRunning && currentStep < sortingSteps.length - 1 && !isCompleted) {
+            // Calculate timeout based on speed: 800ms for 1x, 400ms for 2x, 267ms for 3x
+            const timeout = 800 / speed;
+            
+            timerId = setTimeout(() => {
+                const nextStep = currentStep + 1;
+                setCurrentStep(nextStep);
+                setCurrentArray([...sortingSteps[nextStep].array]);
+                setSortingState(sortingSteps[nextStep].state);
+                
+                if (nextStep === sortingSteps.length - 1) {
+                    setIsCompleted(true);
+                    setIsRunning(false);
+                }
+            }, timeout);
+        }
+        
+        return () => clearTimeout(timerId);
+    }, [isRunning, currentStep, sortingSteps, isCompleted, speed]);
+
+    const startSorting = () => {
+        // Check if we've already started but are paused
+        if (currentStep >= 0) {
+            // Just resume from current position
+            setIsRunning(true);
+        } else {
+            // This is the initial start
+            setIsRunning(true);
+            setIsCompleted(false);
+            setCurrentStep(-1);
+            setCurrentArray([...array]);
+            setSortingState({
+                sortedEndIndex: 0,
+                currentIndex: -1,
+                keyElement: null,
+                comparingIndex: -1,
+                shifting: false,
+                inserting: false
+            });
+        }
+    };
+
+    const resetSorting = () => {
+        setIsRunning(false);
+        setIsCompleted(false);
+        setCurrentStep(-1);
+        setCurrentArray([...array]);
+        setSortingState({
+            sortedEndIndex: 0,
+            currentIndex: -1,
+            keyElement: null,
+            comparingIndex: -1,
+            shifting: false,
+            inserting: false
+        });
+    };
+
+    const pauseSorting = () => {
+        setIsRunning(false);
+    };
+
+    const handleSpeedChange = (event) => {
+        // Convert the slider value (0-100) to a speed value (1-3)
+        // 0-33 = 1x, 34-66 = 2x, 67-100 = 3x
+        const sliderValue = parseInt(event.target.value, 10);
+        let newSpeed = 1;
+        if (sliderValue > 66) {
+            newSpeed = 3;
+        } else if (sliderValue > 33) {
+            newSpeed = 2;
+        }
+        
+        setSpeed(newSpeed);
+    };
+
+    // Update the getItemClassName function to better handle the shifting visual
+    const getItemClassName = (index) => {
+        const baseClass = styles["realtime-item"];
+        
+        // Empty space for position where element will be shifted to
+        if (sortingState.shifting && index === sortingState.comparingIndex + 1) {
+            return `${baseClass} ${styles["shift-target"]}`;
+        }
+        
+        // Hide the original key element during shifting
+        if (sortingState.keyElement !== null && index === sortingState.currentIndex) {
+            // Only show key element styling when not shifting
+            return sortingState.shifting ? baseClass : `${baseClass} ${styles["key-element"]}`;
+        }
+        
+        // Element being compared with key
+        if (index === sortingState.comparingIndex) 
+            return `${baseClass} ${styles["comparing"]}`;
+            
+        // Element being shifted
+        if (sortingState.shifting && index === sortingState.comparingIndex) 
+            return `${baseClass} ${styles["shifting"]}`;
+            
+        // Element being inserted
+        if (sortingState.inserting && index === sortingState.comparingIndex + 1) 
+            return `${baseClass} ${styles["inserting"]}`;
+            
+        // Already sorted elements
+        if (index <= sortingState.sortedEndIndex) 
+            return `${baseClass} ${styles["sorted"]}`;
+            
+        // Default styling
+        return baseClass;
+    };
+
+    // Modify how values are displayed in the array to avoid duplication during shifting
+    const getDisplayValue = (value, index) => {
+        // If we're shifting and this is the current key element being inserted
+        if (sortingState.keyElement === value && index === sortingState.currentIndex) {
+            // Hide the key element while it's waiting to be inserted
+            if (sortingState.shifting || sortingState.inserting) {
+                return "";
+            }
+        }
+        
+        // If this is where an element is being shifted to, show nothing during the shift
+        if (sortingState.shifting && index === sortingState.comparingIndex + 1) {
+            return "";
+        }
+        
+        // For all other cases, show the actual value
+        return value;
+    };
+
+    return (
+        <div className={styles["realtime-sort-container"]}>
+            <div className={styles["legend"]}>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["sorted-color"]}`}></span>
+                    <span>Sorted</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["key-color"]}`}></span>
+                    <span>Key Element</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["comparing-color"]}`}></span>
+                    <span>Comparing</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["shifting-color"]}`}></span>
+                    <span>Shifting</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["inserting-color"]}`}></span>
+                    <span>Inserting</span>
+                </div>
+            </div>
+            <div className={styles["realtime-array-container"]}>
+                {currentArray.map((value, index) => (
+                    <div 
+                        key={index} 
+                        className={getItemClassName(index)}
+                    >
+                        {getDisplayValue(value, index)}
+                    </div>
+                ))}
+            </div>
+            {currentStep >= 0 && currentStep < sortingSteps.length && (
+                <div className={styles["step-message"]}>
+                    {sortingSteps[currentStep].message}
+                </div>
+            )}
+            <div className={styles["controls-container"]}>
+                {!isRunning && !isCompleted && (
+                    <button onClick={startSorting} className={styles["control-button"]}>
+                        Start
+                    </button>
+                )}
+                {isRunning && (
+                    <button onClick={pauseSorting} className={styles["control-button"]}>
+                        Pause
+                    </button>
+                )}
+                {(isRunning || isCompleted || currentStep > -1) && (
+                    <button onClick={resetSorting} className={styles["control-button"]}>
+                        Reset
+                    </button>
+                )}
+            </div>
+            
+            <div className={styles["speed-controls"]}>
+                <span className={styles["speed-label"]}>1.0x</span>
+                <input 
+                    type="range"
+                    min="0"
+                    max="100"
+                    className={styles["speed-slider"]}
+                    value={speed === 1 ? 0 : speed === 2 ? 50 : 100}
+                    onChange={handleSpeedChange}
+                />
+                <span className={styles["speed-label"]}>3x</span>
+            </div>
+        </div>
+    );
+};
 const SortShiftInsertion = () => {
     const backgroundSound = useRef(new Audio("/sounds/insertion_background.mp3")); 
     const navigate = useNavigate();
@@ -39,7 +415,9 @@ const SortShiftInsertion = () => {
     const [isPlaying, setIsPlaying] = useState(true);
     const [tutorialPage, setTutorialPage] = useState(0); 
 
-    const tutorialPages = [
+    const realTimeArray = [23, 54, 82, 71, 12, 93, 28]
+
+const tutorialPages = [
     {
         title: "How Insertion Sort Works",
         content: (
@@ -57,6 +435,11 @@ const SortShiftInsertion = () => {
                     <li>Repeat this process for all remaining elements in the array.</li>
                 </ol>
                 <p>Watch the simulation to see how the algorithm works in real-time.</p>
+                
+                <div className={styles["realtime-simulation"]}>
+                    <RealtimeInsertionSort array={realTimeArray} />
+                </div>
+                
                 <div className={styles["simulation-grid"]}>
                     <div className={styles["simulation-row"]}>
                         <div className={styles["simulation-cell"]}>

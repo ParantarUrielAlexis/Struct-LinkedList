@@ -788,3 +788,216 @@
   text-align: center;
   font-size: 1.1rem;
 }
+
+/* Add this to your SortShiftSelection.module.css file */
+.realtime-simulation {
+    margin: 20px 0;
+    padding: 15px;
+    background-color:transparent;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.realtime-sort-container {
+    width: 100%;
+    margin: 20px 0;
+}
+
+.realtime-array-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.realtime-item {
+    width: 50px;
+    height: 50px;
+    margin: 0 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.sorted {
+    background-color: #686767;
+    border-color: #686767;
+}
+
+.current {
+    background-color: #830303;
+    border: 1px solid #830303;
+}
+
+.next {
+    background-color: #194467;
+    border-color: #194467;
+}
+
+.comparing {
+    background-color: #194467;
+    border-color: #194467;
+}
+
+.swapping {
+    background-color: #f48fb1;
+    border-color: #d81b60;
+    transform: scale(1.1);
+}
+
+.step-message {
+    text-align: center;
+    margin: 15px 0;
+    font-size: 16px;
+    min-height: 30px;
+    padding: 5px;
+    background-color: transparent;
+    border-radius: 4px;
+}
+
+.controls-container {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.control-button {
+    margin: 0 10px;
+    padding: 8px 16px;
+    background-color: #686767;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.control-button:hover {
+    background-color: #007a80;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.sorted-color {
+    background-color: #686767;
+}
+
+.current-color {
+    background-color: #830303;
+    border: 1px solid #830303;
+}
+
+.next-color {
+    background-color: #194467;
+    border-color: #194467;
+}
+
+.comparing-color {
+    background-color: #194467;
+    border-color: #194467;
+}
+.speed-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.speed-label {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0 10px;
+  color: #333;
+}
+
+.speed-slider {
+  -webkit-appearance: none;  /* Override default appearance */
+  appearance: none;
+  width: 150px;
+  height: 6px;
+  background: linear-gradient(90deg, rgba(33,33,33,0.8) 0%, rgba(33,33,33,0.8) 100%);
+  border-radius: 5px;
+  margin: 0 5px;
+}
+
+.speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default appearance */
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.speed-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.speed-slider:focus {
+  outline: none;
+}
+
+.speed-slider:active::-webkit-slider-thumb {
+  background: #e0e0e0;
+}
+
+/* Fix for the legend issue */
+.legend-item span:not([class^="legend-color"]) {
+  font-size: 14px;
+  margin-left: 5px;
+}
+
+/* Make sure legend is centered properly on mobile */
+@media (max-width: 768px) {
+  .legend {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .legend-item {
+    margin: 5px 0;
+  }
+  
+  .realtime-item {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    margin: 0 3px;
+  }
+  
+  .speed-slider {
+    width: 120px;
+  }
+}

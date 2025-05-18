@@ -16,7 +16,310 @@ import tutorialLogo from '../../assets/tutorial.png';
 
 import styles from './SortShiftSelection.module.css';
 
+const RealtimeSelectionSort = ({ array }) => {
+    const [currentArray, setCurrentArray] = useState([...array]);
+    const [currentStep, setCurrentStep] = useState(-1);
+    const [sortingSteps, setSortingSteps] = useState([]);
+    const [sortingState, setSortingState] = useState({
+        sortedIndex: -1,
+        currentIndex: -1,
+        minIndex: -1,
+        comparing: -1,
+        swapping: false
+    });
+    const [isRunning, setIsRunning] = useState(false);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [speed, setSpeed] = useState(1); // 1x is default speed
+
+    // Generate all steps of selection sort
+    useEffect(() => {
+        const steps = [];
+        const arr = [...array];
+        const n = arr.length;
+
+        steps.push({
+            array: [...arr],
+            state: {
+                sortedIndex: -1,
+                currentIndex: -1,
+                minIndex: -1,
+                comparing: -1,
+                swapping: false
+            },
+            message: "Initial array"
+        });
+
+        for (let i = 0; i < n - 1; i++) {
+            let minIndex = i;
+
+            // Step: Start new iteration
+            steps.push({
+                array: [...arr],
+                state: {
+                    sortedIndex: i - 1,
+                    currentIndex: i,
+                    minIndex,
+                    comparing: -1,
+                    swapping: false
+                },
+                message: `Starting iteration ${i + 1}: Looking for minimum in the unsorted part`
+            });
+
+            // Find minimum element
+            for (let j = i + 1; j < n; j++) {
+                // Step: Compare elements
+                steps.push({
+                    array: [...arr],
+                    state: {
+                        sortedIndex: i - 1,
+                        currentIndex: i,
+                        minIndex,
+                        comparing: j,
+                        swapping: false
+                    },
+                    message: `Comparing ${arr[minIndex]} with ${arr[j]}`
+                });
+
+                if (arr[j] < arr[minIndex]) {
+                    minIndex = j;
+                    // Step: Update minimum
+                    steps.push({
+                        array: [...arr],
+                        state: {
+                            sortedIndex: i - 1,
+                            currentIndex: i,
+                            minIndex,
+                            comparing: -1,
+                            swapping: false
+                        },
+                        message: `Found new minimum: ${arr[minIndex]} at position ${minIndex + 1}`
+                    });
+                }
+            }
+
+            // Swap elements if needed
+            if (minIndex !== i) {
+                // Step: Begin swap
+                steps.push({
+                    array: [...arr],
+                    state: {
+                        sortedIndex: i - 1,
+                        currentIndex: i,
+                        minIndex,
+                        comparing: -1,
+                        swapping: true
+                    },
+                    message: `Swapping ${arr[i]} and ${arr[minIndex]}`
+                });
+
+                [arr[i], arr[minIndex]] = [arr[minIndex], arr[i]];
+                
+                // Step: After swap
+                steps.push({
+                    array: [...arr],
+                    state: {
+                        sortedIndex: i,
+                        currentIndex: -1,
+                        minIndex: -1,
+                        comparing: -1,
+                        swapping: false
+                    },
+                    message: `Swapped ${arr[i]} to position ${i + 1}`
+                });
+            } else {
+                // Step: No swap needed
+                steps.push({
+                    array: [...arr],
+                    state: {
+                        sortedIndex: i,
+                        currentIndex: -1,
+                        minIndex: -1,
+                        comparing: -1,
+                        swapping: false
+                    },
+                    message: `Element ${arr[i]} is already at its correct position ${i + 1}`
+                });
+            }
+        }
+
+        // Final step: All sorted
+        steps.push({
+            array: [...arr],
+            state: {
+                sortedIndex: n - 1,
+                currentIndex: -1,
+                minIndex: -1,
+                comparing: -1,
+                swapping: false
+            },
+            message: "Array is sorted!"
+        });
+
+        setSortingSteps(steps);
+        setCurrentArray([...array]);
+    }, [array]);
+
+    // Function to control the animation - updated with speed parameter
+    useEffect(() => {
+        let timerId;
+        
+        if (isRunning && currentStep < sortingSteps.length - 1 && !isCompleted) {
+            // Calculate timeout based on speed: 800ms for 1x, 400ms for 2x, 267ms for 3x
+            const timeout = 800 / speed;
+            
+            timerId = setTimeout(() => {
+                const nextStep = currentStep + 1;
+                setCurrentStep(nextStep);
+                setCurrentArray([...sortingSteps[nextStep].array]);
+                setSortingState(sortingSteps[nextStep].state);
+                
+                if (nextStep === sortingSteps.length - 1) {
+                    setIsCompleted(true);
+                    setIsRunning(false);
+                }
+            }, timeout);
+        }
+        
+        return () => clearTimeout(timerId);
+    }, [isRunning, currentStep, sortingSteps, isCompleted, speed]);
+
+    const startSorting = () => {
+        // Check if we've already started but are paused
+        if (currentStep >= 0) {
+            // Just resume from current position
+            setIsRunning(true);
+        } else {
+            // This is the initial start
+            setIsRunning(true);
+            setIsCompleted(false);
+            setCurrentStep(-1);
+            setCurrentArray([...array]);
+            setSortingState({
+                sortedIndex: -1,
+                currentIndex: -1,
+                minIndex: -1,
+                comparing: -1,
+                swapping: false
+            });
+        }
+    };
+
+    const resetSorting = () => {
+        setIsRunning(false);
+        setIsCompleted(false);
+        setCurrentStep(-1);
+        setCurrentArray([...array]);
+        setSortingState({
+            sortedIndex: -1,
+            currentIndex: -1,
+            minIndex: -1,
+            comparing: -1,
+            swapping: false
+        });
+    };
+
+    const pauseSorting = () => {
+        setIsRunning(false);
+    };
+
+    const handleSpeedChange = (event) => {
+        // Convert the slider value (0-100) to a speed value (1-3)
+        // 0-33 = 1x, 34-66 = 2x, 67-100 = 3x
+        const sliderValue = parseInt(event.target.value, 10);
+        let newSpeed = 1;
+        if (sliderValue > 66) {
+            newSpeed = 3;
+        } else if (sliderValue > 33) {
+            newSpeed = 2;
+        }
+        
+        setSpeed(newSpeed);
+    };
+
+    const getItemClassName = (index) => {
+        const baseClass = styles["realtime-item"];
+        if (index <= sortingState.sortedIndex) return `${baseClass} ${styles["sorted"]}`;
+        if (index === sortingState.currentIndex) return `${baseClass} ${styles["current"]}`;
+        if (index === sortingState.minIndex) return `${baseClass} ${styles["minimum"]}`;
+        if (index === sortingState.comparing) return `${baseClass} ${styles["comparing"]}`;
+        if (sortingState.swapping && 
+            (index === sortingState.currentIndex || index === sortingState.minIndex)) 
+            return `${baseClass} ${styles["swapping"]}`;
+        return baseClass;
+    };
+
+    return (
+        <div className={styles["realtime-sort-container"]}>
+            <div className={styles["legend"]}>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["sorted-color"]}`}></span>
+                    <span>Sorted</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["current-color"]}`}></span>
+                    <span>Current Position</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["minimum-color"]}`}></span>
+                    <span>Minimum Found</span>
+                </div>
+                <div className={styles["legend-item"]}>
+                    <span className={`${styles["legend-color"]} ${styles["comparing-color"]}`}></span>
+                    <span>Comparing</span>
+                </div>
+            </div>
+            <div className={styles["realtime-array-container"]}>
+                {currentArray.map((value, index) => (
+                    <div 
+                        key={index} 
+                        className={getItemClassName(index)}
+                    >
+                        {value}
+                    </div>
+                ))}
+            </div>
+            {currentStep >= 0 && currentStep < sortingSteps.length && (
+                <div className={styles["step-message"]}>
+                    {sortingSteps[currentStep].message}
+                </div>
+            )}
+            <div className={styles["controls-container"]}>
+                {!isRunning && !isCompleted && (
+                    <button onClick={startSorting} className={styles["control-button"]}>
+                        Start
+                    </button>
+                )}
+                {isRunning && (
+                    <button onClick={pauseSorting} className={styles["control-button"]}>
+                        Pause
+                    </button>
+                )}
+                {(isRunning || isCompleted || currentStep > -1) && (
+                    <button onClick={resetSorting} className={styles["control-button"]}>
+                        Reset
+                    </button>
+                )}
+            </div>
+            
+            {/* Replace speed buttons with slider */}
+            <div className={styles["speed-controls"]}>
+                <span className={styles["speed-label"]}>1.0x</span>
+                <input 
+                    type="range"
+                    min="0"
+                    max="100"
+                    className={styles["speed-slider"]}
+                    value={speed === 1 ? 0 : speed === 2 ? 50 : 100}
+                    onChange={handleSpeedChange}
+                />
+                <span className={styles["speed-label"]}>3x</span>
+            </div>
+        </div>
+    );
+};
+
 const SortShiftSelection = () => {
+    const realTimeArray = [23, 54, 82, 71, 12, 93, 28]
     const navigate = useNavigate();
     const backgroundSound = useRef(new Audio("/sounds/selection_background.mp3")); 
     const { isAuthenticated, user: authUser, updateUser } = useAuth(); // Get user and updateUser from auth context
@@ -55,6 +358,11 @@ const SortShiftSelection = () => {
                         <li>Continue until the entire array is sorted.</li>
                     </ol>
                     <p>Watch the simulation to see how the algorithm works in real-time.</p>
+
+                    <div className={styles["realtime-simulation"]}>
+                        <RealtimeSelectionSort array={realTimeArray} />
+                    </div>
+                    <p>Watch the simulation to see how the algorithm works in each iteration.</p>
                     <div className={styles["simulation-grid"]}>
                         <div className={styles["simulation-row"]}>
                             <div className={styles["simulation-cell"]}>
