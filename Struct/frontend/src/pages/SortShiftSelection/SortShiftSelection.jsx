@@ -349,7 +349,7 @@ const SortShiftSelection = () => {
                         <p><strong>Selection sort </strong>is a basic sorting algorithm that works by repeatedly finding the smallest (or largest) element from the unsorted part of the list and swapping it with the first element of that part. It continues this process until the entire list is sorted</p>
                     </div>
                     <br></br>
-                    <h2>Here are the steps: </h2>
+                    <h2><strong>Here are the steps:</strong></h2>
                     <ol>
                         <li>Start from the beginning of the array and find the smallest element in the unsorted portion.</li>
                         <li>Swap the smallest element with the first element of the unsorted portion.</li>
@@ -395,7 +395,10 @@ const SortShiftSelection = () => {
                             </div>
                         </div>
                     </div>
-                    <p>Note: Even if the element is already sorted at the index n. You still need to add an iteration in order to get more points/score</p>
+                    <h2><strong>Time Complexity</strong></h2>
+                    <p><strong>Worst case: </strong>O(n²). Since we traverse through the remaining array to find the minimum for each element, the time complexity will become O(n²).</p>
+                    <p><strong>Best case:</strong> O(n²). Even if the array has already been sorted, our algorithm looks for the minimum in the rest of the array.</p>
+                    <p>As a result, the best-case time complexity is the same as the worst-case</p>
                 </>
             ),
         },
@@ -414,6 +417,7 @@ const SortShiftSelection = () => {
                     <li>Click the "Tutorial" button to revisit the instructions or the "Music" button to toggle background music.</li>
                     <li>Earn points based on the accuracy and efficiency of your sorting process.</li>
                 </ol>
+                <p>Note: Even if the element is already sorted at the index n. You still need to add an iteration in order to get more points/score</p>
             </>
             ),
         },

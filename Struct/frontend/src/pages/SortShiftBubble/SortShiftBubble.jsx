@@ -386,7 +386,7 @@ const SortShiftBubble = () => {
                     <p><strong>Bubble Sort</strong> is a straightforward sorting algorithm that repeatedly traverses the list, compares adjacent elements, and swaps them if they are in the wrong order. This process is repeated until the entire list is sorted in ascending order.</p>
                     </div>
                     <br></br>
-                    <h2>Here are the steps: </h2>
+                    <h2><strong>Here are the steps:</strong></h2>
                     <ol>
                         <li>Start from the beginning of the array and compare the first two adjacent elements.</li>
                         <li>If the first element is greater than the second, swap them. Otherwise, move to the next pair.</li>
@@ -421,6 +421,9 @@ const SortShiftBubble = () => {
                             </div>
                         </div>
                     </div>
+                    <h2><strong>Time Complexity</strong></h2>
+                    <p><strong>Worst case: </strong>O(n²). Since we loop through n elements n times, n being the length of the array, the time complexity of bubble sort becomes O(n²).</p>
+                    <p><strong>Best case:</strong> O(n²). Even if the array is sorted, the algorithm checks each adjacent pair and hence the best-case time complexity will be the same as the worst-case.</p>
                 </>
             ),
         },
@@ -439,6 +442,7 @@ const SortShiftBubble = () => {
                         <li>Click the "Tutorial" button to revisit the instructions or the "Music" button to toggle background music.</li>
                         <li>Earn points based on the accuracy and efficiency of your sorting process.</li>
                     </ol>
+                    <p>Note: Even if the element is already sorted at the index n. You still need to add an iteration in order to get more points/score</p>
                 </>
             ),
         },

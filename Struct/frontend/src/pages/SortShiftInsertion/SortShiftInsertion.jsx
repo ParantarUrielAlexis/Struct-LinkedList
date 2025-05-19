@@ -435,7 +435,7 @@ const tutorialPages = [
                     <p><strong>Insertion Sort</strong> is a simple sorting algorithm that builds the sorted array one element at a time by repeatedly picking the next element and inserting it into its correct position in the sorted portion.</p>
                 </div>
                 <br></br>
-                <h2>Here are the steps:</h2>
+                <h2><strong>Here are the steps:</strong></h2>
                 <ol>
                     <li>Start with the second element in the array (index 1).</li>
                     <li>Compare it with the elements in the sorted portion (to its left).</li>
@@ -481,7 +481,11 @@ const tutorialPages = [
                         </div>
                     </div>
                 </div>
-                <p>Note: Even if the element is already in the correct position, you must still perform the iteration to ensure the process is complete.</p>
+                <h2><strong>Time Complexity</strong></h2>
+                <p><strong>Worst case: </strong>O(n²). In a worst case situation, our array is sorted in descending order. So, for each element, we have to keep traversing</p>
+                <p>and swapping elements to the left.</p>
+                <p><strong>Best case:</strong>O(n). In the best case, our array is already sorted. So for each element, we compare our current element to the element at the left only once.</p>
+                <p>Since the order is correct, we don’t swap and move on to the next element. Hence the time complexity will be O(n).</p>
             </>
         ),
     },
@@ -500,6 +504,7 @@ const tutorialPages = [
                     <li>Click the "Tutorial" button to revisit the instructions or the "Music" button to toggle background music.</li>
                     <li>Earn points based on the accuracy and efficiency of your sorting process.</li>
                 </ol>
+                <p>Note: Even if the element is already sorted at the index n. You still need to add an iteration in order to get more points/score</p>
             </>
         ),
     },
