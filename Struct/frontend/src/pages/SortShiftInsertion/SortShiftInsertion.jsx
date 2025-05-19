@@ -26,7 +26,8 @@ const RealtimeInsertionSort = ({ array }) => {
         keyElement: null,
         comparingIndex: -1,
         shifting: false,
-        inserting: false
+        inserting: false,
+        insertPosition: -1
     });
     const [isRunning, setIsRunning] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false);
@@ -141,12 +142,13 @@ const RealtimeInsertionSort = ({ array }) => {
             steps.push({
                 array: [...arr],
                 state: {
-                    sortedEndIndex: i - 1,
+                    sortedEndIndex: i - 1, // Keep this as i-1 during insertion
                     currentIndex: -1,
                     keyElement: key,
-                    comparingIndex: -1,
+                    comparingIndex: j,
                     shifting: false,
-                    inserting: true
+                    inserting: true,
+                    insertPosition: j + 1 // Add a new property to track the insertion position
                 },
                 message: `Inserting ${key} at position ${j + 1}`
             });
@@ -157,12 +159,13 @@ const RealtimeInsertionSort = ({ array }) => {
             steps.push({
                 array: [...arr],
                 state: {
-                    sortedEndIndex: i,
+                    sortedEndIndex: i, // Update to i after insertion is complete
                     currentIndex: -1,
                     keyElement: null,
                     comparingIndex: -1,
                     shifting: false,
-                    inserting: false
+                    inserting: false,
+                    insertPosition: -1
                 },
                 message: `Inserted ${key}. Elements up to index ${i} are now sorted.`
             });
@@ -269,6 +272,11 @@ const RealtimeInsertionSort = ({ array }) => {
     const getItemClassName = (index) => {
         const baseClass = styles["realtime-item"];
         
+        // During insertion, highlight only the insertion position
+        if (sortingState.inserting && index === sortingState.insertPosition) {
+            return `${baseClass} ${styles["inserting"]}`;
+        }
+        
         // Empty space for position where element will be shifted to
         if (sortingState.shifting && index === sortingState.comparingIndex + 1) {
             return `${baseClass} ${styles["shift-target"]}`;
@@ -288,10 +296,6 @@ const RealtimeInsertionSort = ({ array }) => {
         if (sortingState.shifting && index === sortingState.comparingIndex) 
             return `${baseClass} ${styles["shifting"]}`;
             
-        // Element being inserted
-        if (sortingState.inserting && index === sortingState.comparingIndex + 1) 
-            return `${baseClass} ${styles["inserting"]}`;
-            
         // Already sorted elements
         if (index <= sortingState.sortedEndIndex) 
             return `${baseClass} ${styles["sorted"]}`;
@@ -302,12 +306,17 @@ const RealtimeInsertionSort = ({ array }) => {
 
     // Modify how values are displayed in the array to avoid duplication during shifting
     const getDisplayValue = (value, index) => {
-        // If we're shifting and this is the current key element being inserted
-        if (sortingState.keyElement === value && index === sortingState.currentIndex) {
-            // Hide the key element while it's waiting to be inserted
-            if (sortingState.shifting || sortingState.inserting) {
-                return "";
-            }
+        // Show key element in a "holding area" above the array
+        if (sortingState.keyElement !== null && 
+            (sortingState.comparing || sortingState.shifting) && 
+            index === sortingState.currentIndex) {
+            // Display empty space where the key was taken from
+            return ""; // Empty the original position
+        }
+        
+        // If we're inserting and this is the insertion position, show the key element
+        if (sortingState.inserting && index === sortingState.insertPosition) {
+            return sortingState.keyElement;
         }
         
         // If this is where an element is being shifted to, show nothing during the shift
