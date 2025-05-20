@@ -495,236 +495,194 @@ class SnakeGame extends Component {
     }
 
     return (
-      <div className="snake-game-container">
-        <div className="game-header">
-          <h1 className="game-title">Snake Game</h1>
-          <div className="score-display">
-            <div className="score-container current-score">
-              <span className="score-label">Score:</span>
-              <span className="score-value">{score}</span>
-            </div>
-            <div className="score-container high-score">
-              <span className="score-label">High Score:</span>
-              <span className="score-value">{highScore}</span>
-            </div>
-          </div>
+  <div className="snake-game-container pixel-container">
+    <div className="game-header">
+      <h1 className="game-title pixel-text" style={{ 
+        color: '#4CFF50',
+        textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
+        fontSize: '1.5rem'
+      }}>SNAKE GAME</h1>
+      <div className="score-display">
+        <div className="score-container current-score pixel-border" style={{ 
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          padding: '6px 12px'
+        }}>
+          <span className="score-label pixel-text" style={{ color: '#8BFF4A' }}>SCORE:</span>
+          <span className="score-value pixel-text" style={{ color: '#4CFF50' }}>{score}</span>
+        </div>
+        <div className="score-container high-score pixel-border" style={{ 
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          padding: '6px 12px'
+        }}>
+          <span className="score-label pixel-text" style={{ color: '#8BFF4A' }}>HIGH SCORE:</span>
+          <span className="score-value pixel-text" style={{ color: '#4CFF50' }}>{highScore}</span>
+        </div>
+      </div>
+    </div>
+
+    <div className="game-content-wrapper">
+      {/* Game Board */}
+      <div
+        ref={this.gameBoardRef}
+        className={`game-board ${!gameStarted ? "waiting-start" : ""} pixel-border`}
+        style={{ backgroundColor: '#0a2f0a' }}
+        tabIndex="0"
+        onKeyDown={this.handleKeyDown}
+      >
+        {/* Grid pattern */}
+        <div className="grid-pattern"></div>
+
+        {/* Food with animation */}
+        <div className="food-container" style={{
+          left: `${food.x * CELL_SIZE}px`,
+          top: `${food.y * CELL_SIZE}px`,
+        }}>
+          <img src={ASSETS.IMAGES.FOOD} className="food" alt="Food" />
         </div>
 
-        <div className="game-content-wrapper">
-          {/* Game Board */}
+        {/* Snake */}
+        {snake.map((segment, index) => (
           <div
-            ref={this.gameBoardRef}
-            className={`game-board ${!gameStarted ? "waiting-start" : ""}`}
-            tabIndex="0"
-            onKeyDown={this.handleKeyDown}
+            key={`${segment.x}-${segment.y}-${index}`}
+            className={`snake-segment ${
+              index === 0
+                ? "head"
+                : index === snake.length - 1
+                ? "tail"
+                : "body"
+            } ${this.state.isEating && index === 0 ? "eating" : ""}`}
+            style={{
+              left: `${segment.x * CELL_SIZE}px`,
+              top: `${segment.y * CELL_SIZE}px`,
+              zIndex: index === 0 ? 3 : index === snake.length - 1 ? 1 : 2,
+            }}
           >
-            {/* Grid pattern */}
-            <div className="grid-pattern"></div>
-
-            {/* Food with animation */}
-            <div
-              className="food-container"
-              style={{
-                left: `${food.x * CELL_SIZE}px`,
-                top: `${food.y * CELL_SIZE}px`,
-              }}
-            >
-              <img src={ASSETS.IMAGES.FOOD} className="food" alt="Food" />
-            </div>
-
-            {/* Snake */}
-            {snake.map((segment, index) => (
-              <div
-                key={`${segment.x}-${segment.y}-${index}`}
-                className={`snake-segment ${
-                  index === 0
-                    ? "head"
-                    : index === snake.length - 1
-                    ? "tail"
-                    : "body"
-                } ${this.state.isEating && index === 0 ? "eating" : ""}`}
-                style={{
-                  left: `${segment.x * CELL_SIZE}px`,
-                  top: `${segment.y * CELL_SIZE}px`,
-                  zIndex: index === 0 ? 3 : index === snake.length - 1 ? 1 : 2,
-                }}
-              >
-                <img
-                  src={this.getSegmentImage(segment, index, snake)}
-                  alt={
-                    index === 0
-                      ? "Snake head"
-                      : index === snake.length - 1
-                      ? "Snake tail"
-                      : "Snake body"
-                  }
-                />
-              </div>
-            ))}
-
-            {/* Start Screen */}
-            {!gameStarted && !gameOver && (
-              <div className="start-screen-overlay">
-                <div className="start-screen-message">
-                  <h2>Ready to Play?</h2>
-                  <p>Use arrow keys to move</p>
-                  <button className="action-btn start" onClick={this.startGame}>
-                    Start Game
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Game Over Overlay */}
-            {gameOver && (
-              <div className="game-over-overlay">
-                <div className="game-over-message">
-                  <h2>Game Over!</h2>
-                  <p>Your score: {score}</p>
-                  <div className="game-over-buttons">
-                    <button
-                      className="action-btn reset"
-                      onClick={this.resetGame}
-                    >
-                      Play Again
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Pause Overlay */}
-            {isPaused && (
-              <div className="pause-overlay">
-                <div className="pause-message">
-                  <h2>Game Paused</h2>
-                  <button
-                    className="action-btn resume"
-                    onClick={this.togglePause}
-                  >
-                    Resume
-                  </button>
-                </div>
-              </div>
-            )}
+            <img
+              src={this.getSegmentImage(segment, index, snake)}
+              alt={
+                index === 0
+                  ? "Snake head"
+                  : index === snake.length - 1
+                  ? "Snake tail"
+                  : "Snake body"
+              }
+            />
           </div>
+        ))}
 
-          {/* Array Side Panel */}
-          <div className="array-side-panel">
-            <h3>Game Array Representation</h3>
-            <div className="array-grid">
-              {this.getArrayRepresentation().map((row, y) => (
-                <div key={y} className="array-row">
-                  {row.map((cell, x) => (
-                    <div
-                      key={`${x}-${y}`}
-                      className={`array-cell ${
-                        cell === 1
-                          ? "head"
-                          : cell === 2
-                          ? "food"
-                          : cell === 3
-                          ? "body"
-                          : ""
-                      }`}
-                    >
-                      {cell}
-                    </div>
-                  ))}
+        {/* Overlays */}
+        {!gameStarted && !gameOver && (
+          <div className="start-screen-overlay">
+            <div className="start-screen-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
+              <h2 className="pixel-text" style={{ color: '#4CFF50' }}>READY PLAYER?</h2>
+              <p className="pixel-text" style={{ color: '#8BFF4A' }}>USE ARROW KEYS</p>
+              <button className="pixel-btn" onClick={this.startGame}>
+                START GAME
+              </button>
+            </div>
+          </div>
+        )}
+
+        {gameOver && (
+          <div className="game-over-overlay">
+            <div className="game-over-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
+              <h2 className="pixel-text" style={{ color: '#FF4444' }}>GAME OVER!</h2>
+              <p className="pixel-text" style={{ color: '#8BFF4A' }}>SCORE: {score}</p>
+              <button className="pixel-btn" onClick={this.resetGame}>
+                PLAY AGAIN
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isPaused && (
+          <div className="pause-overlay">
+            <div className="pause-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
+              <h2 className="pixel-text" style={{ color: '#4CFF50' }}>GAME PAUSED</h2>
+              <button className="pixel-btn" onClick={this.togglePause}>
+                RESUME
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Array Side Panel */}
+      <div className="array-side-panel pixel-border" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+        <h3 className="pixel-text" style={{ color: '#4CFF50' }}>GAME ARRAY</h3>
+        <div className="array-grid">
+          {this.getArrayRepresentation().map((row, y) => (
+            <div key={y} className="array-row">
+              {row.map((cell, x) => (
+                <div
+                  key={`${x}-${y}`}
+                  className={`array-cell pixel-text ${
+                    cell === 1 ? "head" :
+                    cell === 2 ? "food" :
+                    cell === 3 ? "body" : ""
+                  }`}
+                  style={{ fontSize: '0.7rem' }}
+                >
+                  {cell}
                 </div>
               ))}
             </div>
-            <div className="array-legend">
-              <div className="legend-item">
-                <span className="legend-color head"></span> Head (1)
-              </div>
-              <div className="legend-item">
-                <span className="legend-color food"></span> Food (2)
-              </div>
-              <div className="legend-item">
-                <span className="legend-color body"></span> Body (3)
-              </div>
-              <div className="legend-item">
-                <span className="legend-color"></span> Empty (0)
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-
-        {/* Controls*/}
-        <div className="controls-container">
-          {/*<div className="directional-controls">
-            <button
-              className="control-btn up"
-              onClick={() => {
-                if (!gameStarted) this.startGame();
-                this.nextDirection = DIRECTIONS.UP;
-              }}
-              aria-label="Move up"
-            >
-              ↑
-            </button>
-            <div className="horizontal-controls">
-              <button
-                className="control-btn left"
-                onClick={() => {
-                  if (!gameStarted) this.startGame();
-                  this.nextDirection = DIRECTIONS.LEFT;
-                }}
-                aria-label="Move left"
-              >
-                ←
-              </button>
-              <button
-                className="control-btn right"
-                onClick={() => {
-                  if (!gameStarted) this.startGame();
-                  this.nextDirection = DIRECTIONS.RIGHT;
-                }}
-                aria-label="Move right"
-              >
-                →
-              </button>
+        <div className="array-legend">
+          {[
+            { class: "head", label: "HEAD (1)" },
+            { class: "food", label: "FOOD (2)" },
+            { class: "body", label: "BODY (3)" },
+            { class: "", label: "EMPTY (0)" }
+          ].map((item, index) => (
+            <div key={index} className="legend-item pixel-text" style={{ fontSize: '0.7rem' }}>
+              <span className={`legend-color ${item.class}`}></span> {item.label}
             </div>
-            <button
-              className="control-btn down"
-              onClick={() => {
-                if (!gameStarted) this.startGame();
-                this.nextDirection = DIRECTIONS.DOWN;
-              }}
-              aria-label="Move down"
-            >
-              ↓
-            </button>
-          </div> */}
-          <div className="action-controls">
-            {gameStarted && !gameOver && (
-              <button className="action-btn pause" onClick={this.togglePause}>
-                {isPaused ? "Resume" : "Pause"}
-              </button>
-            )}
-
-            <button className="action-btn reset" onClick={this.resetGame}>
-              {gameStarted ? "Reset" : "New Game"}
-            </button>
-            <button
-              className={`action-btn music ${musicPlaying ? "on" : "off"}`}
-              onClick={this.toggleMusic}
-              aria-label={musicPlaying ? "Mute music" : "Unmute music"}
-            >
-              {musicPlaying ? "🔊" : "🔇"}
-            </button>
-          </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="instructions">
-          <p>Use arrow keys to control the snake</p>
-          <p>Eat the apples to grow longer and score points</p>
-          <p>Avoid hitting the walls or yourself!</p>
+          ))}
         </div>
       </div>
-    );
+    </div>
+
+    {/* Controls */}
+    <div className="controls-container">
+      <div className="action-controls">
+        {gameStarted && !gameOver && (
+          <button className="pixel-btn" onClick={this.togglePause} 
+            style={{ fontSize: '0.8rem' }}> {/* Added font size */}
+            {isPaused ? "RESUME" : "PAUSE"}
+          </button>
+        )}
+
+        <button className="pixel-btn" onClick={this.resetGame}
+          style={{ fontSize: '0.8rem' }}> {/* Added font size */}
+          {gameStarted ? "RESET" : "NEW GAME"}
+        </button>
+        <button
+          className={`pixel-btn ${musicPlaying ? "on" : "off"}`}
+          onClick={this.toggleMusic}
+          style={{ width: '60px', padding: '8px' }}
+        >
+          {musicPlaying ? "🔊" : "🔇"}
+        </button>
+      </div>
+    </div>
+
+    {/* Instructions */}
+    <div className="instructions pixel-text" style={{ 
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      borderRadius: '8px',
+      color: '#8BFF4A',
+      fontSize: '0.7rem', // Reduced from 0.9rem
+      lineHeight: '1.2', // Tighter line spacing
+      padding: '10px'
+    }}>
+      <p>USE ARROW KEYS TO CONTROL</p>
+      <p>EAT APPLES TO GROW LONGER</p>
+      <p>AVOID WALLS AND YOURSELF!</p>
+    </div>
+  </div>
+);
   }
 }
 

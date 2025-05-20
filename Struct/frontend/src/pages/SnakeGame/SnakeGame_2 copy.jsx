@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import "./SnakeGame.css";
-
+import "./SnakeGame2.css";
 // Import your images
 import appleImg from "../../assets/snakegame/images/apple.png";
 import headUpImg from "../../assets/snakegame/images/head_up.png";
@@ -20,7 +20,6 @@ import bodyBRImg from "../../assets/snakegame/images/body_br.png";
 import crunchSound from "../../assets/snakegame/sounds/crunch.mp3";
 import backgroundMusic from "../../assets/snakegame/sounds/background.mp3";
 import headEatImg from "../../assets/snakegame/images/head_eat.png";
-
 
 // Constants
 // Change these constants at the top of SnakeGame.jsx
@@ -80,7 +79,8 @@ class SnakeGame extends Component {
         { x: 4, y: 10 },
         { x: 3, y: 10 },
       ],
-      food: this.generateFood(),
+      collectedEvens: [],
+      foods: [],
       direction: DIRECTIONS.RIGHT,
       gameOver: false,
       score: 0,
@@ -91,6 +91,7 @@ class SnakeGame extends Component {
       accumulatedTime: 0,
       gameStarted: false,
       musicPlaying: false,
+      foodTimeout: null,
       isEating: false,
     };
 
@@ -100,6 +101,7 @@ class SnakeGame extends Component {
     this.backgroundAudio = null;
     this.gameBoardRef = React.createRef();
     this.eatingAnimationTimeout = null;
+    this.foodTimeouts = [];
   }
 
   getArrayRepresentation = () => {
@@ -123,19 +125,47 @@ class SnakeGame extends Component {
     return grid;
   };
 
-  generateFood = (snake = []) => {
-    const food = {
-      x: Math.floor(Math.random() * GRID_SIZE),
-      y: Math.floor(Math.random() * GRID_SIZE),
+  generateFood = (snake = [], mustBeEven = false) => {
+  // Clear existing timeout
+  if (this.foodTimeout) {
+    clearTimeout(this.foodTimeout);
+    this.foodTimeout = null;
+  }
+
+  let food;
+  let attempts = 0;
+  const maxAttempts = 100;
+
+  do {
+    food = {
+      x: Math.max(0, Math.min(GRID_SIZE - 1, Math.floor(Math.random() * GRID_SIZE))),
+      y: Math.max(0, Math.min(GRID_SIZE - 1, Math.floor(Math.random() * GRID_SIZE))),
+      number: mustBeEven 
+        ? (Math.floor(Math.random() * 4) + 1) * 2
+        : Math.floor(Math.random() * 9) + 1,
     };
+    
+    // Add valid position check
+    if (food.x >= 0 && food.x < GRID_SIZE && 
+        food.y >= 0 && food.y < GRID_SIZE) {
+      const isOnSnake = snake.some(s => s.x === food.x && s.y === food.y);
+      if (!isOnSnake) break;
+    }
+    attempts++;
+  } while (attempts < maxAttempts);
 
-    const isOnSnake = snake.some(
-      (segment) => segment.x === food.x && segment.y === food.y
-    );
-    if (isOnSnake) return this.generateFood(snake);
+  // Schedule replacement if food is odd
+  if (food.number % 2 !== 0) {
+    this.foodTimeout = setTimeout(() => {
+      this.setState(prevState => ({
+        food: this.generateFood(prevState.snake, true)
+      }));
+    }, 3000);
+  }
 
-    return food;
-  };
+  return food;
+};
+
 
   checkCollision = (position, snake) => {
     return (
@@ -165,6 +195,8 @@ class SnakeGame extends Component {
     }
     if (this.backgroundAudio) {
       this.backgroundAudio.pause();
+    }if (this.foodTimeout) {
+    clearTimeout(this.foodTimeout);
     }
   }
 
@@ -275,35 +307,63 @@ class SnakeGame extends Component {
       const newSnake = [head, ...snake];
 
       if (head.x === food.x && head.y === food.y) {
-        try {
-          this.crunchAudio.currentTime = 0;
-          this.crunchAudio
-            .play()
-            .catch((e) => console.log("Audio play failed:", e));
-        } catch (e) {
-          console.error("Audio error:", e);
+        if (food.number % 2 !== 0) {
+          // Handle odd food penalty
+          try {
+            if (this.crunchAudio) {
+              this.crunchAudio.currentTime = 0;
+              this.crunchAudio.play().catch(() => {});
+            }
+          } catch (e) {}
+
+          const tempSnake = [head, ...snake];
+        // Ensure snake never goes below minimum length
+        const newSnakeAfterOdd = tempSnake.length > 2 ? tempSnake.slice(0, -2) : tempSnake;
+
+          // Game over if snake length is 0
+           if (newSnakeAfterOdd.length < 1) {
+            return {
+              ...prevState,
+              gameOver: true,
+              highScore: Math.max(score, highScore),
+              musicPlaying: false,
+            };
+          }
+
+          return {
+            ...prevState,
+            snake: newSnakeAfterOdd,
+            food: this.generateFood(newSnakeAfterOdd),
+            score: Math.max(prevState.score - 1, 0),
+            collectedEvens: prevState.collectedEvens.slice(0, -1),
+          };
+        } else {
+          // Existing even food handling
+          try {
+            this.crunchAudio.currentTime = 0;
+            this.crunchAudio.play().catch((e) => console.log("Audio play failed:", e));
+          } catch (e) {
+            console.error("Audio error:", e);
+          }
+
+          if (this.eatingAnimationTimeout) clearTimeout(this.eatingAnimationTimeout);
+          this.setState({ isEating: true });
+          this.eatingAnimationTimeout = setTimeout(() => {
+            this.setState({ isEating: false });
+          }, 300);
+
+          return {
+            ...prevState,
+            snake: newSnake,
+            food: this.generateFood(newSnake),
+            score: prevState.score + 1,
+            direction: currentDirection,
+            isEating: true,
+            collectedEvens: [...prevState.collectedEvens, food.number],
+          };
         }
-
-        // Clear any existing timeout to avoid multiple animations
-        if (this.eatingAnimationTimeout) {
-          clearTimeout(this.eatingAnimationTimeout);
-        }
-
-        // Set eating state and create timeout to clear it
-        this.setState({ isEating: true });
-        this.eatingAnimationTimeout = setTimeout(() => {
-          this.setState({ isEating: false });
-        }, 300); // Animation duration matches crunch sound
-
-        return {
-          ...prevState,
-          snake: newSnake,
-          food: this.generateFood(newSnake),
-          score: prevState.score + 1,
-          direction: currentDirection,
-          isEating: true,
-        };
       }
+
 
       return {
         ...prevState,
@@ -359,6 +419,7 @@ class SnakeGame extends Component {
         { x: 4, y: 10 },
         { x: 3, y: 10 },
       ],
+      collectedEvens: [],
       direction: DIRECTIONS.RIGHT,
       food: this.generateFood(),
       gameOver: false,
@@ -413,11 +474,13 @@ class SnakeGame extends Component {
   };
 
   getSegmentImage = (segment, index, segments) => {
+    if (!segment || !segments || segments.length < 1) return ASSETS.IMAGES.BODY.HORIZONTAL;
     const isHead = index === 0;
     const isTail = index === segments.length - 1;
 
     if (isHead) {
-      const nextSegment = segments[1];
+       const nextSegment = segments[1];
+       if (!nextSegment) return ASSETS.IMAGES.HEAD.RIGHT;
       if (segment.x < nextSegment.x) return ASSETS.IMAGES.HEAD.LEFT;
       if (segment.x > nextSegment.x) return ASSETS.IMAGES.HEAD.RIGHT;
       if (segment.y < nextSegment.y) return ASSETS.IMAGES.HEAD.UP;
@@ -426,6 +489,7 @@ class SnakeGame extends Component {
 
     if (isTail) {
       const prevSegment = segments[index - 1];
+      if (!prevSegment) return ASSETS.IMAGES.TAIL.LEFT;
       if (segment.x < prevSegment.x) return ASSETS.IMAGES.TAIL.LEFT;
       if (segment.x > prevSegment.x) return ASSETS.IMAGES.TAIL.RIGHT;
       if (segment.y < prevSegment.y) return ASSETS.IMAGES.TAIL.UP;
@@ -434,6 +498,8 @@ class SnakeGame extends Component {
 
     const prevSegment = segments[index - 1];
     const nextSegment = segments[index + 1];
+    //safety check
+    if (!prevSegment || !nextSegment) return ASSETS.IMAGES.BODY.HORIZONTAL;
 
     // Horizontal segment
     if (prevSegment.x !== nextSegment.x && prevSegment.y === nextSegment.y) {
@@ -531,6 +597,7 @@ class SnakeGame extends Component {
               }}
             >
               <img src={ASSETS.IMAGES.FOOD} className="food" alt="Food" />
+             <div className="food-number">{food.number}</div>
             </div>
 
             {/* Snake */}
@@ -654,50 +721,6 @@ class SnakeGame extends Component {
 
         {/* Controls*/}
         <div className="controls-container">
-          {/*<div className="directional-controls">
-            <button
-              className="control-btn up"
-              onClick={() => {
-                if (!gameStarted) this.startGame();
-                this.nextDirection = DIRECTIONS.UP;
-              }}
-              aria-label="Move up"
-            >
-              ↑
-            </button>
-            <div className="horizontal-controls">
-              <button
-                className="control-btn left"
-                onClick={() => {
-                  if (!gameStarted) this.startGame();
-                  this.nextDirection = DIRECTIONS.LEFT;
-                }}
-                aria-label="Move left"
-              >
-                ←
-              </button>
-              <button
-                className="control-btn right"
-                onClick={() => {
-                  if (!gameStarted) this.startGame();
-                  this.nextDirection = DIRECTIONS.RIGHT;
-                }}
-                aria-label="Move right"
-              >
-                →
-              </button>
-            </div>
-            <button
-              className="control-btn down"
-              onClick={() => {
-                if (!gameStarted) this.startGame();
-                this.nextDirection = DIRECTIONS.DOWN;
-              }}
-              aria-label="Move down"
-            >
-              ↓
-            </button>
-          </div> */}
           <div className="action-controls">
             {gameStarted && !gameOver && (
               <button className="action-btn pause" onClick={this.togglePause}>
