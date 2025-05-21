@@ -1,26 +1,48 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation and useNavigate
-import { FaArrowLeft } from "react-icons/fa"; // Importing the back arrow icon
+import { useLocation, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 const Header = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Initialize the navigate function
+  const navigate = useNavigate();
 
   // Map routes to game names
-  const gameNames = {
-    "/type-test": "Typing Test",
-    "/sortshift": "Sort Shift",
-    "/sortshiftselection": "Sort Shift Selection",
-    "/sortshiftbubble": "Sort Shift Bubble",
-    "/sortshiftinsertion": "Sort Shift Insertion",
-    "/snake-game": "Snake Game",
+  // Use a function or check for a prefix for dynamic routes
+  const getGameName = (pathname) => {
+    if (pathname.startsWith("/type-test")) {
+      return "Typing Test";
+    }
+    if (pathname.startsWith("/sortshift")) {
+      // You can add more specific sortshift names here if needed,
+      // otherwise, it will default to "Sort Shift"
+      if (pathname === "/sortshiftselection") return "Sort Shift Selection";
+      if (pathname === "/sortshiftbubble") return "Sort Shift Bubble";
+      if (pathname === "/sortshiftinsertion") return "Sort Shift Insertion";
+      return "Sort Shift";
+    }
+    if (pathname === "/snake-game") {
+      return "Snake Game";
+    }
+    return "Game"; // Default name if no match
   };
 
-  // Check if current route is a sortshift route
+  const gameName = getGameName(location.pathname);
+
+  // Check if current route is a sortshift route for dynamic background
   const isSortShiftRoute = location.pathname.includes("sortshift");
 
-  // Get the game name based on the current route
-  const gameName = gameNames[location.pathname] || "Game";
+  const handleBackNavigation = () => {
+    if (
+      location.pathname.startsWith("/type-test") &&
+      location.pathname !== "/type-test/levels"
+    ) {
+      navigate("/type-test/levels");
+    } else if (location.pathname === "/type-test/levels") {
+      navigate("/games"); // Navigate to GameShowcase if on TypeTestLevels
+    } else {
+      navigate(-1); // Navigate to the previous page for all other cases
+    }
+  };
 
   return (
     <header
@@ -32,7 +54,7 @@ const Header = () => {
       <h1 className="text-2xl font-bold">{gameName}</h1>
       {/* Back Button */}
       <button
-        onClick={() => navigate(-1)} // Navigate to the previous page
+        onClick={handleBackNavigation}
         className="text-white hover:text-gray-200"
       >
         <FaArrowLeft size={20} />

@@ -12,7 +12,8 @@ const GameShowcase = () => {
       name: "Type Test",
       description:
         "Sharpen your array syntax skills with this typing challenge!",
-      route: "/type-test",
+      // Change the route to the levels screen
+      route: "/type-test/levels",
       icon: <FaKeyboard className="text-6xl text-amber-500 drop-shadow-md" />,
     },
     {
@@ -79,6 +80,7 @@ const GameShowcase = () => {
             </h2>
             <p className="text-gray-600 text-sm mb-4">{game.description}</p>
             <div className="mt-auto">
+              {/* Use game.route for navigation */}
               <button
                 onClick={() => navigate(game.route)}
                 className="bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-amber-400 hover:to-amber-300 text-white font-bold py-2 px-5 rounded-full transition-all duration-300 hover:scale-105"

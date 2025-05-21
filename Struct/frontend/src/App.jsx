@@ -12,7 +12,9 @@ import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 
 import SortRush from "./pages/SortRush";
-import TypeTest from "./pages/TypeTest";
+import TypeTest from "./pages/TypeTest/TypeTest";
+import TypeTestLevels from "./pages/TypeTest/TypeTestLevels";
+
 import Module from "./pages/Module";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
@@ -54,7 +56,9 @@ const AppLayout = () => {
   const publicRoutes = ["/login", "/signup", "/"];
 
   // Check if the current route is in the header-only routes
-  const isHeaderOnlyRoute = headerOnlyRoutes.includes(location.pathname);
+  const isHeaderOnlyRoute = headerOnlyRoutes.some((route) =>
+    location.pathname.startsWith(route)
+  );
   const isPublicRoute = publicRoutes.includes(location.pathname);
 
   // Only show sidebar if user is authenticated and not on a header-only route
@@ -89,7 +93,7 @@ const AppLayout = () => {
               }
             />
             <Route
-              path="/type-test"
+              path="/type-test/:levelIndex"
               element={
                 <ProtectedRoute>
                   <ClassRequiredWrapper>
@@ -98,6 +102,17 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/type-test/levels"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <TypeTestLevels />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/module"
               element={
