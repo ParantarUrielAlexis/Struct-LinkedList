@@ -21,8 +21,6 @@ const TypeTestLevels = () => {
       0: 3, // 3 stars on level 0
       1: 3, // 2 stars on level 1
     },
-    xp: 200,
-    rank: "Code Apprentice",
   });
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -59,69 +57,6 @@ const TypeTestLevels = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start py-8 px-4 bg-gradient-to-br from-blue-900 via-purple-900 to-gray-900 text-gray-100 relative overflow-hidden">
-      {/* User Profile Banner */}
-      <motion.div
-        className="bg-gray-800 bg-opacity-80 rounded-xl p-4 mb-8 w-full max-w-4xl flex flex-wrap items-center justify-between border-2 border-purple-500"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="flex items-center">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-r from-purple-400 to-blue-500 flex items-center justify-center text-2xl font-bold">
-            {userProgress.rank
-              .split(" ")
-              .map((word) => word[0])
-              .join("")}
-          </div>
-          <div className="ml-4">
-            <h2 className="text-xl font-bold">{userProgress.rank}</h2>
-            <div className="flex items-center mt-1">
-              <FaBolt className="text-yellow-400 mr-1" />
-              <span className="text-yellow-300">{userProgress.xp} XP</span>
-            </div>
-          </div>
-        </div>
-
-        <motion.div
-          className="bg-gray-900 px-4 py-2 rounded-lg mt-2 sm:mt-0 flex items-center"
-          whileHover={{ scale: 1.05 }}
-        >
-          <div className="flex items-center mr-4">
-            <FaTrophy className="text-yellow-500 mr-2" />
-            <span className="font-medium">
-              Level {userProgress.currentLevel + 1}{" "}
-              {/* Display current level as 1-indexed */}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <FaStar className="text-yellow-400 mr-1" />
-            <span>
-              {Object.values(userProgress.stars).reduce((a, b) => a + b, 0)}
-            </span>
-          </div>
-        </motion.div>
-      </motion.div>
-
-      {/* XP Progress bar (Moved from bottom, Title removed) */}
-      <div className="w-full max-w-md mb-8">
-        <motion.div
-          className="bg-gray-800 rounded-full h-5 overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }} // Adjusted delay
-        >
-          <motion.div
-            className="bg-gradient-to-r from-blue-500 to-purple-500 h-full"
-            initial={{ width: "0%" }}
-            animate={{ width: `${(userProgress.xp / 200) * 100}%` }} // Example: XP out of 200 for next rank
-            transition={{ duration: 1, delay: 0.5 }} // Adjusted delay
-          />
-        </motion.div>
-        <p className="text-gray-300 mt-2 text-sm text-center">
-          {userProgress.xp}/200 XP to next rank {/* Example text */}
-        </p>
-      </div>
-
       {/* Level Selection Grid - Now paginated */}
       <motion.div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl"
@@ -191,34 +126,6 @@ const TypeTestLevels = () => {
               <h2 className="text-xl font-bold mb-2 tracking-wide text-center">
                 {level.name}
               </h2>
-
-              {/* Level description */}
-              <p className="text-gray-300 text-sm text-center mb-4">
-                {level.description ||
-                  `Master the art of ${level.name.toLowerCase()} syntax.`}
-              </p>
-
-              {/* Level difficulty */}
-              <div className="flex justify-center mt-1 mb-4">
-                {[
-                  ...Array(level.difficulty || Math.min(5, originalIndex + 1)),
-                ].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-4 h-1 mx-0.5 rounded-full bg-blue-400"
-                  />
-                ))}
-                {[
-                  ...Array(
-                    5 - (level.difficulty || Math.min(5, originalIndex + 1))
-                  ),
-                ].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-4 h-1 mx-0.5 rounded-full bg-gray-600"
-                  />
-                ))}
-              </div>
 
               {/* Stars for completed levels */}
               {status === "completed" && (
