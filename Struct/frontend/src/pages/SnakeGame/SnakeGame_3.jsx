@@ -1,6 +1,6 @@
 import React, { Component } from "react";
+import "./SnakeGame2.css";
 import "./SnakeGame.css";
-
 // Import your images
 import appleImg from "../../assets/snakegame/images/apple.png";
 import headUpImg from "../../assets/snakegame/images/head_up.png";
@@ -19,13 +19,13 @@ import bodyBLImg from "../../assets/snakegame/images/body_bl.png";
 import bodyBRImg from "../../assets/snakegame/images/body_br.png";
 import crunchSound from "../../assets/snakegame/sounds/crunch.mp3";
 import backgroundMusic from "../../assets/snakegame/sounds/background.mp3";
-import headEatImg from "../../assets/snakegame/images/head_eat.png";
+import levelselectBG from "../../assets/snakegame/gif/levelselect_bg.gif";
+// Removed headEatImg import
 
 // Constants
-// Change these constants at the top of SnakeGame.jsx
-const GRID_SIZE = 20; // Increased from 20
-const CELL_SIZE = 30; // Increased from 20
-const GAME_SPEED = 150; // You can adjust this if needed
+const GRID_SIZE = 20;
+const CELL_SIZE = 30;
+const GAME_SPEED = 150;
 
 const DIRECTIONS = {
   UP: { x: 0, y: -1 },
@@ -47,7 +47,7 @@ const ASSETS = {
       DOWN: headDownImg,
       LEFT: headLeftImg,
       RIGHT: headRightImg,
-      EAT: headEatImg,
+      // Removed EAT property
     },
     TAIL: {
       UP: tailUpImg,
@@ -73,13 +73,20 @@ const ASSETS = {
 class SnakeGame extends Component {
   constructor(props) {
     super(props);
+    
+    const initialSnake = [
+      { x: 5, y: 10 },
+      { x: 4, y: 10 },
+      { x: 3, y: 10 },
+    ];
+    
+    // Randomly select a target multiple (2, 3, 4, or 5)
+    const targetMultiple = this.getRandomMultiple();
+    
     this.state = {
-      snake: [
-        { x: 5, y: 10 },
-        { x: 4, y: 10 },
-        { x: 3, y: 10 },
-      ],
-      food: this.generateFood(),
+      snake: initialSnake,
+      collectedMultiples: [],
+      foods: [],
       direction: DIRECTIONS.RIGHT,
       gameOver: false,
       score: 0,
@@ -91,6 +98,8 @@ class SnakeGame extends Component {
       gameStarted: false,
       musicPlaying: false,
       isEating: false,
+      snakeSegmentValues: [], // This will store the values for each snake segment
+      targetMultiple: targetMultiple // New property to track the current target multiple
     };
 
     this.nextDirection = DIRECTIONS.RIGHT;
@@ -99,41 +108,89 @@ class SnakeGame extends Component {
     this.backgroundAudio = null;
     this.gameBoardRef = React.createRef();
     this.eatingAnimationTimeout = null;
+    this.foodTimeouts = [];
+    this.foodGenerationTimer = null;
   }
 
-  getArrayRepresentation = () => {
-    const { snake, food } = this.state;
-    const grid = Array(GRID_SIZE)
-      .fill()
-      .map(() => Array(GRID_SIZE).fill(0));
-
-    // Mark food position
-    grid[food.y][food.x] = 2;
-
-    // Mark snake positions (body = 3, head = 1)
-    snake.forEach((segment, index) => {
-      if (index === 0) {
-        grid[segment.y][segment.x] = 1; // Head
-      } else {
-        grid[segment.y][segment.x] = 3; // Body
-      }
-    });
-
-    return grid;
+  // Helper function to randomly select a multiple from 2, 3, 4, 5
+  getRandomMultiple = () => {
+    const multiples = [2, 3, 4, 5];
+    return multiples[Math.floor(Math.random() * multiples.length)];
   };
 
-  generateFood = (snake = []) => {
-    const food = {
-      x: Math.floor(Math.random() * GRID_SIZE),
-      y: Math.floor(Math.random() * GRID_SIZE),
-    };
+  // Helper function to check if a number is a multiple of the target
+  isTargetMultiple = (number) => {
+    return number % this.state.targetMultiple === 0;
+  };
 
-    const isOnSnake = snake.some(
-      (segment) => segment.x === food.x && segment.y === food.y
-    );
-    if (isOnSnake) return this.generateFood(snake);
+ getArrayRepresentation = () => {
+  const { snake, foods, snakeSegmentValues } = this.state;
+  const grid = Array(GRID_SIZE)
+    .fill()
+    .map(() => Array(GRID_SIZE).fill(0));
 
-    return food;
+  // Mark food positions
+  foods.forEach(food => {
+    if (food.x >= 0 && food.x < GRID_SIZE && food.y >= 0 && food.y < GRID_SIZE) {
+      grid[food.y][food.x] = food.number;
+    }
+  });
+
+  // Mark snake positions
+  snake.forEach((segment, index) => {
+    if (segment.x >= 0 && segment.x < GRID_SIZE && segment.y >= 0 && segment.y < GRID_SIZE) {
+      if (index === 0) {
+        grid[segment.y][segment.x] = -1; // Head
+      } else {
+        const segmentValue = snakeSegmentValues[index - 1] ?? -3;
+        grid[segment.y][segment.x] = segmentValue;
+      }
+    }
+  });
+
+  return grid;
+};
+
+  generateFood = (snake, existingFoods = [], count = 1) => {
+    const newFoods = [];
+    const maxAttempts = 100;
+    let attempts = 0;
+
+    // Determine how many foods to generate
+    const numToGenerate = Math.min(count, 5); // Limit to 5 foods maximum
+
+    while (newFoods.length < numToGenerate && attempts < maxAttempts) {
+      const food = {
+        x: Math.floor(Math.random() * GRID_SIZE),
+        y: Math.floor(Math.random() * GRID_SIZE),
+        number: Math.floor(Math.random() * 30) + 1, // Random number between 1-9
+        id: Date.now() + Math.random(), // Unique ID for tracking
+      };
+
+      // Check if the position is valid (not occupied by snake or other food)
+      const isValidPosition = !snake.some(seg => seg.x === food.x && seg.y === food.y) &&
+        !existingFoods.some(f => f.x === food.x && f.y === food.y) &&
+        !newFoods.some(f => f.x === food.x && f.y === food.y);
+
+      if (isValidPosition) {
+        newFoods.push(food);
+        
+        // Set timeout for foods that are NOT multiples of the target
+        if (!this.isTargetMultiple(food.number)) {
+          const foodId = food.id;
+          const timeout = setTimeout(() => {
+            this.setState(prevState => ({
+              foods: prevState.foods.filter(f => f.id !== foodId)
+            }));
+          }, 3000);
+          
+          this.foodTimeouts.push(timeout);
+        }
+      }
+      attempts++;
+    }
+    
+    return newFoods;
   };
 
   checkCollision = (position, snake) => {
@@ -148,14 +205,44 @@ class SnakeGame extends Component {
     );
   };
 
+  // Check if there are enough foods on the board and generate more if needed
+  checkFoodCount = () => {
+    if (this.state.foods.length < 5 && this.state.gameStarted && !this.state.gameOver && !this.state.isPaused) {
+      const newFoodCount = 5 - this.state.foods.length;
+      const newFoods = this.generateFood(this.state.snake, this.state.foods, newFoodCount);
+      
+      if (newFoods.length > 0) {
+        this.setState(prevState => ({
+          foods: [...prevState.foods, ...newFoods]
+        }));
+      }
+    }
+  };
+
   componentDidMount() {
     document.addEventListener("click", this.handleFirstInteraction);
     window.addEventListener("keydown", this.handleKeyDown);
+    
+    // Generate initial foods
+    const initialSnake = this.state.snake;
+    const initialFoods = this.generateFood(initialSnake, [], 5); // Start with 5 foods
+    
+    // Initialize the snake segment values for the initial snake
+    const initialSegmentValues = Array(initialSnake.length - 1).fill(-3);
+    
+    this.setState({ 
+      foods: initialFoods,
+      snakeSegmentValues: initialSegmentValues
+    });
   }
 
   componentWillUnmount() {
     document.removeEventListener("click", this.handleFirstInteraction);
     window.removeEventListener("keydown", this.handleKeyDown);
+    
+    // Clear all food timeouts
+    this.foodTimeouts.forEach(timeout => clearTimeout(timeout));
+    
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
@@ -164,6 +251,12 @@ class SnakeGame extends Component {
     }
     if (this.backgroundAudio) {
       this.backgroundAudio.pause();
+    }
+    if (this.eatingAnimationTimeout) {
+      clearTimeout(this.eatingAnimationTimeout);
+    }
+    if (this.foodGenerationTimer) {
+      clearInterval(this.foodGenerationTimer);
     }
   }
 
@@ -178,6 +271,7 @@ class SnakeGame extends Component {
         this.gameBoardRef.current.focus();
       }
     });
+    
     document.removeEventListener("click", this.handleFirstInteraction);
   };
 
@@ -188,10 +282,17 @@ class SnakeGame extends Component {
         musicPlaying: true,
       },
       () => {
-        this.backgroundAudio
-          .play()
-          .catch((e) => console.log("Background music error:", e));
+        if (this.backgroundAudio) {
+          this.backgroundAudio
+            .play()
+            .catch((e) => console.log("Background music error:", e));
+        }
         this.startGameLoop();
+        
+        // Set up food generation periodic check
+        this.foodGenerationTimer = setInterval(() => {
+          this.checkFoodCount();
+        }, 1000); // Check once per second
       }
     );
   };
@@ -238,7 +339,7 @@ class SnakeGame extends Component {
     this.animationFrameId = requestAnimationFrame(this.gameLoop);
   };
 
-  // Update moveSnake method
+  // moveSnake method
   moveSnake = () => {
     if (
       this.state.isPaused ||
@@ -250,16 +351,20 @@ class SnakeGame extends Component {
     }
 
     this.setState((prevState) => {
-      const { snake, direction, food, score, highScore } = prevState;
-      const head = { ...snake[0] };
-
+      const { snake, foods, score, highScore, snakeSegmentValues, targetMultiple } = prevState;
       const currentDirection = this.nextDirection;
 
+      // Create new head based on direction
+      const head = { ...snake[0] };
       head.x += currentDirection.x;
       head.y += currentDirection.y;
 
+      // Check for collisions with walls or self
       if (this.checkCollision(head, snake)) {
         cancelAnimationFrame(this.animationFrameId);
+        if (this.foodGenerationTimer) {
+          clearInterval(this.foodGenerationTimer);
+        }
         if (score > highScore) {
           localStorage.setItem("snakeHighScore", score);
         }
@@ -271,43 +376,113 @@ class SnakeGame extends Component {
         };
       }
 
+      // Add new head to the snake
       const newSnake = [head, ...snake];
-
-      if (head.x === food.x && head.y === food.y) {
-        try {
-          this.crunchAudio.currentTime = 0;
-          this.crunchAudio
-            .play()
-            .catch((e) => console.log("Audio play failed:", e));
-        } catch (e) {
-          console.error("Audio error:", e);
+      let newScore = score;
+      let newFoods = [...foods];
+      let newCollectedMultiples = [...prevState.collectedMultiples];
+      let newSegmentValues = [...snakeSegmentValues]; // Create a copy of segment values
+      let foodEaten = false;
+      let eatenFoodIsMultiple = false;
+      let eatenFoodNumber = null;
+      
+      // Check for food collisions
+      for (let i = 0; i < newFoods.length; i++) {
+        const food = newFoods[i];
+        
+        if (head.x === food.x && head.y === food.y) {
+          foodEaten = true;
+          eatenFoodNumber = food.number;
+          
+          // Remove the eaten food
+          newFoods = newFoods.filter((_, index) => index !== i);
+          
+          // Check if the food number is a multiple of the target
+          const isMultiple = food.number % targetMultiple === 0;
+          
+          // Handle multiple food (positive effect)
+          if (isMultiple) {
+            eatenFoodIsMultiple = true;
+            newScore += 1;
+            newCollectedMultiples = [...prevState.collectedMultiples, food.number];
+            
+            // Insert the multiple food number at the beginning of snakeSegmentValues
+            // This will track which segment has which number
+            newSegmentValues = [food.number, ...newSegmentValues];
+            
+            // Play crunch sound
+            if (this.crunchAudio) {
+              try {
+                this.crunchAudio.currentTime = 0;
+                this.crunchAudio.play().catch(() => {});
+              } catch (e) {
+                // Handle audio error silently
+              }
+            }
+          } 
+          // Handle non-multiple food (negative effect)
+          else {
+            eatenFoodIsMultiple = false;
+            newScore = Math.max(newScore - 1, 0);
+            
+            // Remove last multiple number collected if there are any
+            if (newCollectedMultiples.length > 0) {
+              newCollectedMultiples.pop();
+            }
+            
+            // Remove the first element from the segment values (representing the tail)
+            if (newSegmentValues.length > 0) {
+              newSegmentValues.pop();
+            }
+            
+            // Shrink snake by one segment more
+            newSnake.pop();
+            
+            // Check if snake is too small now
+            if (newSnake.length <= 1) {
+              cancelAnimationFrame(this.animationFrameId);
+              if (this.foodGenerationTimer) {
+                clearInterval(this.foodGenerationTimer);
+              }
+              return {
+                ...prevState,
+                gameOver: true,
+                highScore: Math.max(score, highScore),
+                musicPlaying: false,
+              };
+            }
+          }
+          
+          // Break after eating one food (don't process multiple foods in one move)
+          break;
         }
+      }
 
-        // Clear any existing timeout to avoid multiple animations
-        if (this.eatingAnimationTimeout) {
-          clearTimeout(this.eatingAnimationTimeout);
-        }
-
-        // Set eating state and create timeout to clear it
-        this.setState({ isEating: true });
+      // Generate new food if any was eaten
+      if (foodEaten) {
+        const newFoodItems = this.generateFood(newSnake, newFoods, 1);
+        newFoods = [...newFoods, ...newFoodItems];
+        
+        // Set eating animation
+        clearTimeout(this.eatingAnimationTimeout);
         this.eatingAnimationTimeout = setTimeout(() => {
           this.setState({ isEating: false });
-        }, 300); // Animation duration matches crunch sound
-
-        return {
-          ...prevState,
-          snake: newSnake,
-          food: this.generateFood(newSnake),
-          score: prevState.score + 1,
-          direction: currentDirection,
-          isEating: true,
-        };
+        }, 300);
       }
+
+      // Remove tail segment if no food was eaten or if non-multiple food was eaten
+      // (multiple food allows the snake to grow, so we keep all segments)
+      const finalSnake = foodEaten && eatenFoodIsMultiple ? newSnake : newSnake.slice(0, -1);
 
       return {
         ...prevState,
-        snake: newSnake.slice(0, -1),
+        snake: finalSnake,
+        foods: newFoods,
+        score: newScore,
+        collectedMultiples: newCollectedMultiples,
         direction: currentDirection,
+        isEating: foodEaten,
+        snakeSegmentValues: newSegmentValues,
       };
     });
   };
@@ -319,6 +494,7 @@ class SnakeGame extends Component {
       e.preventDefault();
     }
 
+    // Start game with any arrow key if not already started
     if (
       !this.state.gameStarted &&
       ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
@@ -327,6 +503,7 @@ class SnakeGame extends Component {
       return;
     }
 
+    // Handle direction changes
     if (DIRECTIONS[e.key]) {
       const { direction } = this.state;
       // Only allow 90-degree turns (no reversing)
@@ -336,39 +513,62 @@ class SnakeGame extends Component {
       ) {
         this.nextDirection = DIRECTIONS[e.key];
       }
-    } else if (e.key === " ") {
+    } 
+    // Toggle pause with space
+    else if (e.key === " ") {
       this.togglePause();
     }
   };
 
   resetGame = () => {
+    // Cancel animation frame
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
 
-    // Clear any eating animation timeout
+    // Clear all food timeouts
+    this.foodTimeouts.forEach(timeout => clearTimeout(timeout));
+    this.foodTimeouts = [];
+    
     if (this.eatingAnimationTimeout) {
       clearTimeout(this.eatingAnimationTimeout);
     }
+    
+    if (this.foodGenerationTimer) {
+      clearInterval(this.foodGenerationTimer);
+      this.foodGenerationTimer = null;
+    }
+
+    // Reset snake to initial position
+    const initialSnake = [
+      { x: 5, y: 10 },
+      { x: 4, y: 10 },
+      { x: 3, y: 10 },
+    ];
+    
+    // Generate new random target multiple for the new game
+    const newTargetMultiple = this.getRandomMultiple();
+    
+    // Generate new food for the reset game
+    const newFoods = this.generateFood(initialSnake, [], 5); // Start with 5 foods
 
     this.setState({
-      snake: [
-        { x: 5, y: 10 },
-        { x: 4, y: 10 },
-        { x: 3, y: 10 },
-      ],
+      snake: initialSnake,
+      collectedMultiples: [],
       direction: DIRECTIONS.RIGHT,
-      food: this.generateFood(),
+      foods: newFoods,
       gameOver: false,
       score: 0,
       isPaused: false,
       gameStarted: false,
       isEating: false,
+      snakeSegmentValues: Array(initialSnake.length - 1).fill(3), // Reset segment values
+      targetMultiple: newTargetMultiple // Set new target multiple
     });
+    
     this.nextDirection = DIRECTIONS.RIGHT;
 
-    // Focus the game board again after reset
     if (this.gameBoardRef.current) {
       this.gameBoardRef.current.focus();
     }
@@ -412,27 +612,40 @@ class SnakeGame extends Component {
   };
 
   getSegmentImage = (segment, index, segments) => {
+    if (!segment || !segments || segments.length < 1) return ASSETS.IMAGES.BODY.HORIZONTAL;
+    
     const isHead = index === 0;
     const isTail = index === segments.length - 1;
 
+    // Handle head image
     if (isHead) {
+      // Removed special case for head when eating
       const nextSegment = segments[1];
+      if (!nextSegment) return ASSETS.IMAGES.HEAD.RIGHT;
+      
       if (segment.x < nextSegment.x) return ASSETS.IMAGES.HEAD.LEFT;
       if (segment.x > nextSegment.x) return ASSETS.IMAGES.HEAD.RIGHT;
       if (segment.y < nextSegment.y) return ASSETS.IMAGES.HEAD.UP;
       return ASSETS.IMAGES.HEAD.DOWN;
     }
 
+    // Handle tail image
     if (isTail) {
       const prevSegment = segments[index - 1];
+      if (!prevSegment) return ASSETS.IMAGES.TAIL.LEFT;
+      
       if (segment.x < prevSegment.x) return ASSETS.IMAGES.TAIL.LEFT;
       if (segment.x > prevSegment.x) return ASSETS.IMAGES.TAIL.RIGHT;
       if (segment.y < prevSegment.y) return ASSETS.IMAGES.TAIL.UP;
       return ASSETS.IMAGES.TAIL.DOWN;
     }
 
+    // Handle body segments
     const prevSegment = segments[index - 1];
     const nextSegment = segments[index + 1];
+    
+    // Safety check
+    if (!prevSegment || !nextSegment) return ASSETS.IMAGES.BODY.HORIZONTAL;
 
     // Horizontal segment
     if (prevSegment.x !== nextSegment.x && prevSegment.y === nextSegment.y) {
@@ -475,7 +688,7 @@ class SnakeGame extends Component {
   render() {
     const {
       snake,
-      food,
+      foods,
       gameOver,
       score,
       highScore,
@@ -483,65 +696,173 @@ class SnakeGame extends Component {
       audioReady,
       gameStarted,
       musicPlaying,
+      collectedMultiples,
+      targetMultiple
     } = this.state;
 
     if (!audioReady) {
       return (
-        <div className="audio-permission-screen">
-          <h1>Snake Game</h1>
-          <p>Click anywhere to start the game</p>
+        <div className="start-screen-body pixel-container">
+          <div className="pixel-border start-screen-main">
+            <div className="start-header">
+              <h1 className="pixel-text pixel-title" style={{ fontSize: '1.2rem' }}>SNAKE GAME: MULTIPLE HUNT</h1>
+              <h2 className="pixel-text pixel-subtitle" style={{ fontSize: '0.9rem' }}>TARGET: MULTIPLES OF {targetMultiple}</h2>
+            </div>
+            
+            <div className="start-content">
+              <div className="start-section pixel-border">
+                <h3 className="start-section-title pixel-text" style={{ fontSize: '0.8rem' }}>
+                  <svg className="pixel-icon" width="18" height="18" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  HOW TO PLAY
+                </h3>
+                
+                <div className="start-rules">
+                  {[
+                    ["GOAL:", `Collect multiples of ${targetMultiple}`],
+                    ["CONTROLS:", "Use arrow keys to navigate the snake"],
+                    ["SCORING:", `+1 point for each multiple of ${targetMultiple}`],
+                    ["PENALTY:", "-1 point for other numbers"],
+                    ["SIZE:", "Multiple = snake grows, Other = snake shrinks"]
+                  ].map(([label, text]) => (
+                    <div className="start-rule-item" key={label}>
+                      <svg className="pixel-icon" width="16" height="16" viewBox="0 0 24 24">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                      <p className="pixel-text" style={{ fontSize: '0.7rem' }}>
+                        <strong style={{ fontSize: '0.75rem' }}>{label}</strong> {text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="start-section pixel-border">
+                <h3 className="start-section-title pixel-text" style={{ fontSize: '0.8rem' }}>
+                  <svg className="pixel-icon" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                  </svg>
+                  EDUCATIONAL VALUE
+                </h3>
+                
+                <div className="start-edu-value">
+                  {[
+                    `This level helps you practice identifying multiples of ${targetMultiple}.`,
+                    `Multiples of ${targetMultiple} are numbers divisible by ${targetMultiple}`,
+                    "Examples: " + Array.from({length: 5}, (_, i) => targetMultiple * (i+1)).join(', ')
+                  ].map((text, index) => (
+                    <p key={index} className="pixel-text" style={{ fontSize: '0.7rem' }}>
+                      {text}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="start-controls">
+                <div className="start-key-controls">
+                  {['←', '↑', '↓', '→'].map((key, index) => (
+                    <div key={index} className="start-key pixel-key" style={{ 
+                      width: '2rem', 
+                      height: '2rem', 
+                      fontSize: '0.8rem' 
+                    }}>
+                      {key}
+                    </div>
+                  ))}
+                </div>
+                <button 
+                  className="start-btn pixel-btn" 
+                  onClick={this.startGame}
+                  style={{ 
+                    fontSize: '0.8rem',
+                    padding: '0.5rem 1rem',
+                    marginTop: '0.5rem'
+                  }}>
+                  CLICK ANYWHERE TO START!
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }
 
+    const gridArray = this.getArrayRepresentation();
+
     return (
-      <div className="snake-game-container">
+      <div className="snake-game-container pixel-container">
         <div className="game-header">
-          <h1 className="game-title">Snake Game</h1>
+          <h1 className="game-title pixel-text" style={{ 
+            textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
+            fontSize: '1.5rem'
+          }}>MULTIPLE HUNT</h1>
           <div className="score-display">
-            <div className="score-container current-score">
-              <span className="score-label">Score:</span>
-              <span className="score-value">{score}</span>
+            <div className="score-container current-score pixel-border" style={{ 
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              padding: '6px 12px'
+            }}>
+              <span className="score-label pixel-text" style={{ 
+                color: '#8BFF4A',
+                fontSize: '0.7rem'
+              }}>SCORE:</span>
+              <span className="score-value pixel-text" style={{ 
+                color: '#4CFF50',
+                fontSize: '0.9rem'
+              }}>{score}</span>
             </div>
-            <div className="score-container high-score">
-              <span className="score-label">High Score:</span>
-              <span className="score-value">{highScore}</span>
+            <div className="score-container high-score pixel-border" style={{ 
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              padding: '6px 12px'
+            }}>
+              <span className="score-label pixel-text" style={{ 
+                color: '#8BFF4A',
+                fontSize: '0.7rem'
+              }}>HIGH SCORE:</span>
+              <span className="score-value pixel-text" style={{ 
+                color: '#4CFF50',
+                fontSize: '0.9rem'
+              }}>{highScore}</span>
             </div>
           </div>
         </div>
 
         <div className="game-content-wrapper">
-          {/* Game Board */}
           <div
             ref={this.gameBoardRef}
-            className={`game-board ${!gameStarted ? "waiting-start" : ""}`}
+            className={`game-board ${!gameStarted ? "waiting-start" : ""} pixel-border`}
+            style={{ backgroundColor: '#0a2f0a' }}
             tabIndex="0"
             onKeyDown={this.handleKeyDown}
           >
-            {/* Grid pattern */}
             <div className="grid-pattern"></div>
 
-            {/* Food with animation */}
-            <div
-              className="food-container"
-              style={{
-                left: `${food.x * CELL_SIZE}px`,
-                top: `${food.y * CELL_SIZE}px`,
-              }}
-            >
-              <img src={ASSETS.IMAGES.FOOD} className="food" alt="Food" />
-            </div>
-
-            {/* Snake */}
+            {foods.map((food, index) => (
+              <div
+                key={`food-${food.id || index}`}
+                className={`food-container ${food.number % targetMultiple !== 0 ? 'non-multiple' : ''}`}
+                style={{
+                  left: `${food.x * CELL_SIZE}px`,
+                  top: `${food.y * CELL_SIZE}px`,
+                }}
+              >
+                <img src={ASSETS.IMAGES.FOOD} className="food" alt="Food" />
+                <div className="food-number" style={{ 
+                  color: food.number % targetMultiple === 0 ? '#4CFF50' : '#FF4444'
+                }}>
+                  {food.number}
+                </div>
+              </div>
+            ))}
+            
             {snake.map((segment, index) => (
               <div
                 key={`${segment.x}-${segment.y}-${index}`}
                 className={`snake-segment ${
-                  index === 0
-                    ? "head"
-                    : index === snake.length - 1
-                    ? "tail"
-                    : "body"
+                  index === 0 ? "head" : index === snake.length - 1 ? "tail" : "body"
                 } ${this.state.isEating && index === 0 ? "eating" : ""}`}
                 style={{
                   left: `${segment.x * CELL_SIZE}px`,
@@ -551,98 +872,97 @@ class SnakeGame extends Component {
               >
                 <img
                   src={this.getSegmentImage(segment, index, snake)}
-                  alt={
-                    index === 0
-                      ? "Snake head"
-                      : index === snake.length - 1
-                      ? "Snake tail"
-                      : "Snake body"
-                  }
+                  alt={index === 0 ? "Snake head" : index === snake.length - 1 ? "Snake tail" : "Snake body"}
                 />
               </div>
             ))}
 
-            {/* Start Screen */}
             {!gameStarted && !gameOver && (
               <div className="start-screen-overlay">
-                <div className="start-screen-message">
-                  <h2>Ready to Play?</h2>
-                  <p>Use arrow keys to move</p>
-                  <button className="action-btn start" onClick={this.startGame}>
-                    Start Game
+                <div className="start-screen-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
+                  <h2 className="pixel-text" style={{ color: '#4CFF50' }}>READY PLAYER?</h2>
+                  <p className="pixel-text" style={{ color: '#8BFF4A' }}>TARGET: MULTIPLES OF {targetMultiple}</p>
+                  <button className="pixel-btn" onClick={this.startGame}>
+                    START GAME
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Game Over Overlay */}
             {gameOver && (
               <div className="game-over-overlay">
-                <div className="game-over-message">
-                  <h2>Game Over!</h2>
-                  <p>Your score: {score}</p>
+                <div className="game-over-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
+                  <h2 className="pixel-text" style={{ color: '#FF4444' }}>GAME OVER!</h2>
+                  <p className="pixel-text" style={{ color: '#8BFF4A' }}>SCORE: {score}</p>
                   <div className="game-over-buttons">
-                    <button
-                      className="action-btn reset"
-                      onClick={this.resetGame}
-                    >
-                      Play Again
+                    <button className="pixel-btn" onClick={this.resetGame}>
+                      PLAY AGAIN
                     </button>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Pause Overlay */}
             {isPaused && (
               <div className="pause-overlay">
-                <div className="pause-message">
-                  <h2>Game Paused</h2>
+                <div className="pause-message pixel-border" style={{ 
+                  backgroundColor: '#0a2f0a',
+                  padding: '20px',
+                  textAlign: 'center'
+                }}>
+                  <h2 className="pixel-text" style={{ 
+                    color: '#4CFF50',
+                    fontSize: '1.2rem',
+                    marginBottom: '15px'
+                  }}>GAME PAUSED</h2>
                   <button
-                    className="action-btn resume"
+                    className="pixel-btn"
                     onClick={this.togglePause}
+                    style={{ fontSize: '0.8rem' }}
                   >
-                    Resume
+                    RESUME
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Array Side Panel */}
-          <div className="array-side-panel">
-            <h3>Game Array Representation</h3>
+          <div className="array-side-panel pixel-border" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+            <h3 className="pixel-text" style={{ color: '#4CFF50' }}>GAME ARRAY</h3>
             <div className="array-grid">
-              {this.getArrayRepresentation().map((row, y) => (
+              {gridArray.map((row, y) => (
                 <div key={y} className="array-row">
-                  {row.map((cell, x) => (
-                    <div
-                      key={`${x}-${y}`}
-                      className={`array-cell ${
-                        cell === 1
-                          ? "head"
-                          : cell === 2
-                          ? "food"
-                          : cell === 3
-                          ? "body"
-                          : ""
-                      }`}
-                    >
-                      {cell}
-                    </div>
-                  ))}
+                  {row.map((cell, x) => {
+                    let cellClass = "";
+                    if (cell === -1) {
+                      cellClass = "head";
+                    } else if (cell === -3) {
+                      cellClass = "body";
+                    } else if (cell > 0) {
+                      cellClass = cell % targetMultiple === 0 ? "even-number" : "food";
+                    }
+                    
+                    return (
+                      <div
+                        key={`${x}-${y}`}
+                        className={`array-cell ${cellClass}`}
+                      >
+                        {cell > 0 ? cell : ''}
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
             <div className="array-legend">
               <div className="legend-item">
-                <span className="legend-color head"></span> Head (1)
+                <span className="legend-color head"></span> Head (-1)
               </div>
               <div className="legend-item">
-                <span className="legend-color food"></span> Food (2)
+                <span className="legend-color multiple-number"></span> Multiple ({targetMultiple}x)
               </div>
               <div className="legend-item">
-                <span className="legend-color body"></span> Body (3)
+                <span className="legend-color body"></span> Body (-3)
               </div>
               <div className="legend-item">
                 <span className="legend-color"></span> Empty (0)
@@ -651,77 +971,38 @@ class SnakeGame extends Component {
           </div>
         </div>
 
-        {/* Controls*/}
         <div className="controls-container">
-          {/*<div className="directional-controls">
-            <button
-              className="control-btn up"
-              onClick={() => {
-                if (!gameStarted) this.startGame();
-                this.nextDirection = DIRECTIONS.UP;
-              }}
-              aria-label="Move up"
-            >
-              ↑
-            </button>
-            <div className="horizontal-controls">
-              <button
-                className="control-btn left"
-                onClick={() => {
-                  if (!gameStarted) this.startGame();
-                  this.nextDirection = DIRECTIONS.LEFT;
-                }}
-                aria-label="Move left"
-              >
-                ←
-              </button>
-              <button
-                className="control-btn right"
-                onClick={() => {
-                  if (!gameStarted) this.startGame();
-                  this.nextDirection = DIRECTIONS.RIGHT;
-                }}
-                aria-label="Move right"
-              >
-                →
-              </button>
-            </div>
-            <button
-              className="control-btn down"
-              onClick={() => {
-                if (!gameStarted) this.startGame();
-                this.nextDirection = DIRECTIONS.DOWN;
-              }}
-              aria-label="Move down"
-            >
-              ↓
-            </button>
-          </div> */}
           <div className="action-controls">
             {gameStarted && !gameOver && (
-              <button className="action-btn pause" onClick={this.togglePause}>
-                {isPaused ? "Resume" : "Pause"}
+              <button className="pixel-btn" onClick={this.togglePause} style={{ fontSize: '0.8rem' }}>
+                {isPaused ? "RESUME" : "PAUSE"}
               </button>
             )}
-
-            <button className="action-btn reset" onClick={this.resetGame}>
-              {gameStarted ? "Reset" : "New Game"}
+            <button className="pixel-btn" onClick={this.resetGame} style={{ fontSize: '0.8rem' }}>
+              {gameStarted ? "RESET" : "NEW GAME"}
             </button>
             <button
-              className={`action-btn music ${musicPlaying ? "on" : "off"}`}
+              className={`pixel-btn ${musicPlaying ? "on" : "off"}`}
               onClick={this.toggleMusic}
-              aria-label={musicPlaying ? "Mute music" : "Unmute music"}
+              style={{ width: '60px', padding: '8px' }}
             >
               {musicPlaying ? "🔊" : "🔇"}
             </button>
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="instructions">
-          <p>Use arrow keys to control the snake</p>
-          <p>Eat the apples to grow longer and score points</p>
-          <p>Avoid hitting the walls or yourself!</p>
+        <div className="instructions pixel-text" style={{ 
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          borderRadius: '8px',
+          color: '#8BFF4A',
+          fontSize: '0.7rem',
+          lineHeight: '1.2',
+          padding: '10px'
+        }}>
+          <p>USE ARROW KEYS TO CONTROL</p>
+          <p>EAT MULTIPLES OF {targetMultiple} TO GROW (+1 POINT)</p>
+          <p>AVOID OTHER NUMBERS - THEY SHRINK YOU (-1 POINT)</p>
+          <p>DON'T HIT WALLS OR YOURSELF!</p>
         </div>
       </div>
     );
