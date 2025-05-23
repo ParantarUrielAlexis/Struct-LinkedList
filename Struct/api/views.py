@@ -4,9 +4,11 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
+from django.db.models import Max, F
 from .serializers import UserRegistrationSerializer
-from .models import Class
-from .serializers import ClassSerializer, ClassCreateSerializer
+from .models import Class, TypeTestProgress
+from .serializers import ClassSerializer, ClassCreateSerializer, TypeTestProgressSerializer
+
 
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
@@ -155,3 +157,67 @@ class LeaveClassView(APIView):
 
         except Class.DoesNotExist:
             return Response({"error": "Class not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class TypeTestProgressCreateView(generics.CreateAPIView):
+    queryset = TypeTestProgress.objects.all()
+    serializer_class = TypeTestProgressSerializer
+    permission_classes = [permissions.IsAuthenticated] # Ensure only authenticated users can submit progress
+
+    def perform_create(self, serializer):
+        # Automatically assign the logged-in user to the progress record
+        serializer.save(user=self.request.user)
+
+class UserTypeTestProgressView(generics.ListAPIView):
+    serializer_class = TypeTestProgressSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Return all progress records for the authenticated user
+        return TypeTestProgress.objects.filter(user=self.request.user)
+
+class UserTypeTestBestProgressView(generics.ListAPIView):
+    serializer_class = TypeTestProgressSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Aggregate to find the best stars earned for each level
+        # You'll need to decide what "best" means (e.g., highest stars, then highest WPM, then highest score)
+        # For simplicity, let's get the highest stars for each level.
+        # If multiple entries have the same highest stars, it picks one (e.g., the latest one due to default ordering).
+
+        # This will get the max stars for each level for the current user
+        best_progress_subquery = TypeTestProgress.objects.filter(
+            user=user
+        ).values('level_index').annotate(
+            max_stars=Max('stars_earned')
+        )
+
+        # Now, fetch the actual TypeTestProgress objects that match these best scores
+        # This approach can be tricky if there are ties (multiple entries with max_stars for a level)
+        # A more robust way might involve iterating or using window functions (Django 3.2+)
+
+        # A simpler but less efficient way for a small number of levels:
+        # Fetch all progress for the user, then group and find the best in Python
+        user_progress = TypeTestProgress.objects.filter(user=user).order_by('level_index', '-stars_earned', '-wpm', '-score')
+
+        best_records = {}
+        for progress in user_progress:
+            if progress.level_index not in best_records:
+                best_records[progress.level_index] = progress
+            else:
+                # If current record has more stars, update
+                if progress.stars_earned > best_records[progress.level_index].stars_earned:
+                    best_records[progress.level_index] = progress
+                # If stars are equal, prioritize WPM
+                elif progress.stars_earned == best_records[progress.level_index].stars_earned:
+                    if progress.wpm > best_records[progress.level_index].wpm:
+                        best_records[progress.level_index] = progress
+                    # If WPM is equal, prioritize score
+                    elif progress.wpm == best_records[progress.level_index].wpm:
+                        if progress.score > best_records[progress.level_index].score:
+                            best_records[progress.level_index] = progress
+
+        # Return a list of the best records
+        return list(best_records.values())

@@ -1,4 +1,4 @@
-// TODO: Integrate stars into backend of typetest for user progress
+// TODO: did not use calculateStars
 import React, {
   useState,
   useEffect,
@@ -11,6 +11,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import typingSoundFile from "../../assets/typing.mp3";
 import pingSoundFile from "../../assets/ping.mp3";
 import { levels } from "./TypeTestLevelsData";
+import { useAuth } from "../../contexts/AuthContext";
 
 // Import the split components
 import {
@@ -23,6 +24,8 @@ import {
 } from "./TypeTestComponents"; // Adjust path if you saved them elsewhere
 
 function TypeTest() {
+  const { isAuthenticated, user, authToken } = useAuth();
+
   const { levelIndex: levelIndexParam } = useParams();
   const navigate = useNavigate();
 
@@ -69,6 +72,32 @@ function TypeTest() {
   const [completedWords, setCompletedWords] = useState([]);
   const [backgroundState, setBackgroundState] = useState("normal");
   const [levelProgress, setLevelProgress] = useState(0);
+
+  const calculateStars = useCallback(
+    (timeTaken, selectedTimer, allWordsCompleted) => {
+      // If not all words were completed, return 0 stars regardless of time
+      if (!allWordsCompleted) {
+        return 0;
+      }
+
+      // Only award stars if all words were completed
+      if (selectedTimer === 30) {
+        if (timeTaken <= 30) return 3;
+        if (timeTaken <= 45) return 2;
+        if (timeTaken <= 60) return 1;
+        return 0;
+      } else if (selectedTimer === 45) {
+        if (timeTaken <= 45) return 2;
+        if (timeTaken <= 60) return 1;
+        return 0;
+      } else if (selectedTimer === 60) {
+        if (timeTaken <= 60) return 1;
+        return 0;
+      }
+      return 0; // Default for practice or undefined timers
+    },
+    []
+  );
 
   useEffect(() => {
     typingSound.current = new Audio(typingSoundFile);
@@ -139,7 +168,6 @@ function TypeTest() {
       !gameOver
     ) {
       setGameOver(true);
-      setGameStarted(false);
     }
     return () => clearTimeout(timerId);
   }, [mode, gameStarted, startTime, timeLeft, gameOver]);
@@ -195,7 +223,6 @@ function TypeTest() {
           setMistakes(0);
         } else {
           setGameOver(true);
-          setGameStarted(false);
         }
       } else {
         if (value.length > 0 && !currentWord.startsWith(value)) {
@@ -245,34 +272,6 @@ function TypeTest() {
     if (showStreak) id = setTimeout(() => setShowStreak(false), 1500);
     return () => clearTimeout(id);
   }, [showStreak, streakCount]);
-
-  const wpm = useMemo(() => {
-    if (!startTime || completedWords.length === 0) return 0;
-    let elapsedSeconds;
-    if (mode === "Competitive") {
-      elapsedSeconds = selectedTimer - timeLeft;
-      if (gameOver && gameStarted)
-        elapsedSeconds = (Date.now() - startTime) / 1000;
-      else if (!gameStarted && gameOver) elapsedSeconds = selectedTimer;
-      else if (!gameStarted) return 0;
-    } else {
-      elapsedSeconds = (Date.now() - startTime) / 1000;
-    }
-    if (elapsedSeconds <= 0) return 0;
-    const totalChars = completedWords.reduce(
-      (sum, word) => sum + word.length,
-      0
-    );
-    return Math.round(totalChars / 5 / (elapsedSeconds / 60)) || 0;
-  }, [
-    startTime,
-    completedWords,
-    mode,
-    selectedTimer,
-    timeLeft,
-    gameStarted,
-    gameOver,
-  ]);
 
   const currentWordToDisplay = useMemo(
     () => currentLevelWords[currentWordIndex],
@@ -353,6 +352,126 @@ function TypeTest() {
 
   // Determine if navbar should be shown
   const showNavbar = !gameStarted || gameOver;
+
+  const wpm = useMemo(() => {
+    if (!startTime || completedWords.length === 0) return 0;
+    let elapsedSeconds;
+    if (mode === "Competitive") {
+      elapsedSeconds = selectedTimer - timeLeft;
+      if (gameOver && gameStarted)
+        elapsedSeconds = (Date.now() - startTime) / 1000;
+      else if (!gameStarted && gameOver) elapsedSeconds = selectedTimer;
+      else if (!gameStarted) return 0;
+    } else {
+      elapsedSeconds = (Date.now() - startTime) / 1000;
+    }
+    if (elapsedSeconds <= 0) return 0;
+    const totalChars = completedWords.reduce(
+      (sum, word) => sum + word.length,
+      0
+    );
+    return Math.round(totalChars / 5 / (elapsedSeconds / 60)) || 0;
+  }, [
+    startTime,
+    completedWords,
+    mode,
+    selectedTimer,
+    timeLeft,
+    gameStarted,
+    gameOver,
+  ]);
+
+  // New better implementation of sendProgressToBackend
+  const sendProgressToBackend = useCallback(async (progressData) => {
+    // Create a copy with rounded score
+    const modifiedData = {
+      ...progressData,
+      score: Math.round(progressData.score), // Round the floating point score to an integer
+    };
+
+    console.log("Sending progress data:", modifiedData);
+
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/progress/create/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${localStorage.getItem("authToken")}`,
+          },
+          body: JSON.stringify(modifiedData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to save type test progress:", errorData);
+        return false;
+      } else {
+        const savedProgress = await response.json();
+        console.log("Type test progress saved successfully:", savedProgress);
+        return true;
+      }
+    } catch (error) {
+      console.error("Error sending type test progress:", error);
+      return false;
+    }
+  }, []);
+
+  // Updated useEffect for game completion
+  useEffect(() => {
+    const handleGameCompletion = async () => {
+      if (
+        gameOver &&
+        gameStarted &&
+        isAuthenticated &&
+        user &&
+        mode === "Competitive"
+      ) {
+        const finalTimeTaken = selectedTimer - timeLeft;
+        const allWordsCompleted =
+          completedWords.length === currentLevelWords.length;
+        const finalStars = calculateStars(
+          finalTimeTaken,
+          selectedTimer,
+          allWordsCompleted
+        );
+
+        const progressData = {
+          level_index: currentLevelIndex,
+          time_taken: finalTimeTaken,
+          selected_timer: selectedTimer,
+          wpm: wpm,
+          score: score,
+          stars_earned: finalStars,
+          all_words_completed: allWordsCompleted,
+        };
+
+        await sendProgressToBackend(progressData);
+
+        // Set gameStarted to false AFTER the API call completes
+        setGameStarted(false);
+      }
+    };
+
+    handleGameCompletion();
+  }, [
+    gameOver,
+    gameStarted,
+    isAuthenticated,
+    user,
+    mode,
+    currentLevelIndex,
+    selectedTimer,
+    timeLeft,
+    wpm,
+    score,
+    calculateStars,
+    sendProgressToBackend,
+    completedWords,
+    currentLevelWords, // Added this dependency
+  ]);
 
   if (!currentLevel) {
     return (

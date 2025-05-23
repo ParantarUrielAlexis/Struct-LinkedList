@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 import random
 import string
 
@@ -39,3 +40,36 @@ class Class(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.code})"
+
+class TypeTestProgress(models.Model):
+    # Links to the User model (assuming you have Django's default User model or a custom one)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='typetest_progress')
+
+    # Information about the completed level
+    level_index = models.IntegerField(help_text="The 0-based index of the level completed")
+
+    # Performance metrics
+    time_taken = models.IntegerField(help_text="Time taken to complete the level in seconds")
+    selected_timer = models.IntegerField(help_text="The timer setting chosen by the user for this attempt (e.g., 30, 45, 60 seconds)")
+    wpm = models.IntegerField(default=0, help_text="Words Per Minute achieved in this attempt")
+    score = models.IntegerField(default=0, help_text="Final score achieved in this attempt")
+
+    # Stars earned for this attempt
+    stars_earned = models.IntegerField(default=0, help_text="Number of stars earned (0-3)")
+
+    # Timestamp for when the progress was recorded
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    # only give stars if the user has completed the level
+    all_words_completed = models.BooleanField(default=False, help_text="Whether the user completed all words in the level")
+
+    class Meta:
+        # Order by most recent completion
+        ordering = ['-completed_at']
+        verbose_name_plural = "TypeTest Progress" # Nicer name in Django admin
+
+    def __str__(self):
+        return f"{self.user.username} - Level {self.level_index + 1} - {self.stars_earned} stars"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)

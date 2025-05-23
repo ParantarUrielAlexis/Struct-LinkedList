@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import Class
+from .models import Class, TypeTestProgress
 
 User = get_user_model()
 
@@ -59,3 +59,10 @@ class ClassCreateSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         validated_data['teacher'] = user
         return super().create(validated_data)
+
+class TypeTestProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TypeTestProgress
+        fields = ['id', 'user', 'level_index', 'time_taken', 'selected_timer', 'stars_earned', 'wpm', 'score', 'completed_at', 'all_words_completed']
+        # Only make user and completed_at read-only, allow stars_earned to be set from frontend
+        read_only_fields = ['user', 'completed_at']
