@@ -142,7 +142,7 @@ class SnakeGame extends Component {
       if (index === 0) {
         grid[segment.y][segment.x] = -1; // Head
       } else {
-        const segmentValue = snakeSegmentValues[index - 1] ?? -3;
+        const segmentValue = snakeSegmentValues[index - 1];
         grid[segment.y][segment.x] = segmentValue;
       }
     }
