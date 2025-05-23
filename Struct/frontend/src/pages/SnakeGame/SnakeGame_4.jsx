@@ -20,7 +20,6 @@ import bodyBRImg from "../../assets/snakegame/images/body_br.png";
 import crunchSound from "../../assets/snakegame/sounds/crunch.mp3";
 import backgroundMusic from "../../assets/snakegame/sounds/background.mp3";
 import levelselectBG from "../../assets/snakegame/gif/levelselect_bg.gif";
-// Removed headEatImg import
 
 // Constants
 const GRID_SIZE = 20;
@@ -47,7 +46,6 @@ const ASSETS = {
       DOWN: headDownImg,
       LEFT: headLeftImg,
       RIGHT: headRightImg,
-      // Removed EAT property
     },
     TAIL: {
       UP: tailUpImg,
@@ -82,7 +80,7 @@ class SnakeGame extends Component {
     
     this.state = {
       snake: initialSnake,
-      collectedPrimes: [], // Changed from collectedEvens to collectedPrimes
+      collectedPalindromes: [], // Changed from collectedPrimes to collectedPalindromes
       foods: [],
       direction: DIRECTIONS.RIGHT,
       gameOver: false,
@@ -108,15 +106,21 @@ class SnakeGame extends Component {
     this.foodGenerationTimer = null;
   }
 
-  // Helper function to check if a number is prime
-  isPrime = (num) => {
-    if (num < 2) return false;
-    if (num === 2) return true;
-    if (num % 2 === 0) return false;
-    for (let i = 3; i <= Math.sqrt(num); i += 2) {
-      if (num % i === 0) return false;
-    }
-    return true;
+  // Helper function to check if a number is a palindrome
+  isPalindrome = (num) => {
+    const str = num.toString();
+    return str === str.split('').reverse().join('');
+  };
+
+  // Helper function to check if a position is on the edge of the grid
+  isOnEdge = (x, y) => {
+    return x === 0 || x === GRID_SIZE - 1 || y === 0 || y === GRID_SIZE - 1;
+  };
+
+  // Helper function to check if food meets the palindromic edge condition
+  isPalindromicEdge = (food) => {
+    if (!food) return false;
+    return this.isPalindrome(food.number) && this.isOnEdge(food.x, food.y);
   };
 
  getArrayRepresentation = () => {
@@ -152,18 +156,16 @@ class SnakeGame extends Component {
     const maxAttempts = 100;
     let attempts = 0;
 
-    // Determine how many foods to generate
-    const numToGenerate = Math.min(count, 5); // Limit to 5 foods maximum
+    const numToGenerate = Math.min(count, 5);
 
     while (newFoods.length < numToGenerate && attempts < maxAttempts) {
       const food = {
         x: Math.floor(Math.random() * GRID_SIZE),
         y: Math.floor(Math.random() * GRID_SIZE),
-        number: Math.floor(Math.random() * 50) + 1, // Random number between 1-9
-        id: Date.now() + Math.random(), // Unique ID for tracking
+        number: Math.floor(Math.random() * 99) + 1,
+        id: Date.now() + Math.random(),
       };
 
-      // Check if the position is valid (not occupied by snake or other food)
       const isValidPosition = !snake.some(seg => seg.x === food.x && seg.y === food.y) &&
         !existingFoods.some(f => f.x === food.x && f.y === food.y) &&
         !newFoods.some(f => f.x === food.x && f.y === food.y);
@@ -171,14 +173,12 @@ class SnakeGame extends Component {
       if (isValidPosition) {
         newFoods.push(food);
         
-        // Set timeout for non-prime foods (they disappear after 3 seconds)
-        if (!this.isPrime(food.number)) {
+        if (!this.isPalindrome(food.number)) {
           const foodId = food.id;
           const timeout = setTimeout(() => {
             this.setState(prevState => ({
               foods: prevState.foods.filter(f => f.id !== foodId)
             }), () => {
-              // Generate a replacement food when non-prime food disappears -- MORE FOOD WILL APPEAR
               // if (this.state.gameStarted && !this.state.gameOver && !this.state.isPaused) {
               //   const replacement = this.generateFood(this.state.snake, this.state.foods, 1);
               //   if (replacement.length > 0) {
@@ -189,13 +189,11 @@ class SnakeGame extends Component {
               // }
             });
           }, 3000);
-          
           this.foodTimeouts.push(timeout);
         }
       }
       attempts++;
     }
-    
     return newFoods;
   };
 
@@ -224,7 +222,80 @@ class SnakeGame extends Component {
       }
     }
   };
+  handleKeyDown = (event) => {
+  if (!this.state.gameStarted || this.state.gameOver) {
+    return;
+  }
 
+  const { key } = event;
+  
+  // Prevent default behavior for arrow keys to stop page scrolling
+  if (key.startsWith('Arrow')) {
+    event.preventDefault();
+  }
+
+  let newDirection = null;
+
+  // Handle both arrow keys and WASD keys
+  switch (key) {
+    case 'ArrowUp':
+    case 'w':
+    case 'W':
+      newDirection = DIRECTIONS.UP;
+      break;
+    case 'ArrowDown':
+    case 's':
+    case 'S':
+      newDirection = DIRECTIONS.DOWN;
+      break;
+    case 'ArrowLeft':
+    case 'a':
+    case 'A':
+      newDirection = DIRECTIONS.LEFT;
+      break;
+    case 'ArrowRight':
+    case 'd':
+    case 'D':
+      newDirection = DIRECTIONS.RIGHT;
+      break;
+    case ' ':
+    case 'Spacebar':
+      event.preventDefault();
+      this.togglePause();
+      return;
+    case 'p':
+    case 'P':
+      this.togglePause();
+      return;
+    case 'm':
+    case 'M':
+      this.toggleMusic();
+      return;
+    case 'r':
+    case 'R':
+      if (this.state.gameOver) {
+        this.resetGame();
+      }
+      return;
+    default:
+      return;
+  }
+
+  if (newDirection) {
+    // Prevent reversing into itself
+    const currentDirection = this.state.direction;
+    const isOpposite = (
+      (newDirection === DIRECTIONS.UP && currentDirection === DIRECTIONS.DOWN) ||
+      (newDirection === DIRECTIONS.DOWN && currentDirection === DIRECTIONS.UP) ||
+      (newDirection === DIRECTIONS.LEFT && currentDirection === DIRECTIONS.RIGHT) ||
+      (newDirection === DIRECTIONS.RIGHT && currentDirection === DIRECTIONS.LEFT)
+    );
+
+    if (!isOpposite) {
+      this.nextDirection = newDirection;
+    }
+  }
+};
   componentDidMount() {
     document.addEventListener("click", this.handleFirstInteraction);
     window.addEventListener("keydown", this.handleKeyDown);
@@ -346,182 +417,142 @@ class SnakeGame extends Component {
   };
 
   // moveSnake method
-  moveSnake = () => {
-    if (
-      this.state.isPaused ||
-      !this.state.audioReady ||
-      !this.state.gameStarted ||
-      this.state.gameOver
-    ) {
-      return;
-    }
+  // moveSnake method - FIXED VERSION
+moveSnake = () => {
+  if (
+    this.state.isPaused ||
+    !this.state.audioReady ||
+    !this.state.gameStarted ||
+    this.state.gameOver
+  ) {
+    return;
+  }
 
-    this.setState((prevState) => {
-      const { snake, foods, score, highScore, snakeSegmentValues } = prevState;
-      const currentDirection = this.nextDirection;
+  this.setState((prevState) => {
+    const { snake, foods, score, highScore, snakeSegmentValues } = prevState;
+    const currentDirection = this.nextDirection;
 
-      // Create new head based on direction
-      const head = { ...snake[0] };
-      head.x += currentDirection.x;
-      head.y += currentDirection.y;
+    const head = { ...snake[0] };
+    head.x += currentDirection.x;
+    head.y += currentDirection.y;
 
-      // Check for collisions with walls or self
-      if (this.checkCollision(head, snake)) {
-        cancelAnimationFrame(this.animationFrameId);
-        if (this.foodGenerationTimer) {
-          clearInterval(this.foodGenerationTimer);
-        }
-        if (score > highScore) {
-          localStorage.setItem("snakeHighScore", score);
-        }
-        return {
-          ...prevState,
-          gameOver: true,
-          highScore: Math.max(score, highScore),
-          musicPlaying: false,
-        };
+    if (this.checkCollision(head, snake)) {
+      cancelAnimationFrame(this.animationFrameId);
+      if (this.foodGenerationTimer) {
+        clearInterval(this.foodGenerationTimer);
       }
-
-      // Add new head to the snake
-      const newSnake = [head, ...snake];
-      let newScore = score;
-      let newFoods = [...foods];
-      let newCollectedPrimes = [...prevState.collectedPrimes]; // Changed from collectedEvens
-      let newSegmentValues = [...snakeSegmentValues]; // Create a copy of segment values
-      let foodEaten = false;
-      let eatenFoodIsPrime = false;
-      let eatenFoodNumber = null;
-      
-      // Check for food collisions
-      for (let i = 0; i < newFoods.length; i++) {
-        const food = newFoods[i];
-        
-        if (head.x === food.x && head.y === food.y) {
-          foodEaten = true;
-          eatenFoodNumber = food.number;
-          
-          // Remove the eaten food
-          newFoods = newFoods.filter((_, index) => index !== i);
-          
-          // Handle prime food (positive effect)
-          if (this.isPrime(food.number)) {
-            eatenFoodIsPrime = true;
-            newScore += 1;
-            newCollectedPrimes = [...prevState.collectedPrimes, food.number]; // Changed from collectedEvens
-            
-            // Insert the prime food number at the beginning of snakeSegmentValues
-            // This will track which segment has which number
-            newSegmentValues = [food.number, ...newSegmentValues];
-            
-            // Play crunch sound
-            if (this.crunchAudio) {
-              try {
-                this.crunchAudio.currentTime = 0;
-                this.crunchAudio.play().catch(() => {});
-              } catch (e) {
-                // Handle audio error silently
-              }
-            }
-          } 
-          // Handle non-prime food (negative effect)
-          else {
-            eatenFoodIsPrime = false;
-            newScore = Math.max(newScore - 1, 0);
-            
-            // Remove last prime number collected if there are any
-            if (newCollectedPrimes.length > 0) {
-              newCollectedPrimes.pop();
-            }
-            
-            // Remove the first element from the segment values (representing the tail)
-            if (newSegmentValues.length > 0) {
-              newSegmentValues.pop();
-            }
-            
-            // Shrink snake by one segment more
-            newSnake.pop();
-            
-            // Check if snake is too small now
-            if (newSnake.length <= 1) {
-              cancelAnimationFrame(this.animationFrameId);
-              if (this.foodGenerationTimer) {
-                clearInterval(this.foodGenerationTimer);
-              }
-              return {
-                ...prevState,
-                gameOver: true,
-                highScore: Math.max(score, highScore),
-                musicPlaying: false,
-              };
-            }
-          }
-          
-          // Break after eating one food (don't process multiple foods in one move)
-          break;
-        }
+      if (score > highScore) {
+        localStorage.setItem("snakeHighScore", score);
       }
-
-      // Generate new food if any was eaten
-      if (foodEaten) {
-        const newFoodItems = this.generateFood(newSnake, newFoods, 1);
-        newFoods = [...newFoods, ...newFoodItems];
-        
-        // Set eating animation
-        clearTimeout(this.eatingAnimationTimeout);
-        this.eatingAnimationTimeout = setTimeout(() => {
-          this.setState({ isEating: false });
-        }, 300);
-      }
-
-      // Remove tail segment if no food was eaten or if non-prime food was eaten
-      // (prime food allows the snake to grow, so we keep all segments)
-      const finalSnake = foodEaten && eatenFoodIsPrime ? newSnake : newSnake.slice(0, -1);
-
       return {
         ...prevState,
-        snake: finalSnake,
-        foods: newFoods,
-        score: newScore,
-        collectedPrimes: newCollectedPrimes, // Changed from collectedEvens
-        direction: currentDirection,
-        isEating: foodEaten,
-        snakeSegmentValues: newSegmentValues,
+        gameOver: true,
+        highScore: Math.max(score, highScore),
+        musicPlaying: false,
       };
-    });
-  };
-
-  handleKeyDown = (e) => {
-    if (
-      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)
-    ) {
-      e.preventDefault();
     }
 
-    // Start game with any arrow key if not already started
-    if (
-      !this.state.gameStarted &&
-      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
-    ) {
-      this.startGame();
-      return;
-    }
+    let newSnake = [head, ...snake];
+    let newScore = score;
+    let newFoods = [...foods];
+    let newCollectedPalindromes = [...prevState.collectedPalindromes];
+    let newSegmentValues = [...snakeSegmentValues];
+    let foodEaten = false;
+    let eatenFoodNumber = null;
+    let shouldGrow = false; // Flag to determine if snake should grow
 
-    // Handle direction changes
-    if (DIRECTIONS[e.key]) {
-      const { direction } = this.state;
-      // Only allow 90-degree turns (no reversing)
-      if (
-        direction.x !== -DIRECTIONS[e.key].x ||
-        direction.y !== -DIRECTIONS[e.key].y
-      ) {
-        this.nextDirection = DIRECTIONS[e.key];
+    // Check for food collision
+    for (let i = 0; i < newFoods.length; i++) {
+      const food = newFoods[i];
+      
+      if (head.x === food.x && head.y === food.y) {
+        foodEaten = true;
+        eatenFoodNumber = food.number;
+        newFoods = newFoods.filter((_, index) => index !== i);
+
+        if (this.isPalindrome(food.number)) {
+          // Handle palindrome food - snake grows
+          shouldGrow = true;
+          newScore += 1;
+          newCollectedPalindromes = [...prevState.collectedPalindromes, food.number];
+          newSegmentValues = [food.number, ...newSegmentValues];
+          
+          if (this.crunchAudio) {
+            try {
+              this.crunchAudio.currentTime = 0;
+              this.crunchAudio.play().catch(() => {});
+            } catch (e) {}
+          }
+        } else {
+          // Handle non-palindrome food - snake shrinks
+          shouldGrow = false;
+          newScore = Math.max(newScore - 1, 0);
+          
+          // Remove last collected palindrome if available
+          if (newCollectedPalindromes.length > 0) {
+            newCollectedPalindromes.pop();
+          }
+          
+          // Remove last segment value
+          if (newSegmentValues.length > 0) {
+            newSegmentValues.pop();
+          }
+          
+          // Snake will shrink by removing TWO segments (the natural tail removal + one more)
+          // Check if snake would become too short
+          if (newSnake.length <= 2) {
+            cancelAnimationFrame(this.animationFrameId);
+            if (this.foodGenerationTimer) {
+              clearInterval(this.foodGenerationTimer);
+            }
+            return {
+              ...prevState,
+              gameOver: true,
+              highScore: Math.max(score, highScore),
+              musicPlaying: false,
+            };
+          }
+        }
+        break;
       }
-    } 
-    // Toggle pause with space
-    else if (e.key === " ") {
-      this.togglePause();
     }
-  };
+
+    // Handle snake length based on what was eaten
+    if (foodEaten) {
+      if (shouldGrow) {
+        // Palindrome food - keep the new head and all existing segments (snake grows)
+        // newSnake is already [head, ...snake] so we keep it as is
+      } else {
+        // Non-palindrome food - remove the tail AND one more segment (snake shrinks)
+        newSnake = newSnake.slice(0, -2); // Remove last 2 segments
+      }
+      
+      // Generate replacement food
+      const newFoodItems = this.generateFood(newSnake, newFoods, 1);
+      newFoods = [...newFoods, ...newFoodItems];
+      
+      // Set eating animation
+      clearTimeout(this.eatingAnimationTimeout);
+      this.eatingAnimationTimeout = setTimeout(() => {
+        this.setState({ isEating: false });
+      }, 300);
+    } else {
+      // No food eaten - normal movement, remove tail
+      newSnake = newSnake.slice(0, -1);
+    }
+
+    return {
+      ...prevState,
+      snake: newSnake,
+      foods: newFoods,
+      score: newScore,
+      collectedPalindromes: newCollectedPalindromes,
+      direction: currentDirection,
+      isEating: foodEaten,
+      snakeSegmentValues: newSegmentValues,
+    };
+  });
+};
 
   resetGame = () => {
     // Cancel animation frame
@@ -555,7 +586,7 @@ class SnakeGame extends Component {
 
     this.setState({
       snake: initialSnake,
-      collectedPrimes: [], // Changed from collectedEvens
+      collectedPalindromes: [], // Changed from collectedPrimes
       direction: DIRECTIONS.RIGHT,
       foods: newFoods,
       gameOver: false,
@@ -618,7 +649,6 @@ class SnakeGame extends Component {
 
     // Handle head image
     if (isHead) {
-      // Removed special case for head when eating
       const nextSegment = segments[1];
       if (!nextSegment) return ASSETS.IMAGES.HEAD.RIGHT;
       
@@ -683,164 +713,166 @@ class SnakeGame extends Component {
       }
     }
   };
-    render() {
-    const {
-      snake,
-      foods,
-      gameOver,
-      score,
-      highScore,
-      isPaused,
-      audioReady,
-      gameStarted,
-      musicPlaying,
-      collectedPrimes,
-    } = this.state;
+// SnakeGame_5.jsx
+// SnakeGame_5.jsx
+render() {
+  const {
+    snake,
+    foods,
+    gameOver,
+    score,
+    highScore,
+    isPaused,
+    audioReady,
+    gameStarted,
+    musicPlaying,
+    collectedPalindromes,
+  } = this.state;
 
-    if (!audioReady) {
+  if (!audioReady) {
     return (
       <div className="start-screen-body pixel-container">
-    <div className="pixel-border start-screen-main">
-      <div className="start-header">
-        <h1 className="pixel-text pixel-title" style={{ fontSize: '1.2rem' }}>SNAKE GAME: PRIME CHALLENGE</h1>
-        <h2 className="pixel-text pixel-subtitle" style={{ fontSize: '0.9rem' }}>NUMBER NINJA</h2>
-      </div>
-      
-      <div className="start-content">
-        <div className="start-section pixel-border">
-          <h3 className="start-section-title pixel-text" style={{ fontSize: '0.8rem' }}>
-            <svg className="pixel-icon" width="18" height="18" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
-            HOW TO PLAY
-          </h3>
+        <div className="pixel-border start-screen-main">
+          <div className="start-header">
+            <h1 className="pixel-text pixel-title" style={{ fontSize: '1.2rem' }}>SNAKE GAME: PALINDROME CHALLENGE</h1>
+            <h2 className="pixel-text pixel-subtitle" style={{ fontSize: '0.9rem' }}>EDGE HUNTER</h2>
+          </div>
           
-          <div className="start-rules">
-            {[
-              ["GOAL:", "Collect prime numbers (2,3,5,7)"],
-              ["CONTROLS:", "Use arrow keys to navigate"],
-              ["SCORING:", "+1 prime, -1 non-prime"],
-              ["GAME OVER:", "Collision or snake too small"],
-              ["SIZE:", "Prime=Grow, Non-prime=Shrink"]
-            ].map(([label, text]) => (
-              <div className="start-rule-item" key={label}>
-                <svg className="pixel-icon" width="16" height="16" viewBox="0 0 24 24">
-                  <polyline points="9 18 15 12 9 6"></polyline>
+          <div className="start-content">
+            <div className="start-section pixel-border">
+              <h3 className="start-section-title pixel-text" style={{ fontSize: '0.8rem' }}>
+                <svg className="pixel-icon" width="18" height="18" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
-                <p className="pixel-text" style={{ fontSize: '0.7rem' }}>
-                  <strong style={{ fontSize: '0.75rem' }}>{label}</strong> {text}
-                </p>
+                HOW TO PLAY
+              </h3>
+              
+              <div className="start-rules">
+                {[
+                  ["GOAL:", "Collect palindrome numbers on edges"],
+                  ["CONTROLS:", "Use arrow keys to navigate"],
+                  ["SCORING:", "+1 palindrome, game over on invalid"],
+                  ["VALID FOOD:", "Only green palindromes on edges"],
+                  ["EDGES ONLY:", "Food must be on grid boundaries"]
+                ].map(([label, text]) => (
+                  <div className="start-rule-item" key={label}>
+                    <svg className="pixel-icon" width="16" height="16" viewBox="0 0 24 24">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                    <p className="pixel-text" style={{ fontSize: '0.7rem' }}>
+                      <strong style={{ fontSize: '0.75rem' }}>{label}</strong> {text}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-        
-        <div className="start-section pixel-border">
-          <h3 className="start-section-title pixel-text" style={{ fontSize: '0.8rem' }}>
-            <svg className="pixel-icon" width="18" height="18" viewBox="0 0 24 24">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-            </svg>
-            EDUCATIONAL VALUE
-          </h3>
-          
-          <div className="start-edu-value">
-            {[
-              "Prime numbers are only divisible by 1 and themselves",
-              "Valid primes between 1-9: 2, 3, 5, 7",
-              "Non-prime numbers disappear after 3 seconds!"
-            ].map((text, index) => (
-              <p key={index} className="pixel-text" style={{ fontSize: '0.7rem' }}>
-                {text}
-              </p>
-            ))}
-          </div>
-        </div>
-        
-        <div className="start-controls">
-          <div className="start-key-controls">
-            {['←', '↑', '↓', '→'].map((key, index) => (
-              <div key={index} className="start-key pixel-key" style={{ 
-                width: '2rem', 
-                height: '2rem', 
-                fontSize: '0.8rem' 
-              }}>
-                {key}
+            </div>
+            
+            <div className="start-section pixel-border">
+              <h3 className="start-section-title pixel-text" style={{ fontSize: '0.8rem' }}>
+                <svg className="pixel-icon" width="18" height="18" viewBox="0 0 24 24">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                  <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                </svg>
+                EDUCATIONAL VALUE
+              </h3>
+              
+              <div className="start-edu-value">
+                {[
+                  "Palindromes read same forwards and backwards",
+                  "Examples: 1, 2, 11, 22, 33, 121, 131",
+                  "Only edge palindromes are valid food!"
+                ].map((text, index) => (
+                  <p key={index} className="pixel-text" style={{ fontSize: '0.7rem' }}>
+                    {text}
+                  </p>
+                ))}
               </div>
-            ))}
+            </div>
+            
+            <div className="start-controls">
+              <div className="start-key-controls">
+                {['←', '↑', '↓', '→'].map((key, index) => (
+                  <div key={index} className="start-key pixel-key" style={{ 
+                    width: '2rem', 
+                    height: '2rem', 
+                    fontSize: '0.8rem' 
+                  }}>
+                    {key}
+                  </div>
+                ))}
+              </div>
+              <button 
+                className="start-btn pixel-btn" 
+                onClick={this.startGame}
+                style={{ 
+                  fontSize: '0.8rem',
+                  padding: '0.5rem 1rem',
+                  marginTop: '0.5rem'
+                }}>
+                CLICK ANYWHERE TO START!
+              </button>
+            </div>
           </div>
-          <button 
-            className="start-btn pixel-btn" 
-            onClick={this.startGame}
-            style={{ 
-              fontSize: '0.8rem',
-              padding: '0.5rem 1rem',
-              marginTop: '0.5rem'
-            }}>
-            CLICK ANYWHERE TO START!
-          </button>
         </div>
       </div>
-    </div>
-  </div>
     );
   }
 
-    const gridArray = this.getArrayRepresentation();
+  const gridArray = this.getArrayRepresentation();
 
-    return (
-      <div className="snake-game-container pixel-container">
-    <div className="game-header">
-      <h1 className="game-title pixel-text" style={{ 
-        textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
-        fontSize: '1.5rem'
-      }}>PRIME HUNTER</h1>
-      <div className="score-display">
-        <div className="score-container current-score pixel-border" style={{ 
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          padding: '6px 12px'
-        }}>
-          <span className="score-label pixel-text" style={{ 
-            color: '#8BFF4A',
-            fontSize: '0.7rem'
-          }}>SCORE:</span>
-          <span className="score-value pixel-text" style={{ 
-            color: '#4CFF50',
-            fontSize: '0.9rem'
-          }}>{score}</span>
-        </div>
-        <div className="score-container high-score pixel-border" style={{ 
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          padding: '6px 12px'
-        }}>
-          <span className="score-label pixel-text" style={{ 
-            color: '#8BFF4A',
-            fontSize: '0.7rem'
-          }}>HIGH SCORE:</span>
-          <span className="score-value pixel-text" style={{ 
-            color: '#4CFF50',
-            fontSize: '0.9rem'
-          }}>{highScore}</span>
+  return (
+    <div className="snake-game-container pixel-container">
+      <div className="game-header">
+        <h1 className="game-title pixel-text" style={{ 
+          textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
+          fontSize: '1.5rem'
+        }}>PALINDROME HUNTER</h1>
+        <div className="score-display">
+          <div className="score-container current-score pixel-border" style={{ 
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            padding: '6px 12px'
+          }}>
+            <span className="score-label pixel-text" style={{ 
+              color: '#8BFF4A',
+              fontSize: '0.7rem'
+            }}>SCORE:</span>
+            <span className="score-value pixel-text" style={{ 
+              color: '#4CFF50',
+              fontSize: '0.9rem'
+            }}>{score}</span>
+          </div>
+          <div className="score-container high-score pixel-border" style={{ 
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            padding: '6px 12px'
+          }}>
+            <span className="score-label pixel-text" style={{ 
+              color: '#8BFF4A',
+              fontSize: '0.7rem'
+            }}>HIGH SCORE:</span>
+            <span className="score-value pixel-text" style={{ 
+              color: '#4CFF50',
+              fontSize: '0.9rem'
+            }}>{highScore}</span>
+          </div>
         </div>
       </div>
-    </div>
 
-        <div className="game-content-wrapper">
-          <div
-        ref={this.gameBoardRef}
-        className={`game-board ${!gameStarted ? "waiting-start" : ""} pixel-border`}
-        style={{ backgroundColor: '#0a2f0a' }}
-        tabIndex="0"
-        onKeyDown={this.handleKeyDown}
-      >
-            <div className="grid-pattern"></div>
+      <div className="game-content-wrapper">
+        <div
+          ref={this.gameBoardRef}
+          className={`game-board ${!gameStarted ? "waiting-start" : ""} pixel-border`}
+          style={{ backgroundColor: '#1a2e0a' }}
+          tabIndex="0"
+          onKeyDown={this.handleKeyDown}
+        >
+          <div className="grid-pattern"></div>
 
-            {foods.map((food, index) => (
+          {foods.map((food, index) => (
               <div
                 key={`food-${food.id || index}`}
-                className={`food-container ${!this.isPrime(food.number) ? 'odd' : ''}`}
+                className={`food-container ${!this.isPalindrome(food.number) ? 'odd' : ''}`}
                 style={{
                   left: `${food.x * CELL_SIZE}px`,
                   top: `${food.y * CELL_SIZE}px`,
@@ -851,50 +883,74 @@ class SnakeGame extends Component {
               </div>
             ))}
             
-            {snake.map((segment, index) => (
-              <div
-                key={`${segment.x}-${segment.y}-${index}`}
-                className={`snake-segment ${
-                  index === 0
-                    ? "head"
-                    : index === snake.length - 1
-                    ? "tail"
-                    : "body"
-                } ${this.state.isEating && index === 0 ? "eating" : ""}`}
-                style={{
-                  left: `${segment.x * CELL_SIZE}px`,
-                  top: `${segment.y * CELL_SIZE}px`,
-                  zIndex: index === 0 ? 3 : index === snake.length - 1 ? 1 : 2,
-                }}
-              >
-                <img
-                  src={this.getSegmentImage(segment, index, snake)}
-                  alt={
-                    index === 0
-                      ? "Snake head"
-                      : index === snake.length - 1
-                      ? "Snake tail"
-                      : "Snake body"
-                  }
-                />
-              </div>
-            ))}
+           {snake.map((segment, index) => (
+            <div
+              key={`${segment.x}-${segment.y}-${index}`}
+              className={`snake-segment ${
+                index === 0
+                  ? "head"
+                  : index === snake.length - 1
+                  ? "tail"
+                  : "body"
+              } ${this.state.isEating && index === 0 ? "eating" : ""}`}
+              style={{
+                left: `${segment.x * CELL_SIZE}px`,
+                top: `${segment.y * CELL_SIZE}px`,
+                zIndex: index === 0 ? 3 : index === snake.length - 1 ? 1 : 2,
+              }}
+            >
+              <img
+                src={this.getSegmentImage(segment, index, snake)}
+                alt={index === 0 ? "Snake head" : "Snake body part"}
+              />
+            </div>
+          ))}
 
-            {!gameStarted && !gameOver && (
-              <div className="start-screen-overlay">
-                <div className="start-screen-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
-                  <h2 className="pixel-text" style={{ color: '#4CFF50' }}>READY PLAYER?</h2>
-                  <p className="pixel-text" style={{ color: '#8BFF4A' }}>USE ARROW KEYS</p>
-                  <button className="pixel-btn" onClick={this.startGame}>
-                    START GAME
-                  </button>
-                </div>
+          
+          {snake.map((segment, index) => (
+            <div
+              key={`${segment.x}-${segment.y}-${index}`}
+              className={`snake-segment ${
+                index === 0
+                  ? "head"
+                  : index === snake.length - 1
+                  ? "tail"
+                  : "body"
+              } ${this.state.isEating && index === 0 ? "eating" : ""}`}
+              style={{
+                left: `${segment.x * CELL_SIZE}px`,
+                top: `${segment.y * CELL_SIZE}px`,
+                zIndex: index === 0 ? 3 : index === snake.length - 1 ? 1 : 2,
+              }}
+            >
+              <img
+                src={this.getSegmentImage(segment, index, snake)}
+                alt={
+                  index === 0
+                    ? "Snake head"
+                    : index === snake.length - 1
+                    ? "Snake tail"
+                    : "Snake body"
+                }
+              />
+            </div>
+          ))}
+
+          {!gameStarted && !gameOver && (
+            <div className="start-screen-overlay">
+              <div className="start-screen-message pixel-border" style={{ backgroundColor: '#1a2e0a' }}>
+                <h2 className="pixel-text" style={{ color: '#4CFF50' }}>READY PLAYER?</h2>
+                <p className="pixel-text" style={{ color: '#8BFF4A' }}>USE ARROW KEYS</p>
+                <button className="pixel-btn" onClick={this.startGame}>
+                  START GAME
+                </button>
               </div>
+            </div>
           )}
 
           {gameOver && (
             <div className="game-over-overlay">
-              <div className="game-over-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
+              <div className="game-over-message pixel-border" style={{ backgroundColor: '#1a2e0a' }}>
                 <h2 className="pixel-text" style={{ color: '#FF4444' }}>GAME OVER!</h2>
                 <p className="pixel-text" style={{ color: '#8BFF4A' }}>SCORE: {score}</p>
                 <div className="game-over-buttons">
@@ -906,10 +962,10 @@ class SnakeGame extends Component {
             </div>
           )}
 
-            {isPaused && (
-              <div className="pause-overlay">
+          {isPaused && (
+            <div className="pause-overlay">
               <div className="pause-message pixel-border" style={{ 
-                backgroundColor: '#0a2f0a',
+                backgroundColor: '#1a2e0a',
                 padding: '20px',
                 textAlign: 'center'
               }}>
@@ -927,10 +983,10 @@ class SnakeGame extends Component {
                 </button>
               </div>
             </div>
-            )}
-          </div>
+          )}
+        </div>
 
-          <div className="array-side-panel pixel-border" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+         <div className="array-side-panel pixel-border" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
         <h3 className="pixel-text" style={{ color: '#4CFF50' }}>NUMBER GRID</h3>
               <div className="array-grid">
                 {gridArray.map((row, y) => (
@@ -942,7 +998,7 @@ class SnakeGame extends Component {
                       } else if (cell === -3) {
                         cellClass = "body";
                       } else if (cell > 0) {
-                        cellClass = this.isPrime(cell) ? "even-number" : "food";
+                        cellClass = this.isPalindrome(cell) ? "even-number" : "food";
                       }
                       
                       return (
@@ -957,62 +1013,63 @@ class SnakeGame extends Component {
                   </div>
                 ))}
               </div>
-            <div className="array-legend">
-              <div className="legend-item">
-                <span className="legend-color head"></span> Head (-1)
-              </div>
-              <div className="legend-item">
-                <span className="legend-color prime-number"></span> Prime Food
-              </div>
-              <div className="legend-item">
-                <span className="legend-color food"></span> Non-Prime
-              </div>
-              <div className="legend-item">
-                <span className="legend-color"></span> Empty (0)
-              </div>
-            </div> 
+          <div className="array-legend">
+            <div className="legend-item">
+              <span className="legend-color head"></span> Head (-1)
+            </div>
+            <div className="legend-item">
+              <span className="legend-color even-number"></span> Valid Palindrome
+            </div>
+            <div className="legend-item">
+              <span className="legend-color food"></span> Invalid Food
+            </div>
+            <div className="legend-item">
+              <span className="legend-color body"></span> Snake Body
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="controls-container">
-      <div className="action-controls">
-        {gameStarted && !gameOver && (
-          <button className="pixel-btn" onClick={this.togglePause} 
+      <div className="controls-container">
+        <div className="action-controls">
+          {gameStarted && !gameOver && (
+            <button className="pixel-btn" onClick={this.togglePause} 
+              style={{ fontSize: '0.8rem' }}>
+              {isPaused ? "RESUME" : "PAUSE"}
+            </button>
+          )}
+
+          <button className="pixel-btn" onClick={this.resetGame}
             style={{ fontSize: '0.8rem' }}>
-            {isPaused ? "RESUME" : "PAUSE"}
+            {gameStarted ? "RESET" : "NEW GAME"}
           </button>
-        )}
+          <button
+            className={`pixel-btn ${musicPlaying ? "on" : "off"}`}
+            onClick={this.toggleMusic}
+            style={{ width: '60px', padding: '8px' }}
+          >
+            {musicPlaying ? "🔊" : "🔇"}
+          </button>
+        </div>
+      </div>
 
-        <button className="pixel-btn" onClick={this.resetGame}
-          style={{ fontSize: '0.8rem' }}>
-          {gameStarted ? "RESET" : "NEW GAME"}
-        </button>
-        <button
-          className={`pixel-btn ${musicPlaying ? "on" : "off"}`}
-          onClick={this.toggleMusic}
-          style={{ width: '60px', padding: '8px' }}
-        >
-          {musicPlaying ? "🔊" : "🔇"}
-        </button>
+      <div className="instructions pixel-text" style={{ 
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        borderRadius: '8px',
+        color: '#8BFF4A',
+        fontSize: '0.7rem',
+        lineHeight: '1.2',
+        padding: '10px'
+      }}>
+        <p>USE ARROW KEYS TO CONTROL</p>
+        <p>COLLECT PALINDROME NUMBERS ON GRID EDGES ONLY</p>
+        <p>GREEN NUMBERS = VALID FOOD (EDGE PALINDROMES)</p>
+        <p>RED NUMBERS = INVALID FOOD (AVOID!)</p>
+        <p>EXAMPLES: 1, 2, 11, 22, 121, 131</p>
       </div>
     </div>
-
-        <div className="instructions pixel-text" style={{ 
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      borderRadius: '8px',
-      color: '#8BFF4A',
-      fontSize: '0.7rem',
-      lineHeight: '1.2',
-      padding: '10px'
-    }}>
-      <p>USE ARROW KEYS TO CONTROL</p>
-      <p>COLLECT PRIME NUMBERS (2,3,5,7) TO GROW</p>
-      <p>AVOID NON-PRIME NUMBERS - THEY SHRINK YOU!</p>
-      <p>NON-PRIMES DISAPPEAR AFTER 3 SECONDS!</p>
-    </div>
-      </div>
-    );
-  }
+  );
+}
 }
 
 export default SnakeGame;
