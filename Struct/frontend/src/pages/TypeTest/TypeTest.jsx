@@ -1,4 +1,4 @@
-// TODO: did not use calculateStars
+// TODO: add more levels/change levels or change words and ask if can merge
 import React, {
   useState,
   useEffect,
@@ -75,26 +75,21 @@ function TypeTest() {
 
   const calculateStars = useCallback(
     (timeTaken, selectedTimer, allWordsCompleted) => {
-      // If not all words were completed, return 0 stars regardless of time
+      // words not completed then 0 stars
       if (!allWordsCompleted) {
         return 0;
       }
 
-      // Only award stars if all words were completed
+      // if timer is 30 , then reward 3 stars
       if (selectedTimer === 30) {
-        if (timeTaken <= 30) return 3;
-        if (timeTaken <= 45) return 2;
-        if (timeTaken <= 60) return 1;
-        return 0;
-      } else if (selectedTimer === 45) {
-        if (timeTaken <= 45) return 2;
-        if (timeTaken <= 60) return 1;
-        return 0;
+        return 3;
+      } else if (selectedTimer === 40) {
+        return 2;
       } else if (selectedTimer === 60) {
-        if (timeTaken <= 60) return 1;
-        return 0;
+        return 1;
       }
-      return 0; // Default for practice or undefined timers
+
+      return 0; // default no stars if no timer, (for practice)
     },
     []
   );

@@ -10,6 +10,7 @@ import {
   FaCheck,
   FaChevronRight,
   FaPlayCircle,
+  FaChevronDown,
 } from "react-icons/fa";
 
 // Memoized from previous step
@@ -63,58 +64,141 @@ export const TypeTestNavbar = React.memo(
     onModeChange,
     onTimerChange,
     onToggleMute,
-  }) => (
-    <div className="w-full bg-gray-700 p-3 rounded-t-lg mb-6 flex justify-between items-center flex-wrap gap-2 shadow-inner">
-      <div className="flex items-center gap-2 flex-grow justify-center md:justify-start">
-        <button
-          onClick={() => onModeChange("Competitive")}
-          className={`px-4 py-2 rounded-full font-semibold transition-colors text-sm md:text-base ${
-            mode === "Competitive"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-          }`}
-        >
-          Competitive
-        </button>
-        <button
-          onClick={() => onModeChange("Practice")}
-          className={`px-4 py-2 rounded-full font-semibold transition-colors text-sm md:text-base ${
-            mode === "Practice"
-              ? "bg-green-600 text-white"
-              : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-          }`}
-        >
-          Practice
-        </button>
-      </div>
+  }) => {
+    // Add state to control dropdown visibility
+    const [showTimerDropdown, setShowTimerDropdown] = React.useState(false);
 
-      <div className="flex items-center gap-2 flex-grow justify-center md:justify-end">
-        {mode === "Competitive" && (
-          <select
-            value={selectedTimer}
-            onChange={onTimerChange}
-            className="bg-gray-600 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm md:text-base"
-            disabled={gameStarted && !gameOver}
+    // Toggle dropdown visibility
+    const toggleDropdown = () => {
+      if (!(gameStarted && !gameOver)) {
+        setShowTimerDropdown((prev) => !prev);
+      }
+    };
+
+    // Close dropdown when a timer is selected
+    const handleTimerSelect = (value) => {
+      onTimerChange({ target: { value } });
+      setShowTimerDropdown(false);
+    };
+
+    return (
+      <div className="w-full bg-gray-700 p-3 rounded-t-lg mb-6 flex justify-between items-center flex-wrap gap-2 shadow-inner">
+        <div className="flex items-center gap-2 flex-grow justify-center md:justify-start">
+          <button
+            onClick={() => onModeChange("Competitive")}
+            className={`px-4 py-2 rounded-full font-semibold transition-colors text-sm md:text-base ${
+              mode === "Competitive"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+            }`}
           >
-            <option value={30}>30s</option>
-            <option value={40}>40s</option>
-            <option value={60}>60s</option>
-          </select>
-        )}
-        <button
-          onClick={onToggleMute}
-          className="p-2 bg-gray-600 text-white rounded-full hover:bg-gray-500 transition-all text-sm md:text-base"
-          aria-label={isMuted ? "Unmute Audio" : "Mute Audio"}
-        >
-          {isMuted ? (
-            <FaVolumeMute className="text-lg md:text-xl" />
-          ) : (
-            <FaVolumeUp className="text-lg md:text-xl" />
+            Competitive
+          </button>
+          <button
+            onClick={() => onModeChange("Practice")}
+            className={`px-4 py-2 rounded-full font-semibold transition-colors text-sm md:text-base ${
+              mode === "Practice"
+                ? "bg-green-600 text-white"
+                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+            }`}
+          >
+            Practice
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 flex-grow justify-center md:justify-end">
+          {mode === "Competitive" && (
+            <div className="relative">
+              {/* Current selected timer button that toggles dropdown */}
+              <button
+                onClick={toggleDropdown}
+                disabled={gameStarted && !gameOver}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                  gameStarted && !gameOver
+                    ? "opacity-60 cursor-not-allowed"
+                    : "hover:bg-gray-600"
+                } bg-gray-700 border border-gray-600`}
+              >
+                <span className="text-white">{selectedTimer}s</span>
+
+                <FaChevronDown
+                  className={`text-sm text-white ml-1 transition-transform duration-200 ${
+                    showTimerDropdown ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown menu */}
+              {showTimerDropdown && (
+                <div className="absolute right-0 mt-2 z-10 bg-gray-800 rounded-lg shadow-lg p-2 border border-gray-600 w-44">
+                  <div className="text-center text-xs text-gray-300 font-medium mb-1">
+                    Select Timer:
+                  </div>
+                  <div className="grid grid-cols-1 gap-1">
+                    <button
+                      onClick={() => handleTimerSelect("30")}
+                      className={`flex items-center justify-between px-2 py-1 rounded transition-colors ${
+                        selectedTimer === 30
+                          ? "bg-blue-700 border border-blue-400"
+                          : "bg-gray-700 hover:bg-gray-600"
+                      }`}
+                    >
+                      <span className="text-white">30s</span>
+                      <div className="flex">
+                        <span className="text-yellow-400">★★★</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleTimerSelect("40")}
+                      className={`flex items-center justify-between px-2 py-1 rounded transition-colors ${
+                        selectedTimer === 40
+                          ? "bg-blue-700 border border-blue-400"
+                          : "bg-gray-700 hover:bg-gray-600"
+                      }`}
+                    >
+                      <span className="text-white">40s</span>
+                      <div className="flex">
+                        <span className="text-yellow-400">★★</span>
+                        <span className="text-gray-500">★</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleTimerSelect("60")}
+                      className={`flex items-center justify-between px-2 py-1 rounded transition-colors ${
+                        selectedTimer === 60
+                          ? "bg-blue-700 border border-blue-400"
+                          : "bg-gray-700 hover:bg-gray-600"
+                      }`}
+                    >
+                      <span className="text-white">60s</span>
+                      <div className="flex">
+                        <span className="text-yellow-400">★</span>
+                        <span className="text-gray-500">★★</span>
+                      </div>
+                    </button>
+                  </div>
+                  <div className="text-center text-xs text-gray-400 mt-1">
+                    Must complete all words
+                  </div>
+                </div>
+              )}
+            </div>
           )}
-        </button>
+          <button
+            onClick={onToggleMute}
+            className="p-2 bg-gray-600 text-white rounded-full hover:bg-gray-500 transition-all text-sm md:text-base"
+            aria-label={isMuted ? "Unmute Audio" : "Mute Audio"}
+          >
+            {isMuted ? (
+              <FaVolumeMute className="text-lg md:text-xl" />
+            ) : (
+              <FaVolumeUp className="text-lg md:text-xl" />
+            )}
+          </button>
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
 );
 TypeTestNavbar.displayName = "TypeTestNavbar";
 
@@ -175,10 +259,34 @@ export const StartScreen = React.memo(
   ({ mode, selectedTimer, onStartGame }) => (
     <div className="flex flex-col items-center justify-center p-10">
       <h1 className="text-4xl font-bold text-blue-400 mb-6">Ready to Type?</h1>
-      <p className="text-gray-300 mb-8 text-center">
+      <p className="text-gray-300 mb-2 text-center">
         Mode: <span className="font-bold text-white">{mode}</span>
         {mode === "Competitive" && ` ${selectedTimer}s`}
       </p>
+
+      {/* Add star indicator for selected timer */}
+      {mode === "Competitive" && (
+        <div className="mb-6 flex flex-col items-center">
+          <div className="flex justify-center mb-1">
+            {selectedTimer === 30 && (
+              <span className="text-yellow-400 text-2xl">★★★</span>
+            )}
+            {selectedTimer === 40 && (
+              <>
+                <span className="text-yellow-400 text-2xl">★★</span>
+                <span className="text-gray-500 text-2xl">★</span>
+              </>
+            )}
+            {selectedTimer === 60 && (
+              <>
+                <span className="text-yellow-400 text-2xl">★</span>
+                <span className="text-gray-500 text-2xl">★★</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <button
         onClick={onStartGame}
         className="px-8 py-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-xl shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-1"

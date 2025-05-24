@@ -34,6 +34,8 @@ const TypeTestLevels = () => {
   const [userProgress, setUserProgress] = useState({
     unlockedLevels: [0], // Default: only first level unlocked
     stars: {}, // Stores { level_index: stars_earned }
+    scores: {},
+    wpm: {},
   });
 
   // Pagination state
@@ -70,15 +72,30 @@ const TypeTestLevels = () => {
         }
 
         const data = await response.json();
-        const fetchedStars = {};
-
-        // Process star data from API
-        data.forEach((record) => {
-          fetchedStars[record.level_index] = record.stars_earned;
-        });
 
         // Calculate unlocked levels based on star requirements
         const unlockedLevels = [0]; // First level is always unlocked
+        const fetchedStars = {};
+        const fetchedScores = {};
+        const fetchedWPM = {};
+
+        // Process star data from API
+        data.forEach((record) => {
+          const levelIdx = record.level_index;
+          fetchedStars[record.level_index] = record.stars_earned;
+
+          // Also store score and WPM for display
+          if (
+            !fetchedScores[levelIdx] ||
+            record.score > fetchedScores[levelIdx]
+          ) {
+            fetchedScores[levelIdx] = record.score;
+          }
+
+          if (!fetchedWPM[levelIdx] || record.wpm > fetchedWPM[levelIdx]) {
+            fetchedWPM[levelIdx] = record.wpm;
+          }
+        });
 
         // Check each level to see if it should be unlocked
         for (let i = 1; i < levels.length; i++) {
@@ -95,6 +112,8 @@ const TypeTestLevels = () => {
         setUserProgress({
           unlockedLevels,
           stars: fetchedStars,
+          scores: fetchedScores,
+          wpm: fetchedWPM,
         });
       } catch (error) {
         console.error("Error fetching user progress:", error);
@@ -241,12 +260,30 @@ const TypeTestLevels = () => {
 
               {/* Level description */}
               <p className="text-gray-300 text-sm text-center mb-4">
-                {status === "completed"
-                  ? `Your High Score: ${userProgress.stars[originalIndex]} ${
-                      userProgress.stars[originalIndex] === 1 ? "star" : "stars"
-                    }`
-                  : level.description ||
-                    `Master the art of ${level.name.toLowerCase()} syntax.`}
+                {status === "completed" ? (
+                  <span className="flex flex-col items-center">
+                    <span className="font-medium text-blue-300 mb-1">
+                      Your Best Results:
+                    </span>
+                    <span className="flex items-center gap-2 justify-center">
+                      <span className="bg-gray-700 px-2 py-1 rounded">
+                        <span className="text-green-300 font-bold">
+                          {userProgress.scores?.[originalIndex] || 0}
+                        </span>{" "}
+                        Score
+                      </span>
+                      <span className="bg-gray-700 px-2 py-1 rounded">
+                        <span className="text-yellow-300 font-bold">
+                          {userProgress.wpm?.[originalIndex] || 0}
+                        </span>{" "}
+                        WPM
+                      </span>
+                    </span>
+                  </span>
+                ) : (
+                  level.description ||
+                  `Master the art of ${level.name.toLowerCase()} syntax.`
+                )}
               </p>
 
               {/* Stars for completed or current levels */}
