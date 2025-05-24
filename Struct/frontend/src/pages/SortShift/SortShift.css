@@ -327,3 +327,421 @@ hr {
 .cancel-button:hover {
   background-color: #d1d5db;
 }
+
+
+/*Tutorial */
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+    
+    }  
+    @keyframes slideInFade {
+        0% {
+            opacity: 0;
+            transform: translateY(-50px); /* Start slightly above */
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0); /* End at the original position */
+        }
+    }
+    
+    .tutorial-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.938); /* Semi-transparent background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: slideInFade 0.5s ease-in-out; /* Apply the animation */
+    }
+
+.tutorial-content {
+    background-color: rgba(47, 47, 47, 0);
+    width: 90%;
+    height: 85%;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid rgb(165, 165, 165);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.tutorial-content img {
+    margin-top: 60px; /* Adjust the top margin to move the image up or down */
+    display: block; 
+    margin-left: auto;
+    margin-right: auto; 
+    max-width: 100%; 
+    height: auto; 
+    position: relative; 
+    top: 10px; 
+}
+.tutorial-content ul {
+    color: white; /* Set the text color of the list items to white */
+    list-style-type: disc; /* Ensure bullets are displayed */
+    padding-left: 40px; /* Add some padding for better alignment */
+    font-size: 16px;
+}
+.tutorial-content p{
+    color: white;
+    text-align: left;
+    text-indent: 50px;
+    font-size: 18px;
+    line-height: 2;
+}
+.tutorial-content h1{
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+.tutorial-content ol {
+    padding-left: 40px; /* Indent the list */
+    color: white; /* Make the text color white */
+    list-style-type: decimal; /* Ensure numbers are displayed */
+}
+
+.tutorial-content li {
+    margin-bottom: 10px; /* Add spacing between list items */
+    color: white; /* Make the numbers and text white */
+    line-height: 1.8; /* Improve readability */
+}
+.tutorial-header {
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-bottom: 20px; 
+    margin-top: 40px;
+}
+.tutorial-header h1 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* Center the title */
+    margin: 0;
+    font-size: 1.5rem; /* Adjust font size as needed */
+}
+
+.tutorial-body {
+    flex-grow: 1;
+    overflow: auto;
+    margin: 20px 0;
+    color: white;
+    justify-content: left;
+    text-align: left;
+    line-height: 2;
+}
+
+.tutorial-navigation {
+    display: flex;
+    justify-content: space-between;
+}
+
+.close-btn {
+    position: absolute;
+    top: -30px; /* Move the button 10px upward */
+    right: 0; /* Position the button at the rightmost */
+    background-color: #e80505;
+    color: white;
+    border: 1px solid #000000;
+    border-radius: 50%;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+    background-color: #007a80;
+}
+.previous-btn,
+.next-btn{
+    background-color: #484848;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.previous-btn:hover,
+.next-btn:hover,
+.close-btn:hover {
+    background-color: #b5b5b5;
+}
+
+.previous-btn:disabled,
+.next-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+
+/* Visual elements for the tutorial */
+/* Add this to your SortShift.css file */
+.array-labels {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  color: white;
+}
+
+.unsorted-label {
+  flex: 1;
+  text-align: center;
+  margin-left: 370px; 
+}
+
+.sorted-label {
+  flex: 1;
+  text-align: center;
+  margin-right: 370px;
+}
+.tutorial-visual {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.array-example {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.array-example span {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+.array-example .unsorted {
+  background-color: transparent;
+  border: 1px solid #ff9999;
+}
+
+.array-example .sorted {
+  background-color: transparent;
+  border: 1px solid #99ff99;
+}
+
+.array-example .arrow {
+  font-size: 50px;
+  color: #666;
+}
+
+/* Algorithm cards */
+.algorithm-cards {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.algorithm-card {
+  width: 300px;
+  background: transparent;
+  border: 1px solid #ff9999;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.algorithm-card p{
+  color: #cecbcb;
+}
+.algorithm-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.algorithm-card h3 {
+  color: #ffffff;
+  margin-top: 0;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 8px;
+}
+
+.complexity-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8em;
+  color: #ffffff;
+  margin: 8px 0;
+}
+
+.mini-array {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.mini-array span {
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  text-align: center;
+  font-weight: bold;
+  background-color: #56525200;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.mini-array .selected {
+  background-color: #ff0000e8;
+}
+
+.mini-array .sorted {
+  background-color: #757575;
+}
+
+.mini-array .current {
+  background-color: #1c0484;
+  border-color: #9999dd;
+}
+
+.mini-array .compare {
+  background-color: #1c0484;
+}
+
+/* Tutorial steps */
+.tutorial-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: #444264;
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex-grow: 1;
+}
+
+.step-content h3 {
+  margin-top: 0;
+  color: #efefef;
+  font-size: 18px;
+}
+.step-content p{
+  color: rgb(188, 188, 188)
+}
+
+.tip-box {
+  background-color: #00000000;
+  border: 1px solid #ff9999;
+  padding: 12px 15px;
+  margin: 20px 0;
+  border-radius: 0 4px 4px 0;
+  width: 98%;
+}
+
+/* Scoring visualization */
+.scoring-explanation {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.score-meter {
+  width: 100%;
+  margin: 20px 0;
+}
+
+.score-levels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.score-bar {
+  position: relative;
+  height: 20px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.passing-marker {
+  position: absolute;
+  left: 70%;
+  top: 0;
+  height: 100%;
+  width: 2px;
+  background-color: #000;
+}
+
+.score-indicator {
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, #ff6b6b 0%, #ffa06b 50%, #66d986 100%);
+  border-radius: 10px;
+}
+
+.score-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 0.85em;
+}
+
+.hearts-explanation {
+  margin: 20px 0;
+}
+
+.hearts-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.hearts-visual {
+  display: flex;
+  gap: 5px;
+}
+
+.heart-icon {
+  color: #ff6b6b;
+  font-size: 24px;
+}
+
