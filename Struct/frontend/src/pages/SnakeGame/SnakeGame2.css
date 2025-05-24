@@ -1,0 +1,347 @@
+/* Food number styling */
+.food-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+/* Eaten number display on body */
+.eaten-value {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.food-container.odd {
+  animation: fadeOut 2.5s forwards;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* In SnakeGame2.css */
+.snake-segment {
+  min-width: 30px;
+  min-height: 30px;
+  position: absolute;
+}
+
+.game-board {
+  min-width: 600px;
+  min-height: 600px;
+}
+
+/* In SnakeGame2.css */
+.food-container.odd {
+  animation: pulseWarning 1s infinite;
+}
+
+@keyframes pulseWarning {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.food-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.food-container.odd .food-number {
+  color: #ff4444;
+}
+
+.array-cell.even-food {
+  background-color: #32CD32; /* Bright green for even foods */
+  color: white;
+  font-weight: bold;
+}
+
+.array-cell.odd-food {
+  background-color: #FF6347; /* Tomato red for odd foods */
+  color: white;
+  font-weight: bold;
+}
+
+.legend-color.even-food {
+  background-color: #32CD32;
+}
+
+.legend-color.odd-food {
+  background-color: #FF6347;
+}
+
+/* Add these styles to your SnakeGame.css */
+.array-cell.head {
+  background-color: #ff4444; /* Red for head */
+  color: white;
+}
+
+.array-cell.body {
+  background-color: #cc0000; /* Darker red for body */
+  color: white;
+}
+
+.array-cell.food {
+  background-color: #ff6666; /* Light red for other odd foods */
+  color: white;
+}
+
+.array-cell.even-number {
+  background-color: #00cc00; /* Green for even numbers */
+  color: white;
+}
+.array-cell.even-number-zero{
+  background-color: white;
+}
+
+.array-cell {
+  width: 20px; /* Reduced from 24px to fit more cells */
+  height: 20px; /* Reduced from 24px to fit more cells */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  border-radius: 2px; /* Reduced from 3px */
+  font-size: 10px; /* Reduced from 12px */
+  font-family: monospace;
+}
+
+.array-cell.head {
+  background-color: #4caf50;
+  color: white;
+  font-weight: bold;
+}
+
+.array-cell.food {
+  background-color: #ff5722;
+  color: white;
+  font-weight: bold;
+}
+
+.array-cell.body {
+  background-color: #8bc34a;
+  color: white;
+}
+
+
+
+/* Start Screen Styles */
+/* .start-screen-wrapper {
+  --start-primary: #4caf50;
+  --start-secondary: #2e7d32;
+  --start-accent: #8bc34a;
+  --start-dark: #1b5e20;
+  --start-light: #c8e6c9;
+  --start-text: #333;
+  --start-text-light: #fff;
+  --start-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --start-radius: 10px;
+}
+
+.start-screen-body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--start-primary), var(--start-dark));
+}
+
+.start-screen-main {
+  width: 90%;
+  max-width: 800px;
+  background-color: white;
+  border-radius: var(--start-radius);
+  box-shadow: var(--start-shadow);
+  overflow: hidden;
+  animation: start-fadeIn 0.5s ease-in-out;
+}
+
+@keyframes start-fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.start-header {
+  background-color: var(--start-primary);
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.start-header h1 {
+  margin: 0;
+  font-size: 28px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.start-header h2 {
+  margin: 10px 0 0;
+  font-size: 20px;
+  font-weight: normal;
+  opacity: 0.9;
+}
+
+.start-content {
+  padding: 25px;
+}
+
+.start-section {
+  margin-bottom: 20px;
+}
+
+.start-section-title {
+  color: var(--start-dark);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+}
+
+.start-section-title svg {
+  margin-right: 10px;
+}
+
+.start-rules {
+  background-color: var(--start-light);
+  border-radius: var(--start-radius);
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.start-rule-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.start-rule-item svg {
+  min-width: 24px;
+  margin-right: 10px;
+  color: var(--start-dark);
+}
+
+.start-rule-item p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.start-edu-value {
+  background-color: #f5f5f5;
+  border-left: 4px solid var(--start-accent);
+  padding: 15px;
+  border-radius: 0 var(--start-radius) var(--start-radius) 0;
+}
+
+.start-number-example {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin: 0 3px;
+  font-weight: bold;
+  color: white;
+}
+
+.start-even {
+  background-color: #32CD32;
+}
+
+.start-odd {
+  background-color: #FF6347;
+}
+
+.start-array-example {
+  font-family: monospace;
+  background-color: #333;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin: 10px 0;
+  overflow-x: auto;
+}
+
+.start-controls {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.start-key-controls {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.start-key {
+  width: 40px;
+  height: 40px;
+  background-color: #eee;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 5px;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+
+.start-btn {
+  background-color: var(--start-primary);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 18px;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: var(--start-shadow);
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.start-btn:hover {
+  background-color: var(--start-secondary);
+  transform: translateY(-2px);
+}
+
+.start-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 600px) {
+  .start-header h1 {
+    font-size: 24px;
+  }
+  
+  .start-header h2 {
+    font-size: 16px;
+  }
+  
+  .start-section-title {
+    font-size: 18px;
+  }
+} */
