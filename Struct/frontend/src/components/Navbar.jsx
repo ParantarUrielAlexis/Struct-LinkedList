@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   FaSignOutAlt,
@@ -6,6 +6,9 @@ import {
   FaUserGraduate,
   FaBars,
   FaTimes,
+  FaUser,
+  FaUserCog,
+  FaCaretDown
 } from "react-icons/fa";
 import logo from "../assets/logo.png";
 import { useAuth } from "../contexts/AuthContext";
@@ -17,15 +20,36 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // State to toggle menu visibility
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
 
   const handleLogout = () => {
     logout();
+    setIsUserMenuOpen(false);
   };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+  };
+
+  // Close the user menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <>
@@ -61,26 +85,48 @@ const Navbar = () => {
                 onCreateClick={() => setIsCreateModalOpen(true)}
               />
 
-              <div className="flex items-center gap-2 text-sm text-gray-700">
-                {user?.userType === "teacher" ? (
-                  <FaChalkboardTeacher className="text-teal-600" />
-                ) : (
-                  <FaUserGraduate className="text-teal-600" />
+              {/* Username with dropdown menu */}
+              <div className="relative" ref={userMenuRef}>
+                <button 
+                  onClick={toggleUserMenu}
+                  className="flex items-center gap-2 text-sm text-gray-700 hover:text-teal-600 transition-colors focus:outline-none"
+                >
+                  {user?.userType === "teacher" ? (
+                    <FaChalkboardTeacher className="text-teal-600" />
+                  ) : (
+                    <FaUserGraduate className="text-teal-600" />
+                  )}
+                  <span className="font-medium">
+                    {user?.username}
+                  </span>
+                  <span className="text-gray-400">|</span>
+                  <span className="capitalize text-teal-600">
+                    {user?.userType}
+                  </span>
+                  <FaCaretDown className={`text-teal-600 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {/* Dropdown menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <Link 
+                      to="/profile" 
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <FaUserCog />
+                      Manage Account
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600 w-full text-left"
+                    >
+                      <FaSignOutAlt />
+                      Logout
+                    </button>
+                  </div>
                 )}
-                <span className="font-medium">{user?.username}</span>
-                <span className="text-gray-400">|</span>
-                <span className="capitalize text-teal-600">
-                  {user?.userType}
-                </span>
               </div>
-
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-2 px-4 rounded-md text-sm transition"
-              >
-                Logout
-                <FaSignOutAlt />
-              </button>
             </div>
           ) : (
             <div className="flex flex-col lg:flex-row lg:items-center gap-3">

@@ -36,6 +36,20 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    profile_photo_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'user_type', 'profile_photo_url', 'points', 'hearts', 'hints')
+    
+    def get_profile_photo_url(self, user):
+        if user.profile_photo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(user.profile_photo.url)
+        return None
 
 class ClassSerializer(serializers.ModelSerializer):
     students_count = serializers.SerializerMethodField()

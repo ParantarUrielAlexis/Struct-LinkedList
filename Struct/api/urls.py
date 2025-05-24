@@ -1,11 +1,20 @@
 # api/urls.py
 from django.urls import path
 from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView
+from . import views
+from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView
 
 # These URLs will be included under the /api/ prefix
 urlpatterns = [
+    # Authentication
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
+
+    # Profile Management
+    path('user/profile/', views.UserProfileView.as_view(), name='user_profile'),
+    path('user/update-profile-photo/', views.update_profile_photo, name='update_profile_photo'),
+
+    # Class Management
     path('classes/create/', ClassCreateView.as_view(), name='create_class'),
     path('classes/join/', JoinClassView.as_view(), name='join_class'),
     path('classes/user/', UserClassesView.as_view(), name='user_classes'),

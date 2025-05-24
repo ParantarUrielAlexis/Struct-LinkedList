@@ -24,6 +24,8 @@ import SortShift from "./pages/SortShift/SortShift";
 import SortShiftSelection from "./pages/SortShiftSelection/SortShiftSelection";
 import SortShiftBubble from "./pages/SortShiftBubble/SortShiftBubble";
 import SortShiftInsertion from "./pages/SortShiftInsertion/SortShiftInsertion";
+import Profile from "./pages/Profile/Profile";
+import Store from "./pages/Store/Store";
 import SnakeGame from "./pages/SnakeGame";
 
 import GameShowcase from "./pages/GameShowcase";
@@ -92,6 +94,27 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/store"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <Store />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <Profile />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/type-test/:levelIndex"
               element={

@@ -111,53 +111,6 @@ const topics = [
         hints:
           "Remember that modifying one element doesn't affect the other elements in the array.",
       },
-      // {
-      //   title: "Common Array Operations",
-      //   content: (
-      //     <div className="space-y-4">
-      //       <p>
-      //         Arrays support various operations to add, remove, or manipulate
-      //         elements:
-      //       </p>
-
-      //       <div className="grid grid-cols-2 gap-4">
-      //         <div className="bg-purple-50 p-3 rounded border border-purple-100">
-      //           <h4 className="font-bold">push()</h4>
-      //           <p className="text-sm">Adds element to the end</p>
-      //           <code className="text-xs bg-white p-1 rounded block mt-1">
-      //             array.push(60)
-      //           </code>
-      //         </div>
-
-      //         <div className="bg-purple-50 p-3 rounded border border-purple-100">
-      //           <h4 className="font-bold">pop()</h4>
-      //           <p className="text-sm">Removes last element</p>
-      //           <code className="text-xs bg-white p-1 rounded block mt-1">
-      //             array.pop()
-      //           </code>
-      //         </div>
-
-      //         <div className="bg-purple-50 p-3 rounded border border-purple-100">
-      //           <h4 className="font-bold">length</h4>
-      //           <p className="text-sm">Gets array size</p>
-      //           <code className="text-xs bg-white p-1 rounded block mt-1">
-      //             array.length
-      //           </code>
-      //         </div>
-
-      //         <div className="bg-purple-50 p-3 rounded border border-purple-100">
-      //           <h4 className="font-bold">indexOf()</h4>
-      //           <p className="text-sm">Finds position of element</p>
-      //           <code className="text-xs bg-white p-1 rounded block mt-1">
-      //             array.indexOf(30)
-      //           </code>
-      //         </div>
-      //       </div>
-      //     </div>
-      //   ),
-      //   hints:
-      //     "Different programming languages might have slightly different methods, but these operations are common across most languages.",
-      // },
       {
         title: "Test Your Knowledge",
         content: (
@@ -335,15 +288,143 @@ const topics = [
   },
   {
     label: "Array Algorithms",
-    icon: <FaGamepad className="text-4xl text-cyan-300" />,
-    content: [
-      {
-        title: "Coming Soon",
-        content: <p>This topic will be available soon!</p>,
-      },
-    ],
+icon: <FaGamepad className="text-4xl text-cyan-300" />,
+content: [
+  // Slide 1 – Overview
+  {
+    title: "What Are Sorting Algorithms?",
+    content: (
+      <div className="space-y-4">
+        <p>
+          Sorting algorithms are methods used to reorder elements in a list or array 
+          into a specific sequence, such as ascending or descending order.
+        </p>
+        <p>Why sort?</p>
+        <ul className="list-disc list-inside pl-2">
+          <li>Improves search efficiency</li>
+          <li>Helps in data organization</li>
+          <li>Prepares data for algorithms like binary search</li>
+        </ul>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-blue-50 p-3 rounded border border-blue-100">
+            <h4 className="font-medium">Bubble Sort</h4>
+            <p className="text-sm">Swaps adjacent elements repeatedly. O(n²)</p>
+          </div>
+          <div className="bg-green-50 p-3 rounded border border-green-100">
+            <h4 className="font-medium">Selection Sort</h4>
+            <p className="text-sm">Selects the smallest element and places it correctly. O(n²)</p>
+          </div>
+          <div className="bg-yellow-50 p-3 rounded border border-yellow-100">
+            <h4 className="font-medium">Insertion Sort</h4>
+            <p className="text-sm">Inserts elements into their correct position. O(n²)</p>
+          </div>
+        </div>
+      </div>
+    ),
+    hints: "Sorting is a fundamental concept in computer science and used in many real-world systems.",
   },
-  // You can add more topics here as needed
+
+  // Slide 2 – Selection Sort
+  {
+    title: "Tutorial: Selection Sort",
+    content: (
+      <div className="space-y-4">
+        <p>
+          Selection Sort works by repeatedly finding the smallest element and swapping it to the front.
+        </p>
+        <ol className="list-decimal list-inside pl-4">
+          <li>Start from index 0</li>
+          <li>Find the minimum element in the rest of the array</li>
+          <li>Swap it with the current index</li>
+          <li>Repeat for the rest of the array</li>
+        </ol>
+        <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto">
+{`for i in range(len(arr)):
+    min_idx = i
+    for j in range(i+1, len(arr)):
+        if arr[j] < arr[min_idx]:
+            min_idx = j
+    arr[i], arr[min_idx] = arr[min_idx], arr[i]`}
+        </pre>
+      </div>
+    ),
+    hints: "Selection sort is easy to implement but not efficient on large datasets.",
+  },
+
+  // Slide 3 – Bubble Sort
+  {
+    title: "Tutorial: Bubble Sort",
+    content: (
+      <div className="space-y-4">
+        <p>
+          Bubble Sort compares adjacent elements and swaps them if they're in the wrong order.
+        </p>
+        <ol className="list-decimal list-inside pl-4">
+          <li>Loop through array</li>
+          <li>Compare each pair of adjacent elements</li>
+          <li>Swap if the left element is greater than the right</li>
+          <li>Repeat until no swaps are needed</li>
+        </ol>
+        <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto">
+{`for i in range(len(arr)):
+    for j in range(0, len(arr)-i-1):
+        if arr[j] > arr[j+1]:
+            arr[j], arr[j+1] = arr[j+1], arr[j]`}
+        </pre>
+      </div>
+    ),
+    hints: "Bubble sort is intuitive but inefficient for large datasets.",
+  },
+
+  // Slide 4 – Insertion Sort
+  {
+    title: "Tutorial: Insertion Sort",
+    content: (
+      <div className="space-y-4">
+        <p>
+          Insertion Sort builds the sorted list one element at a time by comparing with previous elements.
+        </p>
+        <ol className="list-decimal list-inside pl-4">
+          <li>Start from index 1</li>
+          <li>Compare current element to its predecessors</li>
+          <li>Shift larger elements to the right</li>
+          <li>Insert current element in the right position</li>
+        </ol>
+        <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto">
+{`for i in range(1, len(arr)):
+    key = arr[i]
+    j = i - 1
+    while j >= 0 and arr[j] > key:
+        arr[j + 1] = arr[j]
+        j -= 1
+    arr[j + 1] = key`}
+        </pre>
+      </div>
+    ),
+    hints: "Efficient for small or nearly sorted datasets.",
+  },
+
+  // Slide 5 – Try the Game!
+  {
+    title: "Try Sorting Visually with SortShift 🎮",
+    content: (
+      <div className="space-y-4 text-center">
+        <p className="text-lg font-medium">Great job learning sorting algorithms!</p>
+        <p>Now it's time to put your skills to the test in an interactive game.</p>
+        <p className="text-sm text-gray-600">Sort arrays using the correct algorithm in the fastest time possible.</p>
+        <button
+          className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition"
+          onClick={() => window.open("/sortshift", "_blank")}
+        >
+          🎮 Play SortShift Game →
+        </button>
+      </div>
+    ),
+    hints: "Use your sorting knowledge in a fun and challenging way with the SortShift game!",
+  },
+],
+  },
 ];
 
 export default topics;
