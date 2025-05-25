@@ -358,7 +358,7 @@ export default function SortShift() {
         </button>
       </div>
       
-      <div className="level-grid">
+      <div className="level-grid ">
         
         {levels.map((level) => (
           <div
@@ -369,6 +369,7 @@ export default function SortShift() {
               backgroundImage: `url(${level.backgroundImage})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+              border: "none",
               cursor: level.id > progress ? 'not-allowed' : 'pointer',
               opacity: level.id > progress ? 0.5 : 1, // Dim locked levels
             }}
