@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-from django.db.models import Max, F
+from django.db.models import Max, F, Avg
 from .serializers import UserRegistrationSerializer
 from .models import Class, TypeTestProgress, UserProgress
 from .serializers import ClassSerializer, ClassCreateSerializer, TypeTestProgressSerializer, UserProgressSerializer
@@ -293,3 +293,62 @@ class UserProgressView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+
+
+
+class ClassUserWPMView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, class_id):
+        try:
+            # Verify the class exists and user has access
+            class_obj = Class.objects.get(id=class_id)
+
+            # Check if requester is the teacher or a student in the class
+            if request.user != class_obj.teacher and request.user not in class_obj.students.all():
+                return Response(
+                    {"error": "You don't have permission to view this class data"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Get all students in the class
+            students = class_obj.students.all()
+
+            # Collect WPM data for each student
+            results = []
+            for student in students:
+                # Get the student's best WPM for each level they've completed
+                progress_data = TypeTestProgress.objects.filter(
+                    user=student,
+                    all_words_completed=True  # Only count completed levels
+                ).values('level_index').annotate(
+                    best_wpm=Max('wpm'),
+                    avg_wpm=Avg('wpm')
+                ).order_by('level_index')
+
+                # Calculate the student's overall average WPM
+                overall_avg_wpm = TypeTestProgress.objects.filter(
+                    user=student,
+                    all_words_completed=True
+                ).aggregate(avg_wpm=Avg('wpm'))['avg_wpm'] or 0
+
+                results.append({
+                    'user_id': student.id,
+                    'username': student.username,
+                    'email': student.email,
+                    'overall_avg_wpm': round(overall_avg_wpm, 1),
+                    'levels': list(progress_data)
+                })
+
+            return Response(results)
+
+        except Class.DoesNotExist:
+            return Response(
+                {"error": "Class not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
