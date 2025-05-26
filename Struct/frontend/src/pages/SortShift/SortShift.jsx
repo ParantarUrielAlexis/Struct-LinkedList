@@ -26,12 +26,9 @@ export default function SortShift() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingImage, setLoadingImage] = useState(null);
   const [fadeIn, setFadeIn] = useState(false);
-  const [progress, setProgress] = useState(() => {
-    // Retrieve progress from localStorage or default to level 1
-    return parseInt(localStorage.getItem('progress')) || 1;
-  });
-  const [isTutorialOpen, setIsTutorialOpen] = useState(false); // Changed to false initially
-  const [tutorialPage, setTutorialPage] = useState(0); 
+  const [progress, setProgress] = useState(1);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [tutorialPage, setTutorialPage] = useState(0);
   const tutorialPages = [
     {
         title: "Introduction to Sorting Algorithms",
@@ -198,15 +195,44 @@ export default function SortShift() {
     },
     
 ];
-  const [showNoHeartsModal, setShowNoHeartsModal] = useState(false); // Add state for modal
-
+  const [showNoHeartsModal, setShowNoHeartsModal] = useState(false);
+  
+  // Add new fetch progress effect
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        
+        const res = await axios.get('http://localhost:8000/api/user-progress/', {
+          headers: { Authorization: `Token ${token}` }
+        });
+        
+        // Map backend progress to level number
+        let prog = 1;
+        if (res.data.selection_sort_passed) prog = 2;
+        if (res.data.bubble_sort_passed) prog = 3;
+        if (res.data.insertion_sort_passed) prog = 4;
+        
+        setProgress(prog);
+      } catch (err) {
+        console.error('Error fetching user progress:', err);
+        setProgress(1); // Default to level 1 if fetch fails
+      }
+    };
+    
+    if (isAuthenticated) {
+      fetchProgress();
+    }
+  }, [isAuthenticated]);
+  
   // Fetch hearts from authenticated user
   useEffect(() => {
     if (isAuthenticated && authUser) {
       setHearts(authUser.hearts || 0);
     }
   }, [isAuthenticated, authUser]);
-
+  
   useEffect(() => {
     const sound = backgroundSound.current;
     sound.loop = true;

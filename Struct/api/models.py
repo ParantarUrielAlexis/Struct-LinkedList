@@ -77,3 +77,13 @@ class TypeTestProgress(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+
+class UserProgress(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='progress')
+    selection_sort_passed = models.BooleanField(default=False)
+    bubble_sort_passed = models.BooleanField(default=False)
+    insertion_sort_passed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} Progress"

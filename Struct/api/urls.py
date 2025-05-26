@@ -1,6 +1,6 @@
 # api/urls.py
 from django.urls import path
-from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView
+from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView
 from . import views
 from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView
 
@@ -29,6 +29,7 @@ urlpatterns = [
 
     # Endpoint to get the best progress for each level for the current user
     path('progress/me/best/', UserTypeTestBestProgressView.as_view(), name='typetest-my-best-progress'),
+    path('user-progress/', UserProgressView.as_view(), name='user-progress')
     # Add other API endpoints here
     # path('login/', LoginView.as_view(), name='login'),
     # path('users/', UserListView.as_view(), name='user-list'),

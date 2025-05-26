@@ -422,6 +422,9 @@ const SortShiftInsertion = () => {
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [isTutorialOpen, setIsTutorialOpen] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
+    const [score, setScore] = useState(0); // Add these state variables
+    const [remarks, setRemarks] = useState("");
+    const [startTime, setStartTime] = useState(Date.now()); // Add this for duration tracking
     const [tutorialPage, setTutorialPage] = useState(0); 
 
     const realTimeArray = [23, 54, 82, 71, 12, 93, 28]
@@ -767,53 +770,91 @@ const tutorialPages = [
         if (gridIndex >= correctSteps.length) return false;
         return JSON.stringify(grid) === JSON.stringify(arr);
     };
-
-    const checkSorting = () => {
-        let correctCount = 0;
-        let incorrectCount = 0;
-        let isPreviousCorrect = true;
-        let isAlreadySorted = false;
-
-        const results = grids.map((grid, index) => {
-            if (isPreviousCorrect && !isAlreadySorted && checkIteration(grid, index)) {
-                if (isSorted(grid)) isAlreadySorted = true;
-                correctCount++;
-                return { iteration: index + 1, correct: true };
-            } else {
-                incorrectCount++;
-                isPreviousCorrect = false;
-                return { iteration: index + 1, correct: false };
-            }
-        });
-
-        setIterationResults(results);
-        setIsModalOpen(true);
+    // Your updateProgress function should be fixed to update bubble_sort_passed instead of selection_sort_passed
+    const updateProgress = async () => {
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        
+        await axios.post(
+        'http://localhost:8000/api/user-progress/',
+        { insertion_sort_passed: true }, // Changed from selection_sort_passed to bubble_sort_passed
+        { headers: { Authorization: `Token ${token}` } }
+        );
+    } catch (err) {
+        console.error("Error updating progress:", err);
+    }
     };
-    
 
-    
-    const totalPoints = 60;
-    const iterationsRequired = correctSteps.length - 1;
-    const pointsPerIteration = totalPoints / iterationsRequired;
-    const penaltyPerExtraIteration = pointsPerIteration / 2;
-    let score = 0;
+// Also, make sure the 'user' is properly defined in the checkSorting function
+    const checkSorting = async () => {
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let isPreviousCorrect = true;
+    let isAlreadySorted = false;
 
-    iterationResults.forEach((result, index) => {
-        if (index < iterationsRequired) {
-            if (result.correct) {
-                score += pointsPerIteration;
-            } else {
-                score -= penaltyPerExtraIteration;
+    const results = grids.map((grid, index) => {
+        if (isPreviousCorrect && !isAlreadySorted && checkIteration(grid, index)) {
+            if (isSorted(grid)) {
+                isAlreadySorted = true;
             }
+            correctCount++;
+            return { iteration: index + 1, correct: true };
         } else {
-            score -= penaltyPerExtraIteration;
+            incorrectCount++;
+            isPreviousCorrect = false;
+            return { iteration: index + 1, correct: false };
         }
     });
 
-    score = Math.max(0, score);
-    const passingScore = 0.7 * totalPoints;
-    const remarks = score >= passingScore ? "Pass" : "Fail";
+    setIterationResults(results);
 
+    // Calculate score and remarks
+    const totalPoints = 60;
+    const iterationsRequired = correctSteps.length - 1;
+    const pointsPerIteration = totalPoints / iterationsRequired;
+    const penaltyPerExtraIteration = pointsPerIteration / 4;
+    let calculatedScore = 0;
+
+    results.forEach((result, index) => {
+        if (index < iterationsRequired) {
+            if (result.correct) {
+                calculatedScore += pointsPerIteration;
+            } else {
+                calculatedScore -= penaltyPerExtraIteration;
+            }
+        } else {
+            calculatedScore -= penaltyPerExtraIteration;
+        }
+    });
+
+    calculatedScore = Math.max(0, calculatedScore);
+    const passingScore = 0.7 * totalPoints;
+    const calculatedRemarks = calculatedScore >= passingScore ? "Pass" : "Fail";
+
+    setScore(calculatedScore.toFixed(2));
+    setRemarks(calculatedRemarks);
+
+    // Use username from auth context
+    const username = authUser?.username || "guest";
+
+    // Calculate duration
+    let duration = "00:00:00";
+    if (startTime) {
+        const endTime = Date.now();
+        const diff = Math.floor((endTime - startTime) / 1000);
+        const mins = String(Math.floor(diff / 60)).padStart(2, "0");
+        const secs = String(diff % 60).padStart(2, "0");
+        duration = `00:${mins}:${secs}`;
+    }
+
+    // Show the modal after all calculations are done
+    setIsModalOpen(true);
+    
+    if (calculatedRemarks === "Pass") {
+        await updateProgress(); // Wait for update to complete
+    }
+    };
     return (
         <div className={styles['short-shift-container']}>
             <video className={styles['background-video']} autoPlay loop muted>

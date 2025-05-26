@@ -322,14 +322,9 @@ const SortShiftSelection = () => {
     const realTimeArray = [23, 54, 82, 71, 12, 93, 28]
     const navigate = useNavigate();
     const backgroundSound = useRef(new Audio("/sounds/selection_background.mp3")); 
-    const { isAuthenticated, user: authUser, updateUser } = useAuth(); // Get user and updateUser from auth context
+    const { isAuthenticated, user, updateUser } = useAuth(); // Make sure user is destructured from auth
     const [hearts, setHearts] = useState(0); // Default to 3 hearts
     const [hasDeductedHeart, setHasDeductedHeart] = useState(false);
-
-    const generateRandomArray = () =>{
-        return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
-    }
-    
     const [originalArray, setOriginalArray] = useState([]);
     const [grids, setGrids] = useState([originalArray.slice()]);
     const [selected, setSelected] = useState({ gridIndex: null, itemIndex: null });
@@ -339,7 +334,15 @@ const SortShiftSelection = () => {
     const [isTutorialOpen, setIsTutorialOpen] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
     const [tutorialPage, setTutorialPage] = useState(0); // Track the current tutorial page
+    const [score, setScore] = useState(0); // Add these state variables
+    const [remarks, setRemarks] = useState("");
+    const [startTime, setStartTime] = useState(Date.now()); // Add this for duration tracking
 
+    const generateRandomArray = () =>{
+        return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
+    }
+
+    
     const tutorialPages = [
         {
             title: "How Selection Sort Works",
@@ -460,6 +463,20 @@ const SortShiftSelection = () => {
     const swapSound = new Audio("/sounds/swap.mp3");
     const clickSound = new Audio("/sounds/first_click.mp3");
 
+    // Function to update user progress
+    const updateProgress = async () => {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) return;
+          await axios.post(
+            'http://localhost:8000/api/user-progress/',
+            { selection_sort_passed: true },
+            { headers: { Authorization: `Token ${token}` } }
+          );
+        } catch (err) {
+          // Optionally handle error
+        }
+      };
     const toggleMusic = () => {
         const sound = backgroundSound.current;
         if(sound.paused){
@@ -599,59 +616,81 @@ const SortShiftSelection = () => {
         return JSON.stringify(grid) === JSON.stringify(arr);
     };
 
-    const checkSorting = () => {
+    const checkSorting = async () => {
         let correctCount = 0;
         let incorrectCount = 0;
         let isPreviousCorrect = true;
-        let isAlreadySorted = false; 
-    
+        let isAlreadySorted = false;
+
         const results = grids.map((grid, index) => {
             if (isPreviousCorrect && !isAlreadySorted && checkIteration(grid, index)) {
                 if (isSorted(grid)) {
-                    isAlreadySorted = true; 
+                    isAlreadySorted = true;
                 }
                 correctCount++;
                 return { iteration: index + 1, correct: true };
             } else {
                 incorrectCount++;
-                isPreviousCorrect = false; 
+                isPreviousCorrect = false;
                 return { iteration: index + 1, correct: false };
             }
         });
-        
-    
+
         setIterationResults(results);
-        setIsModalOpen(true);
 
-    };
-    const totalPoints = 60;
-    const iterationsRequired = correctSteps.length - 1;
-    const pointsPerIteration = totalPoints / iterationsRequired;
-    const penaltyPerExtraIteration = pointsPerIteration / 4;
-    let score = 0;
+        // Calculate score and remarks
+        const totalPoints = 60;
+        const iterationsRequired = correctSteps.length - 1;
+        const pointsPerIteration = totalPoints / iterationsRequired;
+        const penaltyPerExtraIteration = pointsPerIteration / 4;
+        let calculatedScore = 0;
 
-    iterationResults.forEach((result, index) => {
-        if (index < iterationsRequired) {
-            if (result.correct) {
-                score += pointsPerIteration;
+        results.forEach((result, index) => {
+            if (index < iterationsRequired) {
+                if (result.correct) {
+                    calculatedScore += pointsPerIteration;
+                } else {
+                    calculatedScore -= penaltyPerExtraIteration;
+                }
             } else {
-                score -= penaltyPerExtraIteration;
+                calculatedScore -= penaltyPerExtraIteration;
             }
-        } else {
-            score -= penaltyPerExtraIteration;
-        }
-    });
+        });
 
-    score = Math.max(0, score);
-    const passingScore = 0.7 * totalPoints;
-    const remarks = score >= passingScore ? "Pass" : "Fail";
+        calculatedScore = Math.max(0, calculatedScore);
+        const passingScore = 0.7 * totalPoints;
+        const calculatedRemarks = calculatedScore >= passingScore ? "Pass" : "Fail";
+
+        setScore(calculatedScore.toFixed(2));
+        setRemarks(calculatedRemarks);
+
+        // Use username from context
+        const username = user?.username || "guest";
+
+        // Calculate duration if startTime is available
+        // let duration = "00:00:00";
+        // if (startTime) {
+        //     const endTime = Date.now();
+        //     const diff = Math.floor((endTime - startTime) / 1000);
+        //     const mins = String(Math.floor(diff / 60)).padStart(2, "0");
+        //     const secs = String(diff % 60).padStart(2, "0");
+        //     duration = `00:${mins}:${secs}`;
+        // }
+
+        // Show the modal after all calculations are done
+        setIsModalOpen(true);
+        
+        if (calculatedRemarks === "Pass") {
+            await updateProgress(); // Wait for update to complete
+        }
+    };
 
     // Fetch hearts from authenticated user
     useEffect(() => {
-        if (isAuthenticated && authUser) {
-            setHearts(authUser.hearts || 0);
+        if (isAuthenticated && user) {
+            setHearts(user.hearts || 0);
         }
-    }, [isAuthenticated, authUser]);
+    }, [isAuthenticated, user]);
 
     // Handle page refresh heart deduction
     useEffect(() => {
@@ -673,7 +712,7 @@ const SortShiftSelection = () => {
             const wasRefreshIntended = sessionStorage.getItem('refreshIntended') === 'true';
             
             // If this is a refresh (not first load) and heart hasn't been deducted yet
-            if (wasRefreshIntended && !hasDeductedHeart && isAuthenticated && authUser) {
+            if (wasRefreshIntended && !hasDeductedHeart && isAuthenticated && user) {
                 deductHeart();
                 // Clear the flag
                 sessionStorage.removeItem('refreshIntended');
@@ -686,7 +725,7 @@ const SortShiftSelection = () => {
                 const token = localStorage.getItem("authToken");
                 if (!token) return;
                 
-                const newHeartCount = Math.max(0, authUser.hearts - 1);
+                const newHeartCount = Math.max(0, user.hearts - 1);
                 setHearts(newHeartCount);
                 setHasDeductedHeart(true);
                 
@@ -706,7 +745,7 @@ const SortShiftSelection = () => {
                 // Update user in context
                 if (typeof updateUser === 'function' && response.data) {
                     updateUser({
-                        ...authUser,
+                        ...user,
                         hearts: newHeartCount
                     });
                 }
@@ -738,7 +777,7 @@ const SortShiftSelection = () => {
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [isAuthenticated, authUser, hasDeductedHeart, navigate, updateUser]);
+    }, [isAuthenticated, user, hasDeductedHeart, navigate, updateUser]);
 
     // Add this at the start of your component's render method
     if (!isAuthenticated) {
