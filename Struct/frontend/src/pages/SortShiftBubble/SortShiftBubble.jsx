@@ -774,17 +774,27 @@ const SortShiftBubble = () => {
     setScore(calculatedScore.toFixed(2));
     setRemarks(calculatedRemarks);
 
-    // Use username from auth context
-    const username = authUser?.username || "guest";
-
-    // Calculate duration
-    let duration = "00:00:00";
-    if (startTime) {
-        const endTime = Date.now();
-        const diff = Math.floor((endTime - startTime) / 1000);
-        const mins = String(Math.floor(diff / 60)).padStart(2, "0");
-        const secs = String(diff % 60).padStart(2, "0");
-        duration = `00:${mins}:${secs}`;
+    // Calculate duration in seconds
+    const endTime = Date.now();
+    const durationInSeconds = (endTime - startTime) / 1000;
+    
+    // Send results to the backend
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        
+        await axios.post(
+            'http://localhost:8000/api/bubble-sort/results/',
+            { 
+                score: parseFloat(calculatedScore.toFixed(2)),
+                duration: durationInSeconds
+            },
+            { headers: { Authorization: `Token ${token}` } }
+        );
+        
+        console.log('Bubble sort results sent to backend');
+    } catch (err) {
+        console.error('Error saving bubble sort results:', err.response ? err.response.data : err.message);
     }
 
     // Show the modal after all calculations are done
@@ -793,7 +803,7 @@ const SortShiftBubble = () => {
     if (calculatedRemarks === "Pass") {
         await updateProgress(); // Wait for update to complete
     }
-    };
+};
 
 
     return (

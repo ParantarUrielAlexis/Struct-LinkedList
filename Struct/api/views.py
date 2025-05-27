@@ -8,16 +8,16 @@ from django.contrib.auth import authenticate
 from django.db.models import Max, F, Avg
 from .serializers import UserRegistrationSerializer
 from .models import Class, TypeTestProgress, UserProgress
-from .serializers import ClassSerializer, ClassCreateSerializer, TypeTestProgressSerializer, UserProgressSerializer
+from .serializers import ClassSerializer, ClassCreateSerializer, TypeTestProgressSerializer, UserProgressSerializer 
 
 from django.core.files.storage import default_storage
 
 from .serializers import UserRegistrationSerializer, UserProfileSerializer
 from .models import Class, User
-from .serializers import ClassSerializer, ClassCreateSerializer, SelectionSortResultSerializer
+from .serializers import ClassSerializer, ClassCreateSerializer, SelectionSortResultSerializer, BubbleSortResultSerializer
 
 from datetime import timedelta
-from .models import SelectionSortResult
+from .models import SelectionSortResult, BubbleSortResult
 
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
@@ -375,6 +375,25 @@ class SelectionSortResultCreateView(generics.CreateAPIView):
             attempt_number=attempt_count
         )
 
+class BubbleSortResultCreateView(generics.CreateAPIView):
+    serializer_class = BubbleSortResultSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        # Convert duration from seconds to timedelta before saving
+        duration_seconds = self.request.data.get('duration', 0)
+        duration = timedelta(seconds=float(duration_seconds))
+        
+        # Get the user's attempt number
+        user = self.request.user
+        attempt_count = BubbleSortResult.objects.filter(user=user).count() + 1
+        
+        serializer.save(
+            user=user,
+            duration=duration,
+            attempt_number=attempt_count
+        )
+
 class ClassSortShiftDataView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -400,30 +419,44 @@ class ClassSortShiftDataView(APIView):
                 selection_results = SelectionSortResult.objects.filter(user=user)
                 
                 if selection_results.exists():
-                    best_score = selection_results.aggregate(Max('score'))['score__max']
-                    best_time = selection_results.order_by('duration').first().duration_seconds
-                    avg_time = selection_results.aggregate(Avg('duration'))['duration__avg'].total_seconds()
-                    attempts = selection_results.count()
+                    selection_best_score = selection_results.aggregate(Max('score'))['score__max']
+                    selection_best_time = selection_results.order_by('duration').first().duration_seconds
+                    selection_avg_time = selection_results.aggregate(Avg('duration'))['duration__avg'].total_seconds()
+                    selection_attempts = selection_results.count()
                 else:
-                    best_score = 0
-                    best_time = "-"
-                    avg_time = "-"
-                    attempts = 0
+                    selection_best_score = 0
+                    selection_best_time = "-"
+                    selection_avg_time = "-"
+                    selection_attempts = 0
                 
-                # Add placeholder data for bubble and insertion sorts for now
-                # These should be replaced with actual data once those models are implemented
+                # Get bubble sort results for this user
+                bubble_results = BubbleSortResult.objects.filter(user=user)
+                
+                if bubble_results.exists():
+                    bubble_best_score = bubble_results.aggregate(Max('score'))['score__max']
+                    bubble_best_time = bubble_results.order_by('duration').first().duration_seconds
+                    bubble_avg_time = bubble_results.aggregate(Avg('duration'))['duration__avg'].total_seconds()
+                    bubble_attempts = bubble_results.count()
+                else:
+                    bubble_best_score = 0
+                    bubble_best_time = "-"
+                    bubble_avg_time = "-"
+                    bubble_attempts = 0
+                
+                # Add placeholder data for insertion sort for now
+                # This should be replaced with actual data once the insertion sort model is implemented
                 result[str(user.id)] = {
                     "selection": {
-                        "bestTime": best_time,
-                        "avgTime": avg_time,
-                        "attempts": attempts,
-                        "score": best_score
+                        "bestTime": selection_best_time,
+                        "avgTime": selection_avg_time,
+                        "attempts": selection_attempts,
+                        "score": selection_best_score
                     },
                     "bubble": {
-                        "bestTime": "-",
-                        "avgTime": "-",
-                        "attempts": 0,
-                        "score": 0
+                        "bestTime": bubble_best_time,
+                        "avgTime": bubble_avg_time,
+                        "attempts": bubble_attempts,
+                        "score": bubble_best_score
                     },
                     "insertion": {
                         "bestTime": "-",
