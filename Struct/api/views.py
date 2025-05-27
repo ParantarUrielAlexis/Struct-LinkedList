@@ -14,7 +14,10 @@ from django.core.files.storage import default_storage
 
 from .serializers import UserRegistrationSerializer, UserProfileSerializer
 from .models import Class, User
-from .serializers import ClassSerializer, ClassCreateSerializer
+from .serializers import ClassSerializer, ClassCreateSerializer, SelectionSortResultSerializer
+
+from datetime import timedelta
+from .models import SelectionSortResult
 
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
@@ -351,4 +354,89 @@ class ClassUserWPMView(APIView):
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class SelectionSortResultCreateView(generics.CreateAPIView):
+    serializer_class = SelectionSortResultSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        # Convert duration from seconds to timedelta before saving
+        duration_seconds = self.request.data.get('duration', 0)
+        duration = timedelta(seconds=float(duration_seconds))
+        
+        # Get the user's attempt number
+        user = self.request.user
+        attempt_count = SelectionSortResult.objects.filter(user=user).count() + 1
+        
+        serializer.save(
+            user=user,
+            duration=duration,
+            attempt_number=attempt_count
+        )
+
+class ClassSortShiftDataView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, class_id):
+        """Get SortShift data for all students in a class"""
+        try:
+            # Check if user is the teacher of this class
+            class_obj = Class.objects.get(id=class_id)
+            if class_obj.teacher != request.user:
+                return Response(
+                    {"detail": "You don't have permission to view this class's data."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+                
+            # Get all users in this class
+            users = class_obj.students.all()
+            
+            # Prepare data structure
+            result = {}
+            
+            for user in users:
+                # Get selection sort results for this user
+                selection_results = SelectionSortResult.objects.filter(user=user)
+                
+                if selection_results.exists():
+                    best_score = selection_results.aggregate(Max('score'))['score__max']
+                    best_time = selection_results.order_by('duration').first().duration_seconds
+                    avg_time = selection_results.aggregate(Avg('duration'))['duration__avg'].total_seconds()
+                    attempts = selection_results.count()
+                else:
+                    best_score = 0
+                    best_time = "-"
+                    avg_time = "-"
+                    attempts = 0
+                
+                # Add placeholder data for bubble and insertion sorts for now
+                # These should be replaced with actual data once those models are implemented
+                result[str(user.id)] = {
+                    "selection": {
+                        "bestTime": best_time,
+                        "avgTime": avg_time,
+                        "attempts": attempts,
+                        "score": best_score
+                    },
+                    "bubble": {
+                        "bestTime": "-",
+                        "avgTime": "-",
+                        "attempts": 0,
+                        "score": 0
+                    },
+                    "insertion": {
+                        "bestTime": "-",
+                        "avgTime": "-", 
+                        "attempts": 0,
+                        "score": 0
+                    }
+                }
+            
+            return Response(result)
+            
+        except Class.DoesNotExist:
+            return Response(
+                {"detail": "Class not found."},
+                status=status.HTTP_404_NOT_FOUND
             )

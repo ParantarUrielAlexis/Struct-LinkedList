@@ -667,17 +667,28 @@ const SortShiftSelection = () => {
         // Use username from context
         const username = user?.username || "guest";
 
-        // Calculate duration if startTime is available
-        // let duration = "00:00:00";
-        // if (startTime) {
-        //     const endTime = Date.now();
-        //     const diff = Math.floor((endTime - startTime) / 1000);
-        //     const mins = String(Math.floor(diff / 60)).padStart(2, "0");
-        //     const secs = String(diff % 60).padStart(2, "0");
-        //     duration = `00:${mins}:${secs}`;
-        // }
-
-        // Show the modal after all calculations are done
+        const endTime = Date.now();
+        const durationInSeconds = (endTime - startTime) / 1000;
+        
+        // Send results to the backend
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            
+            await axios.post(
+                'http://localhost:8000/api/selection-sort/results/',
+                { 
+                    score: parseFloat(calculatedScore.toFixed(2)),
+                    duration: durationInSeconds
+                },
+                { headers: { Authorization: `Token ${token}` } }
+            );
+            
+        } catch (err) {
+            console.error('Error saving results:', err);
+        }
+        
+        // Continue with showing the modal
         setIsModalOpen(true);
         
         if (calculatedRemarks === "Pass") {

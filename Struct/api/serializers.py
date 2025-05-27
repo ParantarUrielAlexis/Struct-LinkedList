@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import Class, TypeTestProgress, UserProgress
+from .models import Class, TypeTestProgress, UserProgress, SelectionSortResult
 
 User = get_user_model()
 
@@ -85,3 +85,19 @@ class UserProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProgress
         fields = ['selection_sort_passed', 'bubble_sort_passed', 'insertion_sort_passed']
+
+class SelectionSortResultSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+    duration_formatted = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = SelectionSortResult
+        fields = ['id', 'username', 'score', 'duration', 'duration_formatted', 'attempt_number', 'date_created']
+        read_only_fields = ['id', 'user', 'date_created']
+    
+    def get_duration_formatted(self, obj):
+        """Return a human-readable duration format"""
+        seconds = obj.duration_seconds
+        minutes = seconds // 60
+        seconds %= 60
+        return f"{int(minutes)}m {int(seconds)}s"

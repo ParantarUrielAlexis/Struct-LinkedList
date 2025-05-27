@@ -87,3 +87,20 @@ class UserProgress(models.Model):
 
     def __str__(self):
         return f"{self.user.username} Progress"
+
+class SelectionSortResult(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='selection_sort_results')
+    score = models.FloatField()
+    duration = models.DurationField()
+    attempt_number = models.IntegerField(default=1)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_created']
+
+    def __str__(self):
+        return f"{self.user.username} - Score: {self.score} - Attempt: {self.attempt_number}"
+
+    @property
+    def duration_seconds(self):
+        return self.duration.total_seconds()
