@@ -10,6 +10,15 @@ from .serializers import UserRegistrationSerializer
 from .models import Class, TypeTestProgress, UserProgress
 from .serializers import ClassSerializer, ClassCreateSerializer, TypeTestProgressSerializer, UserProgressSerializer
 
+
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Max, Q
+from .models import SnakeGameProgress
+from .serializers import SnakeGameProgressSerializer
+
+
 from django.core.files.storage import default_storage
 
 from .serializers import UserRegistrationSerializer, UserProfileSerializer
@@ -350,5 +359,206 @@ class ClassUserWPMView(APIView):
         except Exception as e:
             return Response(
                 {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            
+
+class SnakeGameProgressCreateView(generics.CreateAPIView):
+    """
+    Create a new snake game progress entry
+    """
+    serializer_class = SnakeGameProgressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Automatically set the user to the current authenticated user
+        serializer.save(user=self.request.user)
+
+class UserSnakeGameProgressView(generics.ListAPIView):
+    """
+    Get all snake game progress for the current user
+    """
+    serializer_class = SnakeGameProgressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SnakeGameProgress.objects.filter(user=self.request.user)
+
+class UserSnakeGameBestProgressView(generics.ListAPIView):
+    """
+    Get the best snake game progress for each level for the current user
+    """
+    serializer_class = SnakeGameProgressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        
+        try:
+            # Get all progress for the user
+            user_progress = SnakeGameProgress.objects.filter(user=user).order_by(
+                'level', '-stars_earned', '-score', '-food_eaten', '-time_survived'
+            )
+
+            # Find the best record for each level
+            best_records = {}
+            for progress in user_progress:
+                level = progress.level
+                if level not in best_records:
+                    best_records[level] = progress
+                else:
+                    current_best = best_records[level]
+                    # Compare based on stars first, then score, then food eaten, then time survived
+                    if (progress.stars_earned > current_best.stars_earned or
+                        (progress.stars_earned == current_best.stars_earned and progress.score > current_best.score) or
+                        (progress.stars_earned == current_best.stars_earned and progress.score == current_best.score and progress.food_eaten > current_best.food_eaten) or
+                        (progress.stars_earned == current_best.stars_earned and progress.score == current_best.score and progress.food_eaten == current_best.food_eaten and progress.time_survived > current_best.time_survived)):
+                        best_records[level] = progress
+
+            # Return the best records sorted by level
+            return sorted(best_records.values(), key=lambda x: x.level)
+            
+        except Exception as e:
+            # Log the error for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in UserSnakeGameBestProgressView: {str(e)}")
+            
+            # Return empty queryset on error
+            return SnakeGameProgress.objects.none()
+
+class SnakeGameLevelStatsView(generics.GenericAPIView):
+    """
+    Get statistics for a specific level for the current user
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, level):
+        user = request.user
+        
+        # Validate level
+        if level < 1 or level > 5:
+            return Response(
+                {"error": "Level must be between 1 and 5"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Get all attempts for this level
+            attempts = SnakeGameProgress.objects.filter(user=user, level=level)
+            
+            if not attempts.exists():
+                return Response({
+                    "level": level,
+                    "attempts": 0,
+                    "best_score": 0,
+                    "best_stars": 0,
+                    "total_food_eaten": 0,
+                    "best_time_survived": 0,
+                    "completion_rate": 0.0
+                })
+            
+            # Calculate statistics
+            best_attempt = attempts.order_by('-score').first()
+            total_attempts = attempts.count()
+            completed_attempts = attempts.filter(game_completed=True).count()
+            
+            stats = {
+                "level": level,
+                "attempts": total_attempts,
+                "best_score": best_attempt.score if best_attempt else 0,
+                "best_stars": attempts.aggregate(Max('stars_earned'))['stars_earned__max'] or 0,
+                "total_food_eaten": sum(attempt.food_eaten for attempt in attempts),
+                "best_time_survived": attempts.aggregate(Max('time_survived'))['time_survived__max'] or 0,
+                "completion_rate": (completed_attempts / total_attempts) * 100 if total_attempts > 0 else 0.0
+            }
+            
+            return Response(stats)
+            
+        except Exception as e:
+            # Log the error for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in SnakeGameLevelStatsView for level {level}: {str(e)}")
+            
+            return Response(
+                {"error": "Internal server error"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class SnakeGameOverallStatsView(generics.GenericAPIView):
+    """
+    Get overall snake game statistics for the current user
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        
+        try:
+            all_attempts = SnakeGameProgress.objects.filter(user=user)
+            
+            if not all_attempts.exists():
+                return Response({
+                    "total_attempts": 0,
+                    "levels_unlocked": 1,  # Level 1 is always unlocked
+                    "total_stars": 0,
+                    "highest_level_completed": 0,
+                    "total_score": 0,
+                    "total_food_eaten": 0,
+                    "total_time_played": 0
+                })
+            
+            # Calculate overall statistics
+            total_stars = 0
+            levels_with_progress = set()
+            highest_level_completed = 0
+            
+            # Get best attempt for each level to calculate stars and completion
+            for level in range(1, 6):
+                level_attempts = all_attempts.filter(level=level)
+                if level_attempts.exists():
+                    levels_with_progress.add(level)
+                    best_stars = level_attempts.aggregate(Max('stars_earned'))['stars_earned__max']
+                    total_stars += best_stars if best_stars else 0
+                    
+                    # Check if level was completed
+                    if level_attempts.filter(game_completed=True).exists():
+                        highest_level_completed = max(highest_level_completed, level)
+            
+            # Calculate levels unlocked (based on star requirements)
+            levels_unlocked = 1  # Level 1 always unlocked
+            level_requirements = {2: 1, 3: 1, 4: 2, 5: 2}  # Stars needed from previous level
+            
+            for level in range(2, 6):
+                prev_level = level - 1
+                prev_level_attempts = all_attempts.filter(level=prev_level)
+                if prev_level_attempts.exists():
+                    prev_level_stars = prev_level_attempts.aggregate(Max('stars_earned'))['stars_earned__max'] or 0
+                    if prev_level_stars >= level_requirements.get(level, 1):
+                        levels_unlocked = level
+                    else:
+                        break
+            
+            stats = {
+                "total_attempts": all_attempts.count(),
+                "levels_unlocked": levels_unlocked,
+                "total_stars": total_stars,
+                "highest_level_completed": highest_level_completed,
+                "total_score": sum(attempt.score for attempt in all_attempts),
+                "total_food_eaten": sum(attempt.food_eaten for attempt in all_attempts),
+                "total_time_played": sum(attempt.time_survived for attempt in all_attempts)
+            }
+            
+            return Response(stats)
+            
+        except Exception as e:
+            # Log the error for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in SnakeGameOverallStatsView: {str(e)}")
+            
+            return Response(
+                {"error": "Internal server error"}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

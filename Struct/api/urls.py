@@ -1,6 +1,6 @@
 # api/urls.py
 from django.urls import path
-from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView, ClassUserWPMView
+from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView,    ClassUserWPMView, SnakeGameProgressCreateView, UserSnakeGameProgressView,UserSnakeGameBestProgressView, SnakeGameLevelStatsView, SnakeGameOverallStatsView
 from . import views
 
 # These URLs will be included under the /api/ prefix
@@ -36,4 +36,11 @@ urlpatterns = [
     # path('login/', LoginView.as_view(), name='login'),
     # path('users/', UserListView.as_view(), name='user-list'),
     # etc.
+    
+    # Snake Game Progress Endpoints
+    path('snake-progress/', SnakeGameProgressCreateView.as_view(), name='snake-progress-create'),
+    path('snake-progress/me/', UserSnakeGameProgressView.as_view(), name='snake-my-progress'),
+    path('snake-progress/me/best/', UserSnakeGameBestProgressView.as_view(), name='snake-my-best-progress'),
+    path('snake-progress/level/<int:level>/stats/', SnakeGameLevelStatsView.as_view(), name='snake-level-stats'),
+    path('snake-progress/stats/', SnakeGameOverallStatsView.as_view(), name='snake-overall-stats'),
 ]
