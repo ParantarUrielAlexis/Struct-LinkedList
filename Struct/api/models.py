@@ -78,7 +78,51 @@ class TypeTestProgress(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
+class SnakeGameProgress(models.Model):
+    # Links to the User model
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='snake_game_progress')
+    
+    # Level information (1-5)
+    level = models.IntegerField(help_text="The level number (1-5)")
+    
+    # Performance metrics
+    score = models.IntegerField(default=0, help_text="Score achieved in this attempt")
+    food_eaten = models.IntegerField(default=0, help_text="Number of food items eaten")
+    time_survived = models.IntegerField(default=0, help_text="Time survived in seconds")
+    
+    # Game completion status
+    game_completed = models.BooleanField(default=False, help_text="Whether the user completed the level successfully")
+    
+    # Stars earned for this attempt (0-3)
+    stars_earned = models.IntegerField(default=0, help_text="Number of stars earned (0-3)")
+    
+    # Timestamp for when the progress was recorded
+    completed_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        # Order by most recent completion
+        ordering = ['-completed_at']
+        verbose_name_plural = "Snake Game Progress"
+        # Allow multiple attempts per user per level
+        indexes = [
+            models.Index(fields=['user', 'level']),
+            models.Index(fields=['user', 'level', 'score']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - Level {self.level} - Score: {self.score} - {self.stars_earned} stars"
+
+    def save(self, *args, **kwargs):
+        # Ensure level is within valid range
+        if self.level < 1 or self.level > 5:
+            raise ValueError("Level must be between 1 and 5")
+        
+        # Ensure stars are within valid range
+        if self.stars_earned < 0 or self.stars_earned > 3:
+            raise ValueError("Stars earned must be between 0 and 3")
+            
+        super().save(*args, **kwargs)
+        
 class UserProgress(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='progress')
     selection_sort_passed = models.BooleanField(default=False)

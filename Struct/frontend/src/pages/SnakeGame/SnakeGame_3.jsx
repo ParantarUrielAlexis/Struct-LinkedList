@@ -26,7 +26,11 @@ import levelselectBG from "../../assets/snakegame/gif/levelselect_bg.gif";
 const GRID_SIZE = 20;
 const CELL_SIZE = 30;
 const GAME_SPEED = 150;
-
+const STAR_THRESHOLDS = {
+  1: 10, // 1 star at 10 score
+  2: 20, // 2 stars at 20 score
+  3: 30, // 3 stars at 30 score
+};
 const DIRECTIONS = {
   UP: { x: 0, y: -1 },
   DOWN: { x: 0, y: 1 },
@@ -73,7 +77,8 @@ const ASSETS = {
 class SnakeGame extends Component {
   constructor(props) {
     super(props);
-    
+    // Level 2
+    const currentLevel = 3;
     const initialSnake = [
       { x: 5, y: 10 },
       { x: 4, y: 10 },
@@ -90,7 +95,7 @@ class SnakeGame extends Component {
       direction: DIRECTIONS.RIGHT,
       gameOver: false,
       score: 0,
-      highScore: localStorage.getItem("snakeHighScore") || 0,
+      highScore: 0,
       isPaused: false,
       audioReady: false,
       lastUpdateTime: 0,
@@ -99,7 +104,11 @@ class SnakeGame extends Component {
       musicPlaying: false,
       isEating: false,
       snakeSegmentValues: [], // This will store the values for each snake segment
-      targetMultiple: targetMultiple // New property to track the current target multiple
+      targetMultiple: targetMultiple, // New property to track the current target multiple
+      snakeSegmentValues: [], // This will store the values for each snake segment
+      currentLevel: currentLevel,
+      stars: 0,
+      showStarResult: false,
     };
 
     this.nextDirection = DIRECTIONS.RIGHT;
@@ -110,7 +119,248 @@ class SnakeGame extends Component {
     this.eatingAnimationTimeout = null;
     this.foodTimeouts = [];
     this.foodGenerationTimer = null;
+    this.initializeHighScore(currentLevel);
   }
+  fetchHighScoreFromAPI = async () => {
+  try {
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) return this.getHighScoreForLevel(this.state.currentLevel);
+
+    const response = await fetch(
+      "http://localhost:8000/api/snake-progress/me/best/",
+      {
+        headers: {
+          Authorization: `Token ${authToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) return this.getHighScoreForLevel(this.state.currentLevel);
+
+    const data = await response.json();
+    const scores = data.reduce((acc, record) => {
+      if (!acc[record.level] || record.score > acc[record.level]) {
+        acc[record.level] = record.score;
+      }
+      return acc;
+    }, {});
+
+    return scores[this.state.currentLevel] || 0;
+  } catch (error) {
+    return this.getHighScoreForLevel(this.state.currentLevel);
+  }
+};
+
+initializeHighScore = async (level) => {
+  const highScore = await this.getHighScoreForLevel(level);
+  this.setState({ highScore });
+};
+  // Get high score for specific level from the unified progress structure
+  getHighScoreForLevel = async (level) => {
+  // Check backend first if authenticated
+  const authToken = localStorage.getItem("authToken");
+  if (authToken) {
+    const apiScore = await this.fetchHighScoreFromAPI();
+    if (apiScore > 0) return apiScore;
+  }
+
+  // Fallback to localStorage
+  try {
+    const savedProgress = localStorage.getItem('snakeGameProgress');
+    if (savedProgress) {
+      const progress = JSON.parse(savedProgress);
+      return progress.scores?.[level] || 0;
+    }
+  } catch (error) {
+    console.error("Error reading progress:", error);
+  }
+  
+  return localStorage.getItem(`snakeHighScore_level_${level}`) || 0;
+};
+
+  // Calculate stars based on score
+  calculateStars = (score) => {
+    if (score >= STAR_THRESHOLDS[3]) return 3;
+    if (score >= STAR_THRESHOLDS[2]) return 2;
+    if (score >= STAR_THRESHOLDS[1]) return 1;
+    return 0;
+  };
+
+  // Get or create the progress structure
+  getProgressStructure = () => {
+    try {
+      const savedProgress = localStorage.getItem('snakeGameProgress');
+      if (savedProgress) {
+        return JSON.parse(savedProgress);
+      }
+    } catch (error) {
+      console.error("Error parsing progress:", error);
+    }
+    
+    // Return default structure
+    return {
+      unlockedLevels: [2],
+      stars: {},
+      scores: {},
+      attempts: {},
+      completedLevels: []
+    };
+  };
+
+  // Save progress to localStorage in the correct format
+  saveProgressToLocalStorage = (level, score, stars, gameCompleted = false) => {
+    try {
+      const currentProgress = this.getProgressStructure();
+      
+      // Only update if this is better than existing progress
+      const currentStars = currentProgress.stars[level] || 0;
+      const currentScore = currentProgress.scores[level] || 0;
+      
+      if (stars > currentStars || (stars === currentStars && score > currentScore)) {
+        currentProgress.stars[level] = stars;
+        currentProgress.scores[level] = score;
+        
+        // Update attempts count
+        currentProgress.attempts[level] = (currentProgress.attempts[level] || 0) + 1;
+        
+        // Mark as completed if game finished successfully
+        if (gameCompleted && !currentProgress.completedLevels.includes(level)) {
+          currentProgress.completedLevels.push(level);
+        }
+        
+        // Calculate unlocked levels based on stars
+        currentProgress.unlockedLevels = this.calculateUnlockedLevels(currentProgress);
+        
+        localStorage.setItem('snakeGameProgress', JSON.stringify(currentProgress));
+        
+        console.log(`Progress saved: Level ${level}, Score ${score}, Stars ${stars}`);
+        console.log('Updated progress:', currentProgress);
+      }
+    } catch (error) {
+      console.error("Error saving progress:", error);
+    }
+  };
+
+    // Calculate which levels should be unlocked (same logic as LevelSelect)
+   calculateUnlockedLevels = (progress) => {
+  const unlockedLevels = [1]; // Level 1 is always unlocked
+  const stars = progress.stars || {};
+  
+  // Level unlock requirements (make sure this matches LevelSelect.jsx exactly)
+  const LEVEL_REQUIREMENTS = {
+    1: 0, // Level 1: Always unlocked
+    2: 1, // Level 2: Requires 1 star from Level 1
+    3: 1, // Level 3: Requires 1 star from Level 2  
+    4: 2, // Level 4: Requires 2 stars from Level 3
+    5: 2  // Level 5: Requires 2 stars from Level 4
+  };
+
+  for (let level = 2; level <= 5; level++) {
+    const previousLevel = level - 1;
+    const starsEarnedInPreviousLevel = stars[previousLevel] || 0;
+    const starsRequiredForThisLevel = LEVEL_REQUIREMENTS[level] || 1;
+
+    if (starsEarnedInPreviousLevel >= starsRequiredForThisLevel) {
+      unlockedLevels.push(level);
+    } else {
+      // If this level can't be unlocked, no subsequent levels can be unlocked either
+      break;
+    }
+  }
+
+  return unlockedLevels;
+};
+
+// Report progress to backend database (only when game ends)
+reportProgress = async (level, score, stars, foodEaten, timeSurvived, gameCompleted) => {
+  try {
+    // Always save to localStorage as backup/fallback
+    this.saveProgressToLocalStorage(level, score, stars, gameCompleted);
+    
+    // Check if user is authenticated before calling API
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      console.log("User not authenticated, progress saved to localStorage only");
+      // Still dispatch event for non-authenticated users to update UI
+      window.dispatchEvent(new CustomEvent('snakeGameProgress', {
+        detail: { level, score, stars, foodEaten, timeSurvived, gameCompleted }
+      }));
+      return;
+    }
+
+    // Only save to backend when game actually ends (collision or completion)
+    // Don't spam the API during gameplay for every food eaten
+    if (!gameCompleted) {
+      console.log("Game not completed yet, skipping backend save");
+      // Just dispatch event for UI updates during gameplay
+      window.dispatchEvent(new CustomEvent('snakeGameProgress', {
+        detail: { level, score, stars, foodEaten, timeSurvived, gameCompleted }
+      }));
+      return;
+    }
+
+    console.log("Saving game completion to backend:", {
+      level, score, stars, foodEaten, timeSurvived, gameCompleted
+    });
+
+    // Save to Django backend when game ends
+    const response = await fetch("http://localhost:8000/api/snake-progress/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${authToken}`,
+      },
+      body: JSON.stringify({
+        level: level,
+        score: score,
+        food_eaten: foodEaten,
+        time_survived: timeSurvived,
+        game_completed: gameCompleted,
+        stars_earned: stars
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Failed to save progress to backend:", response.status, errorData);
+      console.error("Request body was:", {
+        level, score, food_eaten: foodEaten, time_survived: timeSurvived, 
+        game_completed: gameCompleted, stars_earned: stars
+      });
+      throw new Error(`Backend save failed: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    console.log("Progress saved successfully to backend:", responseData);
+    
+    // Dispatch custom event for LevelSelect component to refresh
+    window.dispatchEvent(new CustomEvent('snakeGameProgress', {
+      detail: { level, score, stars, foodEaten, timeSurvived, gameCompleted }
+    }));
+    
+    // Callback prop (if passed from parent)
+    if (this.props.onLevelComplete) {
+      this.props.onLevelComplete(level, score, stars);
+    }
+
+  } catch (error) {
+    console.error("Error saving progress:", error);
+    
+    // Even if backend fails, dispatch event so localStorage data can be used
+    window.dispatchEvent(new CustomEvent('snakeGameProgress', {
+      detail: { level, score, stars, foodEaten, timeSurvived, gameCompleted }
+    }));
+    
+    // Callback prop (if passed from parent)
+    if (this.props.onLevelComplete) {
+      this.props.onLevelComplete(level, score, stars);
+    }
+  }
+};
+// Navigate back to level select
+  goBackToLevelSelect = () => {
+    window.location.href = '/snake-game'; // Adjust this path as needed
+  };
 
   // Helper function to randomly select a multiple from 2, 3, 4, 5
   getRandomMultiple = () => {
@@ -286,9 +536,10 @@ class SnakeGame extends Component {
           this.backgroundAudio
             .play()
             .catch((e) => console.log("Background music error:", e));
+             this.startTime = Date.now();  // Track game start time
         }
         this.startGameLoop();
-        
+        this.startTime = Date.now();  // Track game start time
         // Set up food generation periodic check
         this.foodGenerationTimer = setInterval(() => {
           this.checkFoodCount();
@@ -340,152 +591,147 @@ class SnakeGame extends Component {
   };
 
   // moveSnake method
-  moveSnake = () => {
-    if (
-      this.state.isPaused ||
-      !this.state.audioReady ||
-      !this.state.gameStarted ||
-      this.state.gameOver
-    ) {
-      return;
-    }
+ moveSnake = () => {
+  if (
+    this.state.isPaused ||
+    !this.state.audioReady ||
+    !this.state.gameStarted ||
+    this.state.gameOver
+  ) {
+    return;
+  }
 
-    this.setState((prevState) => {
-      const { snake, foods, score, highScore, snakeSegmentValues, targetMultiple } = prevState;
-      const currentDirection = this.nextDirection;
+  this.setState((prevState) => {
+    const { snake, foods, score, highScore, snakeSegmentValues, targetMultiple, currentLevel } = prevState;
+    const currentDirection = this.nextDirection;
+    const now = Date.now();
+    const timeSurvived = Math.floor((now - this.startTime) / 1000);
 
-      // Create new head based on direction
-      const head = { ...snake[0] };
-      head.x += currentDirection.x;
-      head.y += currentDirection.y;
+    const head = { ...snake[0] };
+    head.x += currentDirection.x;
+    head.y += currentDirection.y;
 
-      // Check for collisions with walls or self
-      if (this.checkCollision(head, snake)) {
-        cancelAnimationFrame(this.animationFrameId);
-        if (this.foodGenerationTimer) {
-          clearInterval(this.foodGenerationTimer);
-        }
-        if (score > highScore) {
-          localStorage.setItem("snakeHighScore", score);
-        }
-        return {
-          ...prevState,
-          gameOver: true,
-          highScore: Math.max(score, highScore),
-          musicPlaying: false,
-        };
-      }
-
-      // Add new head to the snake
-      const newSnake = [head, ...snake];
-      let newScore = score;
-      let newFoods = [...foods];
-      let newCollectedMultiples = [...prevState.collectedMultiples];
-      let newSegmentValues = [...snakeSegmentValues]; // Create a copy of segment values
-      let foodEaten = false;
-      let eatenFoodIsMultiple = false;
-      let eatenFoodNumber = null;
+    if (this.checkCollision(head, snake)) {
+      cancelAnimationFrame(this.animationFrameId);
+      if (this.foodGenerationTimer) clearInterval(this.foodGenerationTimer);
       
-      // Check for food collisions
-      for (let i = 0; i < newFoods.length; i++) {
-        const food = newFoods[i];
-        
-        if (head.x === food.x && head.y === food.y) {
-          foodEaten = true;
-          eatenFoodNumber = food.number;
-          
-          // Remove the eaten food
-          newFoods = newFoods.filter((_, index) => index !== i);
-          
-          // Check if the food number is a multiple of the target
-          const isMultiple = food.number % targetMultiple === 0;
-          
-          // Handle multiple food (positive effect)
-          if (isMultiple) {
-            eatenFoodIsMultiple = true;
-            newScore += 1;
-            newCollectedMultiples = [...prevState.collectedMultiples, food.number];
-            
-            // Insert the multiple food number at the beginning of snakeSegmentValues
-            // This will track which segment has which number
-            newSegmentValues = [food.number, ...newSegmentValues];
-            
-            // Play crunch sound
-            if (this.crunchAudio) {
-              try {
-                this.crunchAudio.currentTime = 0;
-                this.crunchAudio.play().catch(() => {});
-              } catch (e) {
-                // Handle audio error silently
-              }
-            }
-          } 
-          // Handle non-multiple food (negative effect)
-          else {
-            eatenFoodIsMultiple = false;
-            newScore = Math.max(newScore - 1, 0);
-            
-            // Remove last multiple number collected if there are any
-            if (newCollectedMultiples.length > 0) {
-              newCollectedMultiples.pop();
-            }
-            
-            // Remove the first element from the segment values (representing the tail)
-            if (newSegmentValues.length > 0) {
-              newSegmentValues.pop();
-            }
-            
-            // Shrink snake by one segment more
-            newSnake.pop();
-            
-            // Check if snake is too small now
-            if (newSnake.length <= 1) {
-              cancelAnimationFrame(this.animationFrameId);
-              if (this.foodGenerationTimer) {
-                clearInterval(this.foodGenerationTimer);
-              }
-              return {
-                ...prevState,
-                gameOver: true,
-                highScore: Math.max(score, highScore),
-                musicPlaying: false,
-              };
-            }
-          }
-          
-          // Break after eating one food (don't process multiple foods in one move)
-          break;
-        }
-      }
-
-      // Generate new food if any was eaten
-      if (foodEaten) {
-        const newFoodItems = this.generateFood(newSnake, newFoods, 1);
-        newFoods = [...newFoods, ...newFoodItems];
-        
-        // Set eating animation
-        clearTimeout(this.eatingAnimationTimeout);
-        this.eatingAnimationTimeout = setTimeout(() => {
-          this.setState({ isEating: false });
-        }, 300);
-      }
-
-      // Remove tail segment if no food was eaten or if non-multiple food was eaten
-      // (multiple food allows the snake to grow, so we keep all segments)
-      const finalSnake = foodEaten && eatenFoodIsMultiple ? newSnake : newSnake.slice(0, -1);
+      const stars = this.calculateStars(score);
+      
+      this.reportProgress(
+        currentLevel,
+        score,
+        stars,
+        prevState.collectedMultiples.length, // Use actual collected multiples count
+        timeSurvived,
+        true
+      );
 
       return {
         ...prevState,
-        snake: finalSnake,
-        foods: newFoods,
-        score: newScore,
-        collectedMultiples: newCollectedMultiples,
-        direction: currentDirection,
-        isEating: foodEaten,
-        snakeSegmentValues: newSegmentValues,
+        gameOver: true,
+        highScore: Math.max(score, highScore),
+        musicPlaying: false,
+        stars,
+        showStarResult: true
       };
-    });
-  };
+    }
+
+    const newSnake = [head, ...snake];
+    let newScore = score;
+    let newFoods = [...foods];
+    let newCollectedMultiples = [...prevState.collectedMultiples];
+    let newSegmentValues = [...snakeSegmentValues];
+    let foodEaten = false;
+    let eatenFoodIsMultiple = false;
+
+    for (let i = 0; i < newFoods.length; i++) {
+      const food = newFoods[i];
+
+      if (head.x === food.x && head.y === food.y) {
+        foodEaten = true;
+        newFoods = newFoods.filter((_, index) => index !== i);
+
+        const isMultiple = food.number % targetMultiple === 0;
+
+        if (isMultiple) {
+          eatenFoodIsMultiple = true;
+          newScore += 1;
+          newCollectedMultiples = [...prevState.collectedMultiples, food.number];
+          newSegmentValues = [food.number, ...newSegmentValues];
+
+          if (this.crunchAudio) {
+            try {
+              this.crunchAudio.currentTime = 0;
+              this.crunchAudio.play().catch(() => {});
+            } catch (e) {}
+          }
+        } else {
+          eatenFoodIsMultiple = false;
+          newScore = Math.max(newScore - 1, 0);
+
+          if (newCollectedMultiples.length > 0) newCollectedMultiples.pop();
+          if (newSegmentValues.length > 0) newSegmentValues.pop();
+          newSnake.pop();
+
+          if (newSnake.length <= 1) {
+            cancelAnimationFrame(this.animationFrameId);
+            if (this.foodGenerationTimer) clearInterval(this.foodGenerationTimer);
+
+            const stars = this.calculateStars(newScore);
+
+            this.reportProgress(
+              currentLevel,
+              newScore,
+              stars,
+              newCollectedMultiples.length,
+              timeSurvived,
+              true
+            );
+
+            return {
+              ...prevState,
+              gameOver: true,
+              highScore: Math.max(score, highScore),
+              musicPlaying: false,
+              stars,
+              showStarResult: true
+            };
+          }
+        }
+        break;
+      }
+    }
+
+    if (foodEaten) {
+      const newFoodItems = this.generateFood(newSnake, newFoods, 1);
+      newFoods = [...newFoods, ...newFoodItems];
+
+      clearTimeout(this.eatingAnimationTimeout);
+      this.eatingAnimationTimeout = setTimeout(() => {
+        this.setState({ isEating: false });
+      }, 300);
+    }
+
+    const finalSnake = foodEaten && eatenFoodIsMultiple
+      ? newSnake
+      : newSnake.slice(0, -1);
+
+    const stars = this.calculateStars(newScore);
+
+    return {
+      ...prevState,
+      snake: finalSnake,
+      foods: newFoods,
+      score: newScore,
+      collectedMultiples: newCollectedMultiples,
+      direction: currentDirection,
+      isEating: foodEaten,
+      snakeSegmentValues: newSegmentValues,
+      highScore: Math.max(newScore, highScore),
+      stars: stars
+    };
+  });
+};
 
   handleKeyDown = (e) => {
     if (
@@ -564,9 +810,12 @@ class SnakeGame extends Component {
       gameStarted: false,
       isEating: false,
       snakeSegmentValues: Array(initialSnake.length - 1).fill(3), // Reset segment values
-      targetMultiple: newTargetMultiple // Set new target multiple
+      targetMultiple: newTargetMultiple, // Set new target multiple
+      stars: 0,
+      showStarResult: false,
+      highScore: 0, // Refresh high score
     });
-    
+    this.getHighScoreForLevel(this.state.currentLevel);
     this.nextDirection = DIRECTIONS.RIGHT;
 
     if (this.gameBoardRef.current) {
@@ -697,7 +946,10 @@ class SnakeGame extends Component {
       gameStarted,
       musicPlaying,
       collectedMultiples,
-      targetMultiple
+      targetMultiple,
+      stars,
+      showStarResult,
+      currentLevel,
     } = this.state;
 
     if (!audioReady) {
@@ -796,36 +1048,46 @@ class SnakeGame extends Component {
     return (
       <div className="snake-game-container pixel-container">
         <div className="game-header">
-          <h1 className="game-title pixel-text" style={{ 
+          {/* <h1 className="game-title pixel-text" style={{ 
+            color: '#4CFF50',
             textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
             fontSize: '1.5rem'
-          }}>MULTIPLE HUNT</h1>
+          }}>SNAKE GAME - LEVEL {currentLevel}</h1> */}
+          <h1 className="game-title pixel-text" style={{ 
+        textShadow: '2px 2px 0px rgba(0,0,0,0.8)',
+        fontSize: '1.5rem' // Reduced from 2.5rem
+      }}>MULTIPLE HUNT</h1>
           <div className="score-display">
             <div className="score-container current-score pixel-border" style={{ 
               backgroundColor: 'rgba(0,0,0,0.7)',
               padding: '6px 12px'
             }}>
-              <span className="score-label pixel-text" style={{ 
-                color: '#8BFF4A',
-                fontSize: '0.7rem'
-              }}>SCORE:</span>
-              <span className="score-value pixel-text" style={{ 
-                color: '#4CFF50',
-                fontSize: '0.9rem'
-              }}>{score}</span>
+              <span className="score-label pixel-text" style={{ color: '#8BFF4A' }}>SCORE:</span>
+              <span className="score-value pixel-text" style={{ color: '#4CFF50' }}>{score}</span>
             </div>
             <div className="score-container high-score pixel-border" style={{ 
               backgroundColor: 'rgba(0,0,0,0.7)',
               padding: '6px 12px'
             }}>
-              <span className="score-label pixel-text" style={{ 
-                color: '#8BFF4A',
-                fontSize: '0.7rem'
-              }}>HIGH SCORE:</span>
-              <span className="score-value pixel-text" style={{ 
-                color: '#4CFF50',
-                fontSize: '0.9rem'
-              }}>{highScore}</span>
+              <span className="score-label pixel-text" style={{ color: '#8BFF4A' }}>HIGH SCORE:</span>
+              <span className="score-value pixel-text" style={{ color: '#4CFF50' }}>{highScore}</span>
+            </div>
+            {/* Star display */}
+            <div className="star-display pixel-border" style={{ 
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              padding: '6px 12px'
+            }}>
+              <span className="score-label pixel-text" style={{ color: '#8BFF4A' }}>STARS:</span>
+              <div className="stars-container" style={{ display: 'inline-flex', gap: '2px', marginLeft: '4px' }}>
+                {[1, 2, 3].map((starNum) => (
+                  starNum <= stars && (
+                    <span key={starNum} style={{ 
+                      color: '#FFD700',
+                      fontSize: '16px'
+                    }}>⭐</span>
+                  )
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -877,11 +1139,17 @@ class SnakeGame extends Component {
               </div>
             ))}
 
-            {!gameStarted && !gameOver && (
+           {!gameStarted && !gameOver && (
               <div className="start-screen-overlay">
                 <div className="start-screen-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
                   <h2 className="pixel-text" style={{ color: '#4CFF50' }}>READY PLAYER?</h2>
-                  <p className="pixel-text" style={{ color: '#8BFF4A' }}>TARGET: MULTIPLES OF {targetMultiple}</p>
+                  <p className="pixel-text" style={{ color: '#8BFF4A' }}>LEVEL {currentLevel}</p>
+                  <p className="pixel-text" style={{ color: '#8BFF4A', fontSize: '0.8rem', margin: '10px 0' }}>
+                    ⭐ 10 points = 1 star<br/>
+                    ⭐⭐ 20 points = 2 stars<br/>
+                    ⭐⭐⭐ 30 points = 3 stars
+                  </p>
+                  <p className="pixel-text" style={{ color: '#8BFF4A' }}>USE ARROW KEYS</p>
                   <button className="pixel-btn" onClick={this.startGame}>
                     START GAME
                   </button>
@@ -894,9 +1162,29 @@ class SnakeGame extends Component {
                 <div className="game-over-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
                   <h2 className="pixel-text" style={{ color: '#FF4444' }}>GAME OVER!</h2>
                   <p className="pixel-text" style={{ color: '#8BFF4A' }}>SCORE: {score}</p>
-                  <div className="game-over-buttons">
+                  {showStarResult && (
+                    <div className="star-result" style={{ margin: '15px 0' }}>
+                      <p className="pixel-text" style={{ color: '#FFD700', fontSize: '1.2rem' }}>
+                        {stars > 0 ? `${stars} STAR${stars > 1 ? 'S' : ''} EARNED!` : 'NO STARS EARNED'}
+                      </p>
+                      <div className="stars-display" style={{ fontSize: '24px', margin: '10px 0' }}>
+                        {[1, 2, 3].map((starNum) => (
+                          starNum <= stars && (
+                            <span key={starNum} style={{ 
+                              color: '#FFD700',
+                              margin: '0 2px'
+                            }}>⭐</span>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                     <button className="pixel-btn" onClick={this.resetGame}>
                       PLAY AGAIN
+                    </button>
+                    <button className="pixel-btn" onClick={this.goBackToLevelSelect}>
+                      LEVEL SELECT
                     </button>
                   </div>
                 </div>
@@ -905,21 +1193,9 @@ class SnakeGame extends Component {
 
             {isPaused && (
               <div className="pause-overlay">
-                <div className="pause-message pixel-border" style={{ 
-                  backgroundColor: '#0a2f0a',
-                  padding: '20px',
-                  textAlign: 'center'
-                }}>
-                  <h2 className="pixel-text" style={{ 
-                    color: '#4CFF50',
-                    fontSize: '1.2rem',
-                    marginBottom: '15px'
-                  }}>GAME PAUSED</h2>
-                  <button
-                    className="pixel-btn"
-                    onClick={this.togglePause}
-                    style={{ fontSize: '0.8rem' }}
-                  >
+                <div className="pause-message pixel-border" style={{ backgroundColor: '#0a2f0a' }}>
+                  <h2 className="pixel-text" style={{ color: '#4CFF50' }}>GAME PAUSED</h2>
+                  <button className="pixel-btn" onClick={this.togglePause}>
                     RESUME
                   </button>
                 </div>
@@ -967,6 +1243,18 @@ class SnakeGame extends Component {
               <div className="legend-item">
                 <span className="legend-color"></span> Empty (0)
               </div>
+            </div>
+            <div className="star-progress" style={{ marginTop: '15px', padding: '10px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '5px' }}>
+              <h4 className="pixel-text" style={{ color: '#4CFF50', fontSize: '0.8rem', marginBottom: '8px' }}>STAR PROGRESS</h4>
+              {[1, 2, 3].map((starLevel) => (
+                <div key={starLevel} className="progress-line pixel-text" style={{ 
+                  fontSize: '0.6rem', 
+                  color: score >= STAR_THRESHOLDS[starLevel] ? '#FFD700' : '#8BFF4A',
+                  marginBottom: '2px'
+                }}>
+                  ⭐ {STAR_THRESHOLDS[starLevel]} pts {score >= STAR_THRESHOLDS[starLevel] ? '✓' : ''}
+                </div>
+              ))}
             </div>
           </div>
         </div>

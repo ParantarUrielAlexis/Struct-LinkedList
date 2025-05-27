@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import Class, TypeTestProgress, UserProgress
+from .models import Class, TypeTestProgress, UserProgress, SnakeGameProgress
 
 User = get_user_model()
 
@@ -80,6 +80,27 @@ class TypeTestProgressSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'level_index', 'time_taken', 'selected_timer', 'stars_earned', 'wpm', 'score', 'completed_at', 'all_words_completed']
         # Only make user and completed_at read-only, allow stars_earned to be set from frontend
         read_only_fields = ['user', 'completed_at']
+        
+class SnakeGameProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SnakeGameProgress
+        fields = [
+            'id', 'user', 'level', 'score', 'food_eaten', 'time_survived', 
+            'game_completed', 'stars_earned', 'completed_at'
+        ]
+        read_only_fields = ['user', 'completed_at']
+
+    def validate_level(self, value):
+        """Ensure level is within valid range"""
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Level must be between 1 and 5")
+        return value
+
+    def validate_stars_earned(self, value):
+        """Ensure stars are within valid range"""
+        if value < 0 or value > 3:
+            raise serializers.ValidationError("Stars earned must be between 0 and 3")
+        return value
 
 class UserProgressSerializer(serializers.ModelSerializer):
     class Meta:
