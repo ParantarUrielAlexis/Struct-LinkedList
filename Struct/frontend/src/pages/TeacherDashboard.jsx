@@ -194,6 +194,63 @@ const TeacherDashboard = () => {
     };
   }, [algorithmDropdownOpen]);
 
+  // Add this function before the return statement in your TeacherDashboard component
+  const getSortShiftRankedStudents = () => {
+    if (activeAlgorithm === "all") {
+      // When showing all algorithms, sort by the best score across any algorithm
+      return [...sortedStudents].sort((a, b) => {
+        const aData = sortShiftData[a.user_id] || {
+          selection: { score: 0 },
+          bubble: { score: 0 },
+          insertion: { score: 0 }
+        };
+        
+        const bData = sortShiftData[b.user_id] || {
+          selection: { score: 0 },
+          bubble: { score: 0 },
+          insertion: { score: 0 }
+        };
+        
+        const aMaxScore = Math.max(
+          aData.selection.score || 0,
+          aData.bubble.score || 0,
+          aData.insertion.score || 0
+        );
+        
+        const bMaxScore = Math.max(
+          bData.selection.score || 0,
+          bData.bubble.score || 0,
+          bData.insertion.score || 0
+        );
+        
+        // If both have a score of 0, maintain original WPM sorting
+        if (aMaxScore === 0 && bMaxScore === 0) {
+          return b.overall_avg_wpm - a.overall_avg_wpm;
+        }
+        
+        // Otherwise sort by score (highest first)
+        return bMaxScore - aMaxScore;
+      });
+    } else {
+      // When filtering by algorithm, sort by that algorithm's score
+      return [...sortedStudents].sort((a, b) => {
+        const aData = sortShiftData[a.user_id] || { [activeAlgorithm]: { score: 0 } };
+        const bData = sortShiftData[b.user_id] || { [activeAlgorithm]: { score: 0 } };
+        
+        const aScore = aData[activeAlgorithm]?.score || 0;
+        const bScore = bData[activeAlgorithm]?.score || 0;
+        
+        // If both have a score of 0, maintain original WPM sorting
+        if (aScore === 0 && bScore === 0) {
+          return b.overall_avg_wpm - a.overall_avg_wpm;
+        }
+        
+        // Otherwise sort by score (highest first)
+        return bScore - aScore;
+      });
+    }
+  };
+
   return (
     <ClassRequiredWrapper>
       <div className="w-full px-4 py-8 mt-8 max-w-6xl mx-auto">
@@ -575,7 +632,7 @@ const TeacherDashboard = () => {
                           </td>
                         </tr>
                       ) : (
-                        sortedStudents.map((student, index) => {
+                        getSortShiftRankedStudents().map((student, index) => {
                           // Replace the placeholder data with real data
                           const algorithmData = sortShiftData[student.user_id] || {
                             selection: {
