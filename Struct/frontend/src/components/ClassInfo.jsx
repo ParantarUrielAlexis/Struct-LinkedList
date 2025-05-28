@@ -41,10 +41,10 @@ const ClassInfo = () => {
                 {activeClass.code}
               </span>
             </div>
-            <div className="flex items-center text-sm text-gray-500">
+            {/* <div className="flex items-center text-sm text-gray-500">
               <FaUserGraduate className="mr-1 text-gray-400" />
               <span>{activeClass.students_count} students</span>
-            </div>
+            </div> */}
           </div>
         </div>
 
