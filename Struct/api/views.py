@@ -14,10 +14,10 @@ from django.core.files.storage import default_storage
 
 from .serializers import UserRegistrationSerializer, UserProfileSerializer
 from .models import Class, User
-from .serializers import ClassSerializer, ClassCreateSerializer, SelectionSortResultSerializer, BubbleSortResultSerializer
+from .serializers import ClassSerializer, ClassCreateSerializer, SelectionSortResultSerializer, BubbleSortResultSerializer, InsertionSortResultSerializer
 
 from datetime import timedelta
-from .models import SelectionSortResult, BubbleSortResult
+from .models import SelectionSortResult, BubbleSortResult, InsertionSortResult
 
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
@@ -394,6 +394,25 @@ class BubbleSortResultCreateView(generics.CreateAPIView):
             attempt_number=attempt_count
         )
 
+class InsertionSortResultCreateView(generics.CreateAPIView):
+    serializer_class = InsertionSortResultSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        # Convert duration from seconds to timedelta before saving
+        duration_seconds = self.request.data.get('duration', 0)
+        duration = timedelta(seconds=float(duration_seconds))
+        
+        # Get the user's attempt number
+        user = self.request.user
+        attempt_count = InsertionSortResult.objects.filter(user=user).count() + 1
+        
+        serializer.save(
+            user=user,
+            duration=duration,
+            attempt_number=attempt_count
+        )
+
 class ClassSortShiftDataView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -443,8 +462,20 @@ class ClassSortShiftDataView(APIView):
                     bubble_avg_time = "-"
                     bubble_attempts = 0
                 
-                # Add placeholder data for insertion sort for now
-                # This should be replaced with actual data once the insertion sort model is implemented
+                # Get insertion sort results for this user
+                insertion_results = InsertionSortResult.objects.filter(user=user)
+                
+                if insertion_results.exists():
+                    insertion_best_score = insertion_results.aggregate(Max('score'))['score__max']
+                    insertion_best_time = insertion_results.order_by('duration').first().duration_seconds
+                    insertion_avg_time = insertion_results.aggregate(Avg('duration'))['duration__avg'].total_seconds()
+                    insertion_attempts = insertion_results.count()
+                else:
+                    insertion_best_score = 0
+                    insertion_best_time = "-"
+                    insertion_avg_time = "-"
+                    insertion_attempts = 0
+                
                 result[str(user.id)] = {
                     "selection": {
                         "bestTime": selection_best_time,
@@ -459,10 +490,10 @@ class ClassSortShiftDataView(APIView):
                         "score": bubble_best_score
                     },
                     "insertion": {
-                        "bestTime": "-",
-                        "avgTime": "-", 
-                        "attempts": 0,
-                        "score": 0
+                        "bestTime": insertion_best_time,
+                        "avgTime": insertion_avg_time,
+                        "attempts": insertion_attempts,
+                        "score": insertion_best_score
                     }
                 }
             

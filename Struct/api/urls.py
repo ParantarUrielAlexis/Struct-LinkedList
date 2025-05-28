@@ -36,6 +36,7 @@ urlpatterns = [
     # Sortshift API Endpoints
     path('selection-sort/results/', views.SelectionSortResultCreateView.as_view(), name='selection_sort_results'),
     path('bubble-sort/results/', views.BubbleSortResultCreateView.as_view(), name='bubble_sort_results'),
+    path('insertion-sort/results/', views.InsertionSortResultCreateView.as_view(), name='insertion_sort_results'),
     path('classes/<int:class_id>/sortshift/', views.ClassSortShiftDataView.as_view(), name='class_sortshift_data'),
     # Add other API endpoints here
     # path('login/', LoginView.as_view(), name='login'),

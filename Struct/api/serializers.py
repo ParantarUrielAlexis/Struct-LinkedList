@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import Class, TypeTestProgress, UserProgress, SelectionSortResult, BubbleSortResult
+from .models import Class, TypeTestProgress, UserProgress, SelectionSortResult, BubbleSortResult, InsertionSortResult
 
 User = get_user_model()
 
@@ -108,6 +108,22 @@ class BubbleSortResultSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = BubbleSortResult
+        fields = ['id', 'username', 'score', 'duration', 'duration_formatted', 'attempt_number', 'date_created']
+        read_only_fields = ['id', 'user', 'date_created']
+    
+    def get_duration_formatted(self, obj):
+        """Return a human-readable duration format"""
+        seconds = obj.duration_seconds
+        minutes = seconds // 60
+        seconds %= 60
+        return f"{int(minutes)}m {int(seconds)}s"
+
+class InsertionSortResultSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+    duration_formatted = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = InsertionSortResult
         fields = ['id', 'username', 'score', 'duration', 'duration_formatted', 'attempt_number', 'date_created']
         read_only_fields = ['id', 'user', 'date_created']
     
