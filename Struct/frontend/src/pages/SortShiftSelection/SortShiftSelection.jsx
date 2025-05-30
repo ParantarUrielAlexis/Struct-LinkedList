@@ -880,9 +880,15 @@ const SortShiftSelection = () => {
                                 </div>
                             </button>
                         </div>
-                        <div className={styles["controls"]}>
-                            <button className={styles["add-btn"]} onClick={addGrid}>+</button>
-                            <button className={styles["remove-btn"]} onClick={removeGrid}>-</button>
+                       <div className={styles["controls"]}>
+                            <div className={styles["tooltip-container"]}>
+                                <button className={styles["add-btn"]} onClick={addGrid}>+</button>
+                                <span className={styles["tooltip-text"]}>Add Iteration</span>
+                            </div>
+                            <div className={styles["tooltip-container"]}>
+                                <button className={styles["remove-btn"]} onClick={removeGrid}>-</button>
+                                <span className={styles["tooltip-text"]}>Remove Iteration</span>
+                            </div>
                         </div>
                         {grids.map((grid, gridIndex) => {
                             let correctResult = [...originalArray];
