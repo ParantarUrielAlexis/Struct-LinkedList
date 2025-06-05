@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.utils import timezone
 import random
 import string
 
@@ -18,6 +19,9 @@ class User(AbstractUser):
     points = models.IntegerField(default=0)
     hearts = models.IntegerField(default=3)
     hints = models.IntegerField(default=3)
+    # New fields for heart regeneration
+    max_hearts = models.IntegerField(default=5)  # Maximum hearts a user can have
+    last_heart_regen_time = models.DateTimeField(default=timezone.now)  # When the last heart regenerated
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'user_type']
@@ -28,6 +32,48 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+        
+    @property
+    def profile_photo_url(self):
+        if self.profile_photo:
+            return self.profile_photo.url
+        return None
+        
+    def regenerate_hearts(self):
+        """Check and regenerate hearts based on time elapsed since last regeneration"""
+        if self.hearts >= self.max_hearts:
+            return  # Already at max hearts
+            
+        now = timezone.now()
+        time_elapsed = now - self.last_heart_regen_time
+        
+        # Calculate how many 30-minute periods have passed
+        minutes_passed = time_elapsed.total_seconds() / 60
+        hearts_to_add = min(
+            self.max_hearts - self.hearts,  # Don't exceed max hearts
+            int(minutes_passed // 30)  # Add 1 heart per 30 minutes
+        )
+        
+        if hearts_to_add > 0:
+            # Update heart count and last regeneration time
+            self.hearts += hearts_to_add
+            
+            # Update the last regen time based on complete 30-minute intervals used
+            minutes_used = hearts_to_add * 30
+            self.last_heart_regen_time = self.last_heart_regen_time + timezone.timedelta(minutes=minutes_used)
+            self.save(update_fields=['hearts', 'last_heart_regen_time'])
+            
+    def get_next_heart_time(self):
+        """Calculate time until next heart regeneration"""
+        if self.hearts >= self.max_hearts:
+            return None
+            
+        # Calculate when the next heart will be available
+        next_heart_time = self.last_heart_regen_time + timezone.timedelta(minutes=30)
+        time_remaining = next_heart_time - timezone.now()
+        
+        # Return milliseconds for easy frontend use
+        return max(0, time_remaining.total_seconds() * 1000) if time_remaining.total_seconds() > 0 else 0
 
 def generate_class_code():
     """Generate a random 6-character alphanumeric class code"""

@@ -24,6 +24,15 @@ const Profile = () => {
 
   const [isDataLoading, setIsDataLoading] = useState(false);
 
+  // Add these state variables alongside your other useState declarations
+  const [lastHeartRegenTime, setLastHeartRegenTime] = useState(null);
+  const [nextHeartIn, setNextHeartIn] = useState(null);
+  const [maxHearts, setMaxHearts] = useState(5);
+  const [regenerationIntervalId, setRegenerationIntervalId] = useState(null);
+  // Add this state variable
+  const [heartsGainedToday, setHeartsGainedToday] = useState(0);
+  const [heartJustAdded, setHeartJustAdded] = useState(false);
+
   useEffect(() => {
     // Prevent scrolling on the body when this component is mounted
     document.body.style.overflow = 'hidden';
@@ -104,6 +113,96 @@ const Profile = () => {
     
     fetchUserData();
   }, [isAuthenticated]); // Remove authUser dependency to prevent circular updates
+
+  // Heart regeneration logic
+const checkAndRegenerateHearts = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+    
+    const API_BASE_URL = 'http://localhost:8000';
+    const response = await axios.get(
+      `${API_BASE_URL}/api/user/hearts/`,
+      {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      }
+    );
+    
+    const { hearts, last_heart_regen_time, max_hearts, hearts_gained_today } = response.data;
+    
+    // Update local state
+    setProfileData(prevData => ({
+      ...prevData,
+      hearts: hearts
+    }));
+    
+    setLastHeartRegenTime(last_heart_regen_time ? new Date(last_heart_regen_time) : new Date());
+    setMaxHearts(max_hearts || 5);
+    setHeartsGainedToday(hearts_gained_today || 0);
+    
+    // Calculate time until next heart
+    calculateNextHeartTime(hearts, last_heart_regen_time);
+    
+    if (hearts > profileData.hearts) {
+      setHeartJustAdded(true);
+      setTimeout(() => setHeartJustAdded(false), 2000);
+    }
+  } catch (error) {
+    console.error("Error checking heart regeneration:", error);
+  }
+};
+
+// Calculate time until next heart regeneration
+const calculateNextHeartTime = (currentHearts, lastRegenTime) => {
+  if (currentHearts >= maxHearts) {
+    setNextHeartIn(null);
+    return;
+  }
+  
+  const lastRegen = lastRegenTime ? new Date(lastRegenTime) : new Date();
+  const nextRegenTime = new Date(lastRegen.getTime() + (30 * 60 * 1000)); // 30 minutes
+  const timeUntilNextHeart = nextRegenTime - new Date();
+  
+  if (timeUntilNextHeart > 0) {
+    setNextHeartIn(timeUntilNextHeart);
+  } else {
+    // If time has passed, we should have a new heart - fetch updated data
+    checkAndRegenerateHearts();
+  }
+};
+
+  // Set up heart regeneration timer
+useEffect(() => {
+  if (isAuthenticated) {
+    // Initial check for hearts
+    checkAndRegenerateHearts();
+    
+    // Set up interval to check every minute
+    const intervalId = setInterval(() => {
+      if (nextHeartIn !== null) {
+        const newNextHeartIn = nextHeartIn - (60 * 1000); // Subtract one minute
+        
+        if (newNextHeartIn <= 0) {
+          // Time to regenerate a heart
+          checkAndRegenerateHearts();
+        } else {
+          setNextHeartIn(newNextHeartIn);
+        }
+      }
+    }, 60 * 1000); // Check every minute
+    
+    setRegenerationIntervalId(intervalId);
+    
+    // Cleanup interval on unmount
+    return () => {
+      if (regenerationIntervalId) {
+        clearInterval(regenerationIntervalId);
+      }
+    };
+  }
+}, [isAuthenticated, nextHeartIn]);
 
   // Handler to open file dialog
   const handlePhotoClick = () => {
@@ -208,6 +307,22 @@ const Profile = () => {
       setIsUploading(false);
     }
   };
+
+  // Format time remaining until next heart
+const formatTimeRemaining = (milliseconds) => {
+  if (!milliseconds) return null;
+  
+  const minutes = Math.floor(milliseconds / (60 * 1000));
+  const seconds = Math.floor((milliseconds % (60 * 1000)) / 1000);
+  
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  }
+  
+  return `${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+};
 
   if (!isAuthenticated || !authUser) {
     return (
@@ -327,9 +442,29 @@ const Profile = () => {
               <div>
                 <div className="flex items-center justify-center text-xl mb-1">
                   <span className="mr-1">{profileData.hearts}</span>
-                  <FaHeart className="text-black" />
+                  <FaHeart className={`${heartJustAdded ? 'animate-pulse text-2xl' : ''} text-red-500`} />
+                  <span className="ml-1 text-xs">/ {maxHearts}</span>
                 </div>
                 <p className="text-sm">Hearts Available</p>
+                
+                {heartsGainedToday > 0 && (
+                  <p className="text-xs text-blue-500 mt-1">
+                    +{heartsGainedToday} hearts today
+                  </p>
+                )}
+                
+                {nextHeartIn && (
+                  <div className="mt-1">
+                    <div className="flex items-center justify-center text-xs text-gray-600">
+                      <span className="bg-gray-300 px-2 py-1 rounded-md">
+                        {formatTimeRemaining(nextHeartIn)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Until next heart
+                    </p>
+                  </div>
+                )}
               </div>
               
               <div>

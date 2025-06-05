@@ -273,6 +273,9 @@ class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # Regenerate hearts before returning profile data
+        request.user.regenerate_hearts()
+        
         serializer = UserProfileSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
@@ -1226,3 +1229,37 @@ class ClassSnakeGameDataView(APIView):
             }
         
         return level_stats
+
+from .serializers import UserHeartSerializer
+
+class UserHeartsView(APIView):
+    """API endpoint to get and manage user heart data"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        
+        # Check and regenerate hearts based on time elapsed
+        user.regenerate_hearts()
+        
+        serializer = UserHeartSerializer(user, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request):
+        """Endpoint to use a heart (decrement count)"""
+        user = request.user
+        
+        # First check if user has hearts available
+        if user.hearts <= 0:
+            return Response(
+                {"error": "No hearts available", "hearts": 0}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Decrement heart count
+        user.hearts -= 1
+        user.save(update_fields=['hearts'])
+        
+        # Return updated heart info
+        serializer = UserHeartSerializer(user, context={'request': request})
+        return Response(serializer.data)

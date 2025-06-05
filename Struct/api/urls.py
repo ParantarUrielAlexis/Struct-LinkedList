@@ -1,6 +1,6 @@
 # api/urls.py
 from django.urls import path
-from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView, ClassUserWPMView, SnakeGameProgressCreateView, UserSnakeGameProgressView, UserSnakeGameBestProgressView, SnakeGameLevelStatsView, SnakeGameOverallStatsView, ClassSnakeGameDataView  
+from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView, ClassUserWPMView, SnakeGameProgressCreateView, UserSnakeGameProgressView, UserSnakeGameBestProgressView, SnakeGameLevelStatsView, SnakeGameOverallStatsView, ClassSnakeGameDataView, UserHeartsView  
 from . import views
 
 # These URLs will be included under the /api/ prefix
@@ -12,6 +12,9 @@ urlpatterns = [
     # Profile Management
     path('user/profile/', views.UserProfileView.as_view(), name='user_profile'),
     path('user/update-profile-photo/', views.update_profile_photo, name='update_profile_photo'),
+    
+    # Heart Management
+    path('user/hearts/', UserHeartsView.as_view(), name='user_hearts'),
 
     # Class Management
     path('classes/create/', ClassCreateView.as_view(), name='create_class'),
