@@ -44,7 +44,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'user_type', 'profile_photo_url', 
-                 'points', 'hearts', 'max_hearts', 'hints', 'next_heart_in')
+                 'points', 'hearts', 'max_hearts', 'hints', 'next_heart_in',
+                 'hearts_gained_today', 'max_daily_hearts')
     
     def get_profile_photo_url(self, user):
         if user.profile_photo:
@@ -55,7 +56,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     def get_next_heart_in(self, user):
         """Return time until next heart regeneration in milliseconds"""
-        # Uses the get_next_heart_time method from the User model
         return user.get_next_heart_time()
 
 class UserHeartSerializer(serializers.ModelSerializer):
@@ -63,7 +63,7 @@ class UserHeartSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['hearts', 'max_hearts', 'last_heart_regen_time', 'next_heart_in']
+        fields = ['hearts', 'max_hearts', 'last_heart_regen_time', 'next_heart_in', 'hearts_gained_today', 'max_daily_hearts']
     
     def get_next_heart_in(self, user):
         """Return time until next heart regeneration in milliseconds"""

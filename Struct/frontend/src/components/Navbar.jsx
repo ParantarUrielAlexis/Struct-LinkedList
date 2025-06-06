@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import {
   FaSignOutAlt,
   FaChalkboardTeacher,
@@ -8,7 +9,8 @@ import {
   FaTimes,
   FaUser,
   FaUserCog,
-  FaCaretDown
+  FaCaretDown,
+  FaHeart
 } from "react-icons/fa";
 import logo from "../assets/logo.png";
 import { useAuth } from "../contexts/AuthContext";
@@ -23,6 +25,12 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
+  
+  // Add heart state variables
+  const [hearts, setHearts] = useState(0);
+  const [maxHearts, setMaxHearts] = useState(5);
+  const [nextHeartIn, setNextHeartIn] = useState(null);
+  const [heartIntervalId, setHeartIntervalId] = useState(null);
 
   const handleLogout = () => {
     logout();
@@ -36,6 +44,99 @@ const Navbar = () => {
   const toggleUserMenu = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
   };
+
+  // Function to format remaining time
+  const formatTimeRemaining = (milliseconds) => {
+    if (!milliseconds) return null;
+    
+    const minutes = Math.floor(milliseconds / (60 * 1000));
+    const seconds = Math.floor((milliseconds % (60 * 1000)) / 1000);
+    
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours}h ${mins}m`;
+    }
+    
+    return `${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+  };
+
+  // Function to fetch heart data
+  const fetchHeartData = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+      
+      const API_BASE_URL = 'http://localhost:8000';
+      const response = await axios.get(
+        `${API_BASE_URL}/api/user/hearts/`,
+        {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        }
+      );
+      
+      const { hearts: userHearts, max_hearts, next_heart_in } = response.data;
+      
+      setHearts(userHearts);
+      setMaxHearts(max_hearts || 5);
+      setNextHeartIn(next_heart_in);
+      
+    } catch (error) {
+      console.error("Error fetching heart data:", error);
+    }
+  };
+
+  // Fetch heart data on component mount and when authentication state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchHeartData();
+      
+      // Set up interval to update the countdown every minute
+      const intervalId = setInterval(() => {
+        if (nextHeartIn !== null && nextHeartIn > 0) {
+          const newNextHeartIn = nextHeartIn - (60 * 1000); // Subtract one minute
+          
+          if (newNextHeartIn <= 0) {
+            // Time to regenerate a heart
+            fetchHeartData();
+          } else {
+            setNextHeartIn(newNextHeartIn);
+          }
+        }
+      }, 60 * 1000);
+      
+      setHeartIntervalId(intervalId);
+      
+      // Clear interval on component unmount
+      return () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+      };
+    }
+  }, [isAuthenticated]);
+  
+  // Update countdown timer every second
+  useEffect(() => {
+    if (isAuthenticated && nextHeartIn !== null && nextHeartIn > 0) {
+      const countdownInterval = setInterval(() => {
+        setNextHeartIn(prev => {
+          if (prev <= 1000) {
+            // If we're below 1 second, fetch new data
+            fetchHeartData();
+            return null;
+          }
+          return prev - 1000;
+        });
+      }, 1000);
+      
+      return () => clearInterval(countdownInterval);
+    }
+  }, [nextHeartIn, isAuthenticated]);
 
   // Close the user menu when clicking outside
   useEffect(() => {
@@ -84,6 +185,21 @@ const Navbar = () => {
                 onJoinClick={() => setIsJoinModalOpen(true)}
                 onCreateClick={() => setIsCreateModalOpen(true)}
               />
+              
+              {/* Heart counter and countdown */}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center">
+                  <span className="text-sm font-medium">{hearts}</span>
+                  <FaHeart className="text-red-500 ml-1" />
+                  <span className="text-xs text-gray-500 ml-1">/{maxHearts}</span>
+                </div>
+                
+                {nextHeartIn && hearts < maxHearts && (
+                  <div className="text-[10px] text-gray-600 bg-gray-100 px-2 py-1 rounded-md mt-1">
+                     {formatTimeRemaining(nextHeartIn)}
+                  </div>
+                )}
+              </div>
 
               {/* Username with dropdown menu */}
               <div className="relative" ref={userMenuRef}>

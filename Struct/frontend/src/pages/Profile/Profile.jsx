@@ -130,7 +130,14 @@ const checkAndRegenerateHearts = async () => {
       }
     );
     
-    const { hearts, last_heart_regen_time, max_hearts, hearts_gained_today } = response.data;
+    const { 
+      hearts, 
+      last_heart_regen_time, 
+      max_hearts, 
+      hearts_gained_today,
+      max_daily_hearts,
+      next_heart_in 
+    } = response.data;
     
     // Update local state
     setProfileData(prevData => ({
@@ -142,8 +149,13 @@ const checkAndRegenerateHearts = async () => {
     setMaxHearts(max_hearts || 5);
     setHeartsGainedToday(hearts_gained_today || 0);
     
-    // Calculate time until next heart
-    calculateNextHeartTime(hearts, last_heart_regen_time);
+    // Set next_heart_in directly from the API if available
+    // This ensures we respect the backend's decision about regeneration
+    if (next_heart_in === null) {
+      setNextHeartIn(null); // No regeneration needed (at max or daily limit)
+    } else {
+      setNextHeartIn(next_heart_in);
+    }
     
     if (hearts > profileData.hearts) {
       setHeartJustAdded(true);
@@ -181,7 +193,7 @@ useEffect(() => {
     
     // Set up interval to check every minute
     const intervalId = setInterval(() => {
-      if (nextHeartIn !== null) {
+      if (nextHeartIn !== null && nextHeartIn > 0) {
         const newNextHeartIn = nextHeartIn - (60 * 1000); // Subtract one minute
         
         if (newNextHeartIn <= 0) {
@@ -197,8 +209,8 @@ useEffect(() => {
     
     // Cleanup interval on unmount
     return () => {
-      if (regenerationIntervalId) {
-        clearInterval(regenerationIntervalId);
+      if (intervalId) {
+        clearInterval(intervalId);
       }
     };
   }
@@ -442,29 +454,12 @@ const formatTimeRemaining = (milliseconds) => {
               <div>
                 <div className="flex items-center justify-center text-xl mb-1">
                   <span className="mr-1">{profileData.hearts}</span>
-                  <FaHeart className={`${heartJustAdded ? 'animate-pulse text-2xl' : ''} text-red-500`} />
-                  <span className="ml-1 text-xs">/ {maxHearts}</span>
+                  <FaHeart className={`${heartJustAdded ? 'animate-pulse text-2xl' : ''} text-red-black`} />
+                 
                 </div>
                 <p className="text-sm">Hearts Available</p>
                 
-                {heartsGainedToday > 0 && (
-                  <p className="text-xs text-blue-500 mt-1">
-                    +{heartsGainedToday} hearts today
-                  </p>
-                )}
                 
-                {nextHeartIn && (
-                  <div className="mt-1">
-                    <div className="flex items-center justify-center text-xs text-gray-600">
-                      <span className="bg-gray-300 px-2 py-1 rounded-md">
-                        {formatTimeRemaining(nextHeartIn)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Until next heart
-                    </p>
-                  </div>
-                )}
               </div>
               
               <div>
