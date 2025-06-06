@@ -27,7 +27,7 @@ export default function SortShift() {
   const [loadingImage, setLoadingImage] = useState(null);
   const [fadeIn, setFadeIn] = useState(false);
   const [progress, setProgress] = useState(1);
-  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(true); // Set to true by default
   const [tutorialPage, setTutorialPage] = useState(0);
   const tutorialPages = [
     {
@@ -245,6 +245,8 @@ export default function SortShift() {
   }, []);
    const closeTutorial = () => {
     setIsTutorialOpen(false);
+    // Optionally store in localStorage that user has seen tutorial
+    localStorage.setItem('sortShiftTutorialSeen', 'true');
   };
 
   const handlePrevious = () => {
@@ -339,6 +341,17 @@ export default function SortShift() {
       navigate(path);
     }, 4000);
   };
+
+  // Add this useEffect right after your other useEffect hooks
+  // useEffect(() => {
+  //   // Check if user has seen the tutorial before
+  //   const tutorialSeen = localStorage.getItem('sortShiftTutorialSeen');
+  //   if (tutorialSeen) {
+  //     setIsTutorialOpen(false);
+  //   } else {
+  //     setIsTutorialOpen(true);
+  //   }
+  // }, []);
 
   return (
     <div className="container">

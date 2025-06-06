@@ -190,8 +190,8 @@ const Navbar = () => {
               <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center">
                   <span className="text-sm font-medium">{hearts}</span>
-                  <FaHeart className="text-red-500 ml-1" />
-                  <span className="text-xs text-gray-500 ml-1">/{maxHearts}</span>
+                  <FaHeart className="text-[11px] text-red-500 ml-1" />
+                  <span className="text-[10px] text-gray-500 ml-1">/{maxHearts}</span>
                 </div>
                 
                 {nextHeartIn && hearts < maxHearts && (
