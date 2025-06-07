@@ -1258,7 +1258,15 @@ class UserHeartsView(APIView):
         
         # Decrement heart count
         user.hearts -= 1
-        user.save(update_fields=['hearts'])
+        
+        # Update last_heart_regen_time if this was the last heart
+        # This ensures the timer starts counting properly
+        if user.hearts == 0:
+            from django.utils import timezone
+            user.last_heart_regen_time = timezone.now()
+            user.save(update_fields=['hearts', 'last_heart_regen_time'])
+        else:
+            user.save(update_fields=['hearts'])
         
         # Return updated heart info
         serializer = UserHeartSerializer(user, context={'request': request})

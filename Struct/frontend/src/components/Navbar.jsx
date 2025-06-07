@@ -138,6 +138,27 @@ const Navbar = () => {
     }
   }, [nextHeartIn, isAuthenticated]);
 
+  // Also update this to refresh every second when hearts are regenerating
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchHeartData();
+      
+      // Set up interval to update the countdown timer
+      const intervalId = setInterval(() => {
+        fetchHeartData();
+      }, 60 * 1000); // Refresh every minute
+      
+      setHeartIntervalId(intervalId);
+      
+      // Clear interval on component unmount
+      return () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+      };
+    }
+  }, [isAuthenticated]);
+
   // Close the user menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
