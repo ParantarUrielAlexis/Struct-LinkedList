@@ -312,7 +312,7 @@ export default function SortShift() {
     }
     
     // Deduct heart (this should happen before navigating)
-    decreaseHeart();
+    // decreaseHeart();
 
     // Play sounds and show loading screen
     const bgSound = backgroundSound.current;

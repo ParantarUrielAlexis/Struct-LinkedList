@@ -1049,3 +1049,81 @@
     width: 120px;
   }
 }
+
+.modal-overlay-no-hearts {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content-no-hearts {
+    background-color: #000000d0;
+    border: 3px solid #a1a1a1;
+    border-radius: 10px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: white;
+    overflow: hidden;
+}
+
+.modal-header-no-hearts {
+    background-color: #d32f2f00;
+    padding: 15px;
+    border-bottom: 3px solid #a1a1a1;
+    
+}
+
+.modal-header-no-hearts h2 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.modal-body-no-hearts {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.heart-icon-large {
+    color: #d43939;
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.modal-body-no-hearts p {
+    margin: 10px 0;
+    font-size: 1.2rem;
+}
+
+.continue-btn-no-hearts {
+    background-color: #686767;
+    color: white;
+    border: 2px solid #a1a1a1;
+    padding: 10px 20px;
+    margin-top: 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.continue-btn-no-hearts:hover {
+    background-color: #302f2f;
+}
+
+/* Make sure the no-hearts modal has proper z-index */
+.modal-overlay-no-hearts {
+    z-index: 2000; /* Ensure it's above other elements */
+}

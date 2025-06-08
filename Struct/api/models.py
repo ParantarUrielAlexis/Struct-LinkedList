@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 import random
 import string
+import datetime
 
 class User(AbstractUser):
     USER_TYPE_CHOICES = (
@@ -20,13 +21,13 @@ class User(AbstractUser):
     hearts = models.IntegerField(default=3)
     hints = models.IntegerField(default=3)
     # New fields for heart regeneration
-    max_hearts = models.IntegerField(default=5)  # Maximum hearts a user can have
+    max_hearts = models.IntegerField(default=10)  # Maximum hearts a user can have
     last_heart_regen_time = models.DateTimeField(default=timezone.now)  # When the last heart regenerated
     # Add this new field to track daily heart regeneration
     hearts_gained_today = models.IntegerField(default=0)
-    hearts_reset_date = models.DateField(default=timezone.now)
+    hearts_reset_date = models.DateTimeField(default=timezone.now)  # Changed from DateField to DateTimeField
     # Maximum hearts a user can gain in a day (limit)
-    max_daily_hearts = models.IntegerField(default=5)
+    max_daily_hearts = models.IntegerField(default=3)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'user_type']
@@ -48,6 +49,9 @@ class User(AbstractUser):
         """Regenerate hearts based on time elapsed since last regeneration"""
         from django.utils import timezone
         
+        # Check if we need to reset daily heart counter
+        self.reset_daily_hearts_if_needed()
+        
         # If hearts are already at max, nothing to do
         if self.hearts >= self.max_hearts:
             return
@@ -62,17 +66,25 @@ class User(AbstractUser):
         # Get time difference in minutes
         time_diff = (now - self.last_heart_regen_time).total_seconds() / 60
         heart_regen_minutes = 30  # Time in minutes to regenerate one heart
-        
+        #heart_regen_minutes = 1  # Time in minutes to regenerate one heart
         # Calculate how many hearts to add
         hearts_to_add = int(time_diff / heart_regen_minutes)
         
         if hearts_to_add > 0:
+            # Check if we've reached daily limit
+            remaining_daily_hearts = self.max_daily_hearts - self.hearts_gained_today
+            hearts_to_add = min(hearts_to_add, remaining_daily_hearts)
+            
+            if hearts_to_add <= 0:
+                return  # Daily limit reached
+                
             # Add hearts, but don't exceed max
             new_hearts = min(self.hearts + hearts_to_add, self.max_hearts)
             hearts_added = new_hearts - self.hearts
             
             if hearts_added > 0:
                 self.hearts = new_hearts
+                self.hearts_gained_today += hearts_added
                 
                 # Update the last regen time based on hearts added
                 # This ensures proper timing for the next heart
@@ -80,7 +92,7 @@ class User(AbstractUser):
                     minutes=hearts_added * heart_regen_minutes
                 )
                 
-                self.save(update_fields=['hearts', 'last_heart_regen_time'])
+                self.save(update_fields=['hearts', 'last_heart_regen_time', 'hearts_gained_today'])
             
     def get_next_heart_time(self):
         """Calculate time until next heart regeneration"""
@@ -90,10 +102,31 @@ class User(AbstractUser):
             
         # Calculate when the next heart will be available
         next_heart_time = self.last_heart_regen_time + timezone.timedelta(minutes=30)
+        #next_heart_time = self.last_heart_regen_time + timezone.timedelta(minutes=1)
         time_remaining = next_heart_time - timezone.now()
         
         # Return milliseconds for easy frontend use
         return max(0, time_remaining.total_seconds() * 1000) if time_remaining.total_seconds() > 0 else 0
+
+    def reset_daily_hearts_if_needed(self):
+        """Reset hearts_gained_today at 8AM each day"""
+        now = timezone.now()
+        today = now.date()
+        
+        # Create today's reset time (8AM today)
+        todays_reset = timezone.make_aware(
+            datetime.datetime.combine(today, datetime.time(hour=8, minute=0))
+        )
+        
+        # If we're before 8AM, we should compare with yesterday's 8AM
+        if now.hour < 8:
+            todays_reset = todays_reset - timezone.timedelta(days=1)
+        
+        # If the last reset was before today's reset time (8AM)
+        if self.hearts_reset_date < todays_reset:
+            self.hearts_gained_today = 0
+            self.hearts_reset_date = now
+            self.save(update_fields=['hearts_gained_today', 'hearts_reset_date'])
 
 def generate_class_code():
     """Generate a random 6-character alphanumeric class code"""

@@ -409,6 +409,7 @@ const SortShiftInsertion = () => {
     const [hearts, setHearts] = useState(0); 
     const [hasDeductedHeart, setHasDeductedHeart] = useState(false);
     const [successTimeoutId, setSuccessTimeoutId] = useState(null);
+    const [showNoHeartsModal, setShowNoHeartsModal] = useState(false);
     
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
@@ -553,42 +554,47 @@ const tutorialPages = [
     useEffect(() => {
         // Set up event listener for page refresh
         const handleBeforeUnload = (e) => {
-            // Standard way to show a confirmation dialog on refresh/navigation away
-            const message = 'Are you sure you want to leave? This will cost you 1 heart.';
+            // Show confirmation message only if the user is trying to leave the page
+            const message = 'Are you sure you want to leave? Your heart has already been deducted.';
             e.preventDefault();
-            e.returnValue = message; // This is what shows in the confirmation dialog
+            e.returnValue = message;
             
-            // Store information that the page is being refreshed intentionally
-            sessionStorage.setItem('refreshIntended', 'true');
+            // No need to deduct heart here as it was already deducted on load
+            // Just set the flag for when they return
+            sessionStorage.setItem('forceUserRefresh', 'true');
             
-            return message; // For older browsers
+            return message;
         };
 
-        // Check if there was an intended refresh
-        const checkForRefresh = () => {
-            const wasRefreshIntended = sessionStorage.getItem('refreshIntended') === 'true';
-            
-            // If this is a refresh (not first load) and heart hasn't been deducted yet
-            if (wasRefreshIntended && !hasDeductedHeart && isAuthenticated && authUser) {
-                deductHeart();
-                // Clear the flag
-                sessionStorage.removeItem('refreshIntended');
-            }
-        };
+        // Add the event listener
+        window.addEventListener('beforeunload', handleBeforeUnload);
         
-        // Function to deduct a heart
-        const deductHeart = async () => {
-            try {
+        // Cleanup
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, []);
+
+    // Deduct heart on component load
+    const deductHeartOnLoad = async () => {
+        try {
+            if (isAuthenticated && authUser && !hasDeductedHeart) {
                 const token = localStorage.getItem("authToken");
                 if (!token) return;
                 
-                const newHeartCount = Math.max(0, authUser.hearts - 1);
-                setHearts(newHeartCount);
-                setHasDeductedHeart(true);
+                // Check if user already has 0 hearts BEFORE attempting to deduct one
+                if (authUser.hearts === 0) {  // Changed from <= 0 to === 0 to be precise
+                    setShowNoHeartsModal(true);
+                    setHasDeductedHeart(true);
+                    return;
+                }
                 
-                // Update in the backend
+                // If we reach here, user has at least 1 heart - let's deduct it
+                const newHeartCount = Math.max(0, authUser.hearts - 1);
                 const API_BASE_URL = 'http://localhost:8000';
-                const response = await axios.patch(
+                
+                // Update backend first
+                await axios.patch(
                     `${API_BASE_URL}/api/user/profile/`,
                     { hearts: newHeartCount },
                     {
@@ -599,47 +605,31 @@ const tutorialPages = [
                     }
                 );
                 
-                // Update user in context
-                if (typeof updateUser === 'function' && response.data) {
+                // Update local state
+                setHearts(newHeartCount);
+                setHasDeductedHeart(true);
+                
+                // Update user context
+                if (typeof updateUser === 'function') {
                     updateUser({
                         ...authUser,
                         hearts: newHeartCount
                     });
                 }
                 
-                // If no hearts left, redirect
-                if (newHeartCount <= 0) {
-                    alert("You don't have enough hearts to continue playing!");
-                    navigate('/sortshift');
-                }
-            } catch (error) {
-                console.error('Error updating heart count:', error);
+                // The key fix: DON'T show no hearts modal when it drops to zero
+                // We already spent the heart to play this game!
+                // Only show it if they had 0 hearts before trying to play
             }
-        };
-
-        // Add the event listener
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        
-        // On component mount, check if this is a refresh
-        checkForRefresh();
-        
-        // On first load, set a flag to indicate the page has been visited
-        if (!sessionStorage.getItem('pageVisited')) {
-            sessionStorage.setItem('pageVisited', 'true');
-            // Clear any previous refresh intentions
-            sessionStorage.removeItem('refreshIntended');
+        } catch (error) {
+            console.error('Error deducting heart:', error);
         }
-        
-        // Cleanup
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-            
-            // Clear any lingering timeouts when component unmounts
-            if (successTimeoutId) {
-                clearTimeout(successTimeoutId);
-            }
-        };
-    }, [isAuthenticated, authUser, hasDeductedHeart, navigate, updateUser, successTimeoutId]);
+    };
+
+    useEffect(() => {
+        deductHeartOnLoad();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthenticated, authUser]);
 
     const swapSound = new Audio("/sounds/swap.mp3");
     const clickSound = new Audio("/sounds/first_click.mp3");
@@ -864,6 +854,10 @@ const tutorialPages = [
     if (calculatedRemarks === "Pass") {
         await updateProgress(); // Wait for update to complete
     }
+    };
+    const handleContinueClick = () => {
+        // Navigate back to the sort shift menu
+        navigate('/sortshift');
     };
     return (
         <div className={styles['short-shift-container']}>
@@ -1101,6 +1095,25 @@ const tutorialPages = [
                                 disabled={remarks === "Fail"}
                             >
                                 Go back
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showNoHeartsModal && (
+                <div className={styles["modal-overlay-no-hearts"]}>
+                    <div className={styles["modal-content-no-hearts"]}>
+                        <div className={styles["modal-header-no-hearts"]}>
+                            <h2>Out of Hearts!</h2>
+                        </div>
+                        <div className={styles["modal-body-no-hearts"]}>
+                            <FaHeart className={styles["heart-icon-large"]} />
+                            <p>You don't have any hearts left to play.</p>
+                            <button 
+                                className={styles["continue-btn-no-hearts"]}
+                                onClick={handleContinueClick}
+                            >
+                                Continue
                             </button>
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef} from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import simulation from '../../assets/selection/selection_simulation1.gif';
 import simulation2 from '../../assets/selection/selection_simulation2.gif';
@@ -337,6 +337,7 @@ const SortShiftSelection = () => {
     const [score, setScore] = useState(0); // Add these state variables
     const [remarks, setRemarks] = useState("");
     const [startTime, setStartTime] = useState(Date.now()); // Add this for duration tracking
+    const [showNoHeartsModal, setShowNoHeartsModal] = useState(false); // Add this state for the no-hearts modal
 
     const generateRandomArray = () =>{
         return Array.from({ length: 7}, () => Math.floor(Math.random() * 100) + 1 )
@@ -703,113 +704,107 @@ const SortShiftSelection = () => {
         }
     }, [isAuthenticated, user]);
 
+    // Add this function to deduct a heart immediately when the component loads
+const deductHeartOnLoad = async () => {
+    try {
+        if (isAuthenticated && user && !hasDeductedHeart) {
+            const token = localStorage.getItem("authToken");
+            if (!token) return;
+            
+            // Check if user already has 0 hearts BEFORE attempting to deduct one
+            if (user.hearts === 0) {  // Changed from <= 0 to === 0 to be precise
+                setShowNoHeartsModal(true);
+                setHasDeductedHeart(true);
+                return;
+            }
+            
+            // If we reach here, user has at least 1 heart - let's deduct it
+            const newHeartCount = Math.max(0, user.hearts - 1);
+            const API_BASE_URL = 'http://localhost:8000';
+            
+            // Update backend first
+            await axios.patch(
+                `${API_BASE_URL}/api/user/profile/`,
+                { hearts: newHeartCount },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${token}`
+                    }
+                }
+            );
+            
+            // Update local state
+            setHearts(newHeartCount);
+            setHasDeductedHeart(true);
+            
+            // Update user context
+            if (typeof updateUser === 'function') {
+                updateUser({
+                    ...user,
+                    hearts: newHeartCount
+                });
+            }
+            
+            // The key fix: DON'T show no hearts modal when it drops to zero
+            // We already spent the heart to play this game!
+            // Only show it if they had 0 hearts before trying to play
+        }
+    } catch (error) {
+        console.error('Error deducting heart:', error);
+    }
+};
+
+    // Add this useEffect to run the heart deduction when component loads
+    useEffect(() => {
+        deductHeartOnLoad();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthenticated, user]);
+
     // Handle page refresh heart deduction
     useEffect(() => {
         // Set up event listener for page refresh
         const handleBeforeUnload = (e) => {
-            // Standard way to show a confirmation dialog on refresh/navigation away
-            const message = 'Are you sure you want to leave? This will cost you 1 heart.';
+            // Show confirmation message only if the user is trying to leave the page
+            const message = 'Are you sure you want to leave? Your heart has already been deducted.';
             e.preventDefault();
-            e.returnValue = message; // This is what shows in the confirmation dialog
+            e.returnValue = message;
             
-            // Store information that the page is being refreshed intentionally
-            sessionStorage.setItem('refreshIntended', 'true');
+            // No need to deduct heart here as it was already deducted on load
+            // Just set the flag for when they return
+            sessionStorage.setItem('forceUserRefresh', 'true');
             
-            return message; // For older browsers
-        };
-
-        // Check if there was an intended refresh
-        const checkForRefresh = () => {
-            const wasRefreshIntended = sessionStorage.getItem('refreshIntended') === 'true';
-            
-            // If this is a refresh (not first load) and heart hasn't been deducted yet
-            if (wasRefreshIntended && !hasDeductedHeart && isAuthenticated && user) {
-                deductHeart();
-                // Clear the flag
-                sessionStorage.removeItem('refreshIntended');
-            }
-        };
-        
-        // Function to deduct a heart
-        const deductHeart = async () => {
-            try {
-                const token = localStorage.getItem("authToken");
-                if (!token) return;
-                
-                const newHeartCount = Math.max(0, user.hearts - 1);
-                setHearts(newHeartCount);
-                setHasDeductedHeart(true);
-                
-                // Update in the backend
-                const API_BASE_URL = 'http://localhost:8000';
-                const response = await axios.patch(
-                    `${API_BASE_URL}/api/user/profile/`,
-                    { hearts: newHeartCount },
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Token ${token}`
-                        }
-                    }
-                );
-                
-                // Update user in context
-                if (typeof updateUser === 'function' && response.data) {
-                    updateUser({
-                        ...user,
-                        hearts: newHeartCount
-                    });
-                }
-                
-                // If no hearts left, redirect
-                if (newHeartCount <= 0) {
-                    alert("You don't have enough hearts to continue playing!");
-                    navigate('/sortshift');
-                }
-            } catch (error) {
-                console.error('Error updating heart count:', error);
-            }
+            return message;
         };
 
         // Add the event listener
         window.addEventListener('beforeunload', handleBeforeUnload);
         
-        // On component mount, check if this is a refresh
-        checkForRefresh();
-        
-        // On first load, set a flag to indicate the page has been visited
-        if (!sessionStorage.getItem('pageVisited')) {
-            sessionStorage.setItem('pageVisited', 'true');
-            // Clear any previous refresh intentions
-            sessionStorage.removeItem('refreshIntended');
-        }
-        
         // Cleanup
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [isAuthenticated, user, hasDeductedHeart, navigate, updateUser]);
+    }, []);
 
-    // Add this at the start of your component's render method
-    if (!isAuthenticated) {
-        return (
-            <div className={styles["not-authenticated"]}>
-                <h2>Please log in to access this game</h2>
-                <button onClick={() => navigate('/login')}>Go to Login</button>
-            </div>
-        );
-    }
+    // Add a custom navigation handler for the "Go Back" button
+const handleGoBack = () => {
+    // Just navigate back, no need to deduct a heart again as it was already deducted when the game loaded
+    navigate('/sortshift');
+};
 
-    // Fixed condition here - changed <= 0 to < 1
-    // if (authUser && authUser.hearts < 1) {
-    //     return (
-    //         <div className={styles["no-hearts"]}>
-    //             <h2>You don't have enough hearts to play!</h2>
-    //             <p>Go back to the menu and collect more hearts.</p>
-    //             <button onClick={() => navigate('/sortshift')}>Back to Menu</button>
-    //         </div>
-    //     );
-    // }
+    // Then update your button onClick handler:
+    // <button
+    //     className={styles["next-btn"]}
+    //     onClick={handleGoBack} 
+    //     disabled={remarks === "Fail"}
+    // >
+    //     Go Back
+    // </button>
+
+    const handleContinueClick = () => {
+        // Navigate back to the sort shift menu
+        navigate('/sortshift');
+    };
 
     return (
         <div className={styles["short-shift-container"]}>
@@ -1037,7 +1032,7 @@ const SortShiftSelection = () => {
                             </button>
                             <button
                                 className={styles["next-btn"]}
-                                onClick={() => navigate('/sortshift')} // Navigate to Bubble Sort page
+                                onClick={handleGoBack} // Navigate to Bubble Sort page
                                 disabled={remarks === "Fail"}
                             >
                                 Go Back
@@ -1047,6 +1042,26 @@ const SortShiftSelection = () => {
                 </div>
             )}
             
+            {/* Updated No Hearts Modal */}
+            {showNoHeartsModal && (
+                <div className={styles["modal-overlay-no-hearts"]}>
+                    <div className={styles["modal-content-no-hearts"]}>
+                        <div className={styles["modal-header-no-hearts"]}>
+                            <h2>Out of Hearts!</h2>
+                        </div>
+                        <div className={styles["modal-body-no-hearts"]}>
+                            <FaHeart className={styles["heart-icon-large"]} />
+                            <p>You don't have any hearts left to play.</p>
+                            <button 
+                                className={styles["continue-btn-no-hearts"]}
+                                onClick={handleContinueClick}
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
