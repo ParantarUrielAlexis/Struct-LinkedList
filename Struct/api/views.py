@@ -21,6 +21,7 @@ from .serializers import SnakeGameProgressSerializer
 
 from datetime import timedelta
 from .models import SelectionSortResult, BubbleSortResult, InsertionSortResult
+from django.utils import timezone
 
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
@@ -1239,6 +1240,26 @@ class UserHeartsView(APIView):
     def get(self, request):
         user = request.user
         
+        now = timezone.now()
+        
+        # Update last_heart_regen_time in TWO situations:
+        # 1. If hearts are full, update regen time to now to prevent instant regeneration later
+        # 2. If hearts_gained_today is manually reset to 0
+        
+        if user.hearts >= user.max_hearts:
+            # If hearts are full, always set last_heart_regen_time to now
+            # This prevents instant regeneration when hearts go below max
+            user.last_heart_regen_time = now
+            user.save(update_fields=['last_heart_regen_time'])
+        elif user.hearts_gained_today == 0 and user.hearts < user.max_hearts:
+            # Handle manual database reset of hearts_gained_today
+            # Check if last_heart_regen_time is too old (would allow instant regeneration)
+            time_diff = (now - user.last_heart_regen_time).total_seconds() / 60
+            if time_diff >= 30:  # If it would regenerate at least 1 heart
+                # Update last_heart_regen_time to now - forces waiting 30 mins for next heart
+                user.last_heart_regen_time = now
+                user.save(update_fields=['last_heart_regen_time'])
+
         # Check and regenerate hearts based on time elapsed
         user.regenerate_hearts()
         
@@ -1259,14 +1280,9 @@ class UserHeartsView(APIView):
         # Decrement heart count
         user.hearts -= 1
         
-        # Update last_heart_regen_time if this was the last heart
-        # This ensures the timer starts counting properly
-        if user.hearts == 0:
-            from django.utils import timezone
-            user.last_heart_regen_time = timezone.now()
-            user.save(update_fields=['hearts', 'last_heart_regen_time'])
-        else:
-            user.save(update_fields=['hearts'])
+        # Don't update last_heart_regen_time when using a heart
+        # This ensures the regeneration timer continues properly
+        user.save(update_fields=['hearts'])
         
         # Return updated heart info
         serializer = UserHeartSerializer(user, context={'request': request})
