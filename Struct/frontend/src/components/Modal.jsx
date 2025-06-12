@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaChevronLeft, FaChevronRight, FaLightbulb } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaLightbulb, FaTimes } from "react-icons/fa";
 
 const Modal = ({ index, onClose, setIndex, content }) => {
   const currentSlide = content[index];
   const [animationComplete, setAnimationComplete] = useState(false);
-  const [interactionScore, setInteractionScore] = useState(0);
   const [showHints, setShowHints] = useState(false);
 
   // Progress through content when keyboard arrows used
@@ -31,15 +30,7 @@ const Modal = ({ index, onClose, setIndex, content }) => {
   }, [index]);
 
   // Award points for interaction
-  const awardPoints = (points = 5) => {
-    setInteractionScore((prev) => prev + points);
-    // Display floating point indicator
-    const pointsEl = document.createElement("div");
-    pointsEl.className = "points-popup";
-    pointsEl.textContent = `+${points}`;
-    document.body.appendChild(pointsEl);
-    setTimeout(() => pointsEl.remove(), 1000);
-  };
+  
 
   // Navigation controls
   const nextSlide = () => {
@@ -82,9 +73,17 @@ const Modal = ({ index, onClose, setIndex, content }) => {
       >
         {/* Header - Fixed at top */}
         <div className="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 flex-shrink-0">
-          <h2 className="text-xl font-bold">
-            {currentSlide?.title || "Learning Content"}
-          </h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">
+              {currentSlide?.title || "Learning Content"}
+            </h2>
+            <button 
+              onClick={onClose}
+              className="p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
+            >
+              <FaTimes />
+            </button>
+          </div>
           <div className="w-full bg-white/30 h-2 rounded-full mt-2">
             <div
               className="bg-white h-2 rounded-full transition-all duration-300"
@@ -114,44 +113,26 @@ const Modal = ({ index, onClose, setIndex, content }) => {
           </motion.div>
         </div>
 
-        {/* Footer - Fixed at bottom */}
+        {/* Footer - Fixed at bottom with navigation buttons at edges */}
         <div className="bg-gray-100 p-4 flex items-center justify-between flex-shrink-0">
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setShowHints(!showHints)}
-              className="p-2 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-            >
-              <FaLightbulb />
-            </button>
-            {showHints && currentSlide?.hints && (
-              <div className="text-sm text-gray-600 ml-2">
-                {currentSlide.hints}
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center">
-            <div className="text-sm text-indigo-600 mr-4 font-medium">
-              Score: {interactionScore}
-            </div>
-            <button
-              onClick={prevSlide}
-              disabled={index === 0}
-              className={`p-2 rounded-full ${
-                index === 0
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              <FaChevronLeft />
-            </button>
-            <button
-              onClick={nextSlide}
-              className="p-2 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200 ml-2"
-            >
-              {index === content.length - 1 ? "Finish" : <FaChevronRight />}
-            </button>
-          </div>
+          <button
+            onClick={prevSlide}
+            disabled={index === 0}
+            className={`p-2 rounded-full ${
+              index === 0
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            <FaChevronLeft />
+          </button>
+          
+          <button
+            onClick={nextSlide}
+            className="p-2 rounded-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+          >
+            {index === content.length - 1 ? "Finish" : <FaChevronRight />}
+          </button>
         </div>
       </motion.div>
     </motion.div>
