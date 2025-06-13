@@ -3,13 +3,15 @@ import IntroArrayData from "./topics/IntroArrayData";
 import ArrayDeclarationData from "./topics/ArrayDeclarationData/ArrayDeclarationData";
 import ArrayTimeComplexityData from "./topics/ArrayTimeComplexityData";
 import ArrayAlgorithmsData from "./topics/ArrayAlgorithmsData/ArrayAlgorithmsData";
+import RealWorldApplication from "./topics/RealWorldArrayApplication/RealWorldApplication";
 
 // Combine all topics
 const topics = [
   IntroArrayData,
   ArrayDeclarationData, 
   ArrayTimeComplexityData,
-  ArrayAlgorithmsData
+  ArrayAlgorithmsData,
+  RealWorldApplication
 ];
 
 export default topics;
