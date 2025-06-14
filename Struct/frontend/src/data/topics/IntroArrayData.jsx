@@ -1161,32 +1161,7 @@ const IntroArrayData = {
       hints: "Arrays are the building blocks for more advanced data structures you'll learn later!",
     },
     
-    // Final Quiz - After the entire module
-    {
-      title: "Final Array Challenge",
-      content: (
-        <div className="space-y-4">
-          <p className="text-lg font-medium text-center text-purple-600">
-            🏆 Array Master Challenge 🏆
-          </p>
-          
-          <p className="text-center">
-            Let's test everything you've learned about arrays!
-          </p>
-          
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-5 rounded-lg border border-blue-200">
-            <p className="text-center mb-4 font-medium">Find the correct elements by their index positions:</p>
-            <ArrayIndexGame
-              onScore={(score) => {
-                console.log(`Player earned ${score} points`);
-                return score;
-              }}
-            />
-          </div>
-        </div>
-      ),
-      hints: "This is your chance to show off all the array skills you've learned!",
-    },
+    
   ],
 };
 

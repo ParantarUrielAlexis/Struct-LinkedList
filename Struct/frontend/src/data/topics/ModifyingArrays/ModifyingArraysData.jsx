@@ -3,7 +3,7 @@ import { FaCode } from "react-icons/fa";
 import Slide1Introduction from "./slides/Slide1";
 import Slide2Creation from "./slides/Slide2";
 import Slide3Accessing from "./slides/Slide3";
-import Slide4Modifying from "./slides/Slide4";
+import Slide4ArrayMehods from "./slides/Slide4";
 import Slide5Iteration from "./slides/Slide5";
 import Slide6Methods from "./slides/Slide6";
 import Slide7BestPractices from "./slides/Slide7";
@@ -33,10 +33,10 @@ const ModifyingArrays = {
       hints: "Remember that array indices start at 0, not 1. The first element is at position 0.",
     },
 
-    // Slide 4 – Modifying Arrays
+    // Slide 4 – Array Methods
     {
-      title: "Modifying Arrays",
-      content: <Slide4Modifying />,
+      title: "Array Methods",
+      content: <Slide4ArrayMehods />,
       hints: "Arrays in JavaScript are mutable, meaning you can change their content after creation.",
     },
 

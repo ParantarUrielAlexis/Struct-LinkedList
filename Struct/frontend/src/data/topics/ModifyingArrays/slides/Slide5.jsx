@@ -118,27 +118,7 @@ const Slide5 = () => {
         </ul>
       </div>
 
-      <div className="mt-6 p-5 bg-gray-50 rounded-lg border border-gray-200">
-        <h3 className="font-bold text-lg mb-3">Challenge 5: Array Iteration</h3>
-        <div className="bg-gray-800 text-white p-3 rounded font-mono text-sm mb-4">
-          <p className="text-green-400">const students = [</p>
-          <p className="text-green-400">{"{"} name: "Emma", grades: [85, 90, 78, 88] {"}"},</p>
-          <p className="text-green-400">{"{"} name: "Michael", grades: [76, 65, 83, 90] {"}"},</p>
-          <p className="text-green-400">{"{"} name: "Sofia", grades: [92, 95, 89, 88] {"}"},</p>
-          <p className="text-green-400">{"{"} name: "Lucas", grades: [62, 71, 80, 75] {"}"}</p>
-          <p className="text-green-400">];</p>
-        </div>
-        <ol className="list-decimal list-inside space-y-2 text-sm">
-          <li>Calculate the average grade for each student</li>
-          <li>Find the student with the highest average grade</li>
-          <li>Check if all students have passed (average grade {">="} 70)</li>
-          <li>Find all students who have any failing grades (below 70)</li>
-        </ol>
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-          <p className="font-medium">Hint:</p>
-          <p>Use a combination of methods. For averaging grades, you can use <code>reduce()</code>. For finding students with failing grades, combine <code>filter()</code> with <code>some()</code>.</p>
-        </div>
-      </div>
+      
     </div>
   );
 };
