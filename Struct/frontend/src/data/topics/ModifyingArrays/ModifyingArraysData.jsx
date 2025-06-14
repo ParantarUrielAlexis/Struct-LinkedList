@@ -8,13 +8,13 @@ import Slide5Iteration from "./slides/Slide5";
 import Slide6Methods from "./slides/Slide6";
 import Slide7BestPractices from "./slides/Slide7";
 
-const ArrayDeclarationData = {
-  label: "Array Declaration",
+const ModifyingArrays = {
+  label: "Modifying Arrays",
   icon: <FaCode className="text-4xl text-blue-300" />,
   content: [
     // Slide 1 – Introduction to Arrays
     {
-      title: "Introduction to Arrays",
+      title: "Introduction to Array Declaration",
       content: <Slide1Introduction />,
       hints: "Arrays are fundamental data structures that store multiple values in a single variable.",
     },
@@ -64,4 +64,4 @@ const ArrayDeclarationData = {
   ],
 };
 
-export default ArrayDeclarationData;
+export default ModifyingArrays;
