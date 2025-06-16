@@ -6,8 +6,8 @@ import Slide3 from "./slides/Slide3";
 import Slide4 from "./slides/Slide4";
 import Slide5 from "./slides/Slide5";
 import Slide6 from "./slides/Slide6";
-// import Slide7 from "./slides/Slide7";
-// import Slide8 from "./slides/Slide8";
+import Slide7 from "./slides/Slide7";
+import Slide8 from "./slides/Slide8";
 
 const AdvancedArrayManipulation = {
   label: "Advanced Array Manipulation",
@@ -49,16 +49,16 @@ const AdvancedArrayManipulation = {
       content: <Slide6 />,
     },
 
-    // // Slide 7 - Real-World Applications of Advanced Array Manipulation
-    // {
-    //   title: "Array Best Practices",
-    //   content: <Slide7 />,
-    // },
-    // // Slide 8 - Conclusion and Next Steps
-    // {
-    //   title: "Conclusion and Next Steps",
-    //   content: <Slide8 />,
-    // },
+    // Slide 7 - Real-World Applications of Advanced Array Manipulation
+    {
+      title: "Array Best Practices",
+      content: <Slide7 />,
+    },
+    // Slide 8 - Conclusion and Next Steps
+    {
+      title: "Conclusion and Next Steps",
+      content: <Slide8 />,
+    },
   ],
 };
 
