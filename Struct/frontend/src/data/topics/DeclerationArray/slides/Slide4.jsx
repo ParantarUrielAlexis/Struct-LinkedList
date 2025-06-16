@@ -107,76 +107,7 @@ const Slide4 = () => {
         </div>
       </div>
       
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-lg border border-purple-200 shadow-md text-center">
-        <h3 className="font-medium mb-3 flex items-center justify-center">
-          <FaGamepad className="text-purple-500 mr-2" />
-          Array Creation Game!
-        </h3>
-        
-        <p className="mb-4 text-sm">
-          Put your array skills to the test! Click the button to start a game where you'll need to 
-          select the items in alphabetical order.
-        </p>
-        
-        {!showArrayGame ? (
-          <button 
-            onClick={startGame}
-            className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-6 rounded-lg shadow-md transition-colors"
-          >
-            Start Game
-          </button>
-        ) : (
-          <div className="animate-fadeIn">
-            <p className="font-medium mb-2">Select the items in alphabetical order:</p>
-            
-            <div className="flex flex-wrap justify-center gap-3 mb-4">
-              {gameArray.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => selectItem(item, index)}
-                  disabled={userSelections.includes(index)}
-                  className={`p-3 rounded-lg shadow transition-transform ${
-                    userSelections.includes(index) 
-                      ? "bg-gray-100 opacity-50 cursor-not-allowed" 
-                      : "bg-white hover:scale-110 hover:shadow-md cursor-pointer"
-                  }`}
-                >
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl">{item.emoji}</span>
-                    <span className="text-xs mt-1">{item.name}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            
-            <div className="flex justify-center mb-2">
-              {gameArray.map((_, i) => (
-                <span key={i} className="mx-1">
-                  {i < userSelections.length ? <FaStar className="text-yellow-400" /> : <FaRegStar className="text-gray-300" />}
-                </span>
-              ))}
-            </div>
-            
-            {gameComplete && (
-              <div className={`p-3 rounded-md ${score === gameArray.length ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
-                {score === gameArray.length ? (
-                  <p className="font-medium flex items-center justify-center">
-                    <FaCheckCircle className="mr-1" /> Perfect! You selected all items in the correct order!
-                  </p>
-                ) : (
-                  <p>You got {score} out of {gameArray.length} correct. Try again!</p>
-                )}
-                <button 
-                  onClick={startGame} 
-                  className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-md text-sm transition-colors"
-                >
-                  Play Again
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      
     </div>
   );
 };

@@ -321,7 +321,7 @@ const IntroArrayData = {
     
     // Slide 3 - QUIZ after first 2 slides
     {
-      title: "Quiz: Array Basics",
+      title: "Array Basics Mini-Activity",
       content: (
         <div className="space-y-4">
           <p className="text-lg font-medium text-center text-purple-600">
@@ -456,7 +456,7 @@ const IntroArrayData = {
             
             <div className="mt-4 hidden text-center p-3 bg-green-100 rounded-lg" id="challenge-complete-1">
               <p className="text-green-800 font-medium">Great job! You understand array basics! 🎉</p>
-              <p className="text-sm text-green-700">+5 points added to your score!</p>
+              <p className="text-sm text-green-700">+ points added to your account</p>
             </div>
           </div>
         </div>
@@ -466,7 +466,7 @@ const IntroArrayData = {
     
     // Slide 4
     {
-      title: "Modifying Arrays: Change Your Collection",
+      title: "Updating Array Elements",
       content: (
         <div className="space-y-4">
           <p>
@@ -537,7 +537,7 @@ const IntroArrayData = {
     
     // Slide 5
     {
-      title: "Array Common Operations",
+      title: "Common Array Operations",
       content: (
         <div className="space-y-4">
           <p className="text-lg font-medium">Let's explore what you can do with arrays!</p>
@@ -613,143 +613,182 @@ const IntroArrayData = {
     },
     
     // Slide 6 - QUIZ after slides 4-5
-    {
-      title: "Challenge: Array Operations",
-      content: (
-        <div className="space-y-4">
-          <p className="text-lg font-medium text-center text-blue-600">
-            📝 Array Operations Challenge 📝
-          </p>
-          
-          <div className="bg-blue-50 p-5 rounded-lg border border-blue-200 shadow-md">
-            <p className="font-medium mb-4">Complete the code to perform the requested operations:</p>
-            
-            <div className="space-y-6">
-              <div className="bg-white p-3 rounded-lg shadow-sm">
-                <p className="mb-2 font-medium">Given: <code>let fruits = ["apple", "banana", "orange"];</code></p>
-                <p className="mb-2">1. Add "grape" to the end of the array:</p>
-                <div className="flex">
-                  <code className="bg-gray-100 p-1 mr-2">fruits.</code>
-                  <input 
-                    type="text" 
-                    placeholder="?" 
-                    className="border border-gray-400 rounded px-2 py-1 w-40" 
-                    data-answer="push('grape')" 
-                    onChange={(e) => {
-                      const input = e.target;
-                      const userAnswer = input.value.trim().toLowerCase();
-                      // Make modified version of userAnswer with single quotes replaced by double quotes
-                      const normalizedUserAnswer = userAnswer.replace(/'/g, '"').replace(/"/g, '"');
-                      // Make modified version of correct answer with single quotes replaced by double quotes
-                      const correctAnswer = input.getAttribute('data-answer').toLowerCase();
-                      const normalizedCorrectAnswer = correctAnswer.replace(/'/g, '"').replace(/"/g, '"');
-                      
-                      if(userAnswer === correctAnswer || normalizedUserAnswer === normalizedCorrectAnswer) {
-                        input.classList.remove('border-red-500', 'bg-red-50');
-                        input.classList.add('border-green-500', 'bg-green-50');                       
-                      } else if(userAnswer) {
-                        input.classList.remove('border-green-500', 'bg-green-50');
-                        input.classList.add('border-red-500', 'bg-red-50');
-                      }
-                    }}
-                  />
-                  <code className="bg-gray-100 p-1 ml-2">;</code>
-                </div>
-                <div className="hidden answer-feedback mt-1">Correct! fruits.push('grape') adds an element to the end.</div>
-              </div>
-              
-              <div className="bg-white p-3 rounded-lg shadow-sm">
-                <p className="mb-2">2. To find the total number of fruits, write:</p>
-                <div className="flex">
-                  <input 
-                    type="text" 
-                    placeholder="?" 
-                    className="border border-gray-300 rounded px-2 py-1 w-full" 
-                    data-answer="fruits.length" 
-                    onChange={(e) => {
-                      const input = e.target;
-                      const userAnswer = input.value.trim().toLowerCase();
-                      const correctAnswer = input.getAttribute('data-answer').toLowerCase();
-                      
-                      if(userAnswer === correctAnswer) {
-                        input.classList.remove('border-red-500', 'bg-red-50');
-                        input.classList.add('border-green-500', 'bg-green-50');
-                      } else if(userAnswer) {
-                        input.classList.remove('border-green-500', 'bg-green-50');
-                        input.classList.add('border-red-500', 'bg-red-50');                     
-                      }
-                    }}
-                  />
-                </div>
-                <div className="hidden answer-feedback mt-1">Correct! fruits.length gives us the number of elements.</div>
-              </div>
-              
-              <div className="bg-white p-3 rounded-lg shadow-sm">
-                <p className="mb-2">3. To replace "banana" with "mango", if banana is at index 1:</p>
-                <div className="flex">
-                  <code className="bg-gray-100 p-1 mr-2">fruits[</code>
-                  <input 
-                    type="text" 
-                    placeholder="?" 
-                    className="border border-gray-300 rounded px-2 py-1 w-16 text-center" 
-                    data-answer="1" 
-                    onChange={(e) => {
-                      const input = e.target;
-                      const userAnswer = input.value.trim().toLowerCase();
-                      const correctAnswer = input.getAttribute('data-answer').toLowerCase();
-                      
-                      if(userAnswer === correctAnswer) {
-                        input.classList.remove('border-red-500', 'bg-red-50');
-                        input.classList.add('border-green-500', 'bg-green-50');
-                      } else if(userAnswer) {
-                        input.classList.remove('border-green-500', 'bg-green-50');
-                        input.classList.add('border-red-500', 'bg-red-50');
-                      }
-                    }}
-                  />
-                  <code className="bg-gray-100 p-1 ml-2">] = "mango";</code>
-                </div>
-                <div className="hidden answer-feedback mt-1">Correct! fruits[1] = "mango" replaces the second element.</div>
-              </div>
+{
+  title: "Array Operation Mini-Quiz",
+  content: (
+    <div className="space-y-4">
+      <p className="text-lg font-medium text-center text-blue-600">
+        📝 Array Operations Challenge 📝
+      </p>
+      
+      <div className="bg-blue-50 p-5 rounded-lg border border-blue-200 shadow-md">
+        <p className="font-medium mb-4">Complete the code to perform the requested operations:</p>
+        
+        <div className="space-y-6">
+          <div className="bg-white p-3 rounded-lg shadow-sm">
+            <p className="mb-2 font-medium">Given: <code>let fruits = ["apple", "banana", "orange"];</code></p>
+            <p className="mb-2">1. Add "grape" to the end of the array:</p>
+            <div className="flex">
+              <code className="bg-gray-100 p-1 mr-2">fruits.</code>
+              <input 
+                type="text" 
+                placeholder="?" 
+                className="border border-gray-400 rounded px-2 py-1 w-40" 
+                data-answer="push('grape')" 
+                onChange={(e) => {
+                  const input = e.target;
+                  const userAnswer = input.value.trim().toLowerCase();
+                  // Make modified version of userAnswer with single quotes replaced by double quotes
+                  const normalizedUserAnswer = userAnswer.replace(/'/g, '"').replace(/"/g, '"');
+                  // Make modified version of correct answer with single quotes replaced by double quotes
+                  const correctAnswer = input.getAttribute('data-answer').toLowerCase();
+                  const normalizedCorrectAnswer = correctAnswer.replace(/'/g, '"').replace(/"/g, '"');
+                  
+                  if(userAnswer === correctAnswer || normalizedUserAnswer === normalizedCorrectAnswer) {
+                    input.classList.remove('border-red-500', 'bg-red-50');
+                    input.classList.add('border-green-500', 'bg-green-50');                       
+                  } else if(userAnswer) {
+                    input.classList.remove('border-green-500', 'bg-green-50');
+                    input.classList.add('border-red-500', 'bg-red-50');
+                  }
+                  
+                  // Hide the completion message when editing answers
+                  const completeMessage = document.getElementById('challenge-complete-2');
+                  if (completeMessage) {
+                    completeMessage.classList.add('hidden');
+                  }
+                }}
+              />
+              <code className="bg-gray-100 p-1 ml-2">;</code>
             </div>
-            
-            <button 
-              className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-              onClick={() => {
-                // Check if all inputs are correct
-                const inputs = document.querySelectorAll('.bg-blue-50 input[data-answer]');
-                let allCorrect = true;
-                
-                inputs.forEach(input => {
+            <div className="hidden answer-feedback mt-1">Correct! fruits.push('grape') adds an element to the end.</div>
+          </div>
+          
+          <div className="bg-white p-3 rounded-lg shadow-sm">
+            <p className="mb-2">2. To find the total number of fruits, write:</p>
+            <div className="flex">
+              <input 
+                type="text" 
+                placeholder="?" 
+                className="border border-gray-300 rounded px-2 py-1 w-full" 
+                data-answer="fruits.length" 
+                onChange={(e) => {
+                  const input = e.target;
                   const userAnswer = input.value.trim().toLowerCase();
                   const correctAnswer = input.getAttribute('data-answer').toLowerCase();
                   
-                  if (userAnswer !== correctAnswer) {
-                    allCorrect = false;
+                  if(userAnswer === correctAnswer) {
+                    input.classList.remove('border-red-500', 'bg-red-50');
+                    input.classList.add('border-green-500', 'bg-green-50');
+                  } else if(userAnswer) {
+                    input.classList.remove('border-green-500', 'bg-green-50');
+                    input.classList.add('border-red-500', 'bg-red-50');                     
                   }
-                });
-                
-                // Show completion message if all are correct
-                const completeMessage = document.getElementById('challenge-complete-2');
-                if (allCorrect && completeMessage) {
-                  completeMessage.classList.remove('hidden');
-                } else if (completeMessage) {
-                  completeMessage.classList.add('hidden');
-                }
-              }}
-            >
-              Check Answers
-            </button>
-            
-            <div className="mt-4 hidden text-center p-3 bg-green-100 rounded-lg" id="challenge-complete-2">
-              <p className="text-green-800 font-medium">Awesome! You know how to manipulate arrays! 🎉</p>
-              <p className="text-sm text-green-700">+8 points added to your score!</p>
+                  
+                  // Hide the completion message when editing answers
+                  const completeMessage = document.getElementById('challenge-complete-2');
+                  if (completeMessage) {
+                    completeMessage.classList.add('hidden');
+                  }
+                }}
+              />
             </div>
+            <div className="hidden answer-feedback mt-1">Correct! fruits.length gives us the number of elements.</div>
+          </div>
+          
+          <div className="bg-white p-3 rounded-lg shadow-sm">
+            <p className="mb-2">3. To replace "banana" with "mango", if banana is at index 1:</p>
+            <div className="flex">
+              <code className="bg-gray-100 p-1 mr-2">fruits[</code>
+              <input 
+                type="text" 
+                placeholder="?" 
+                className="border border-gray-300 rounded px-2 py-1 w-16 text-center" 
+                data-answer="1" 
+                onChange={(e) => {
+                  const input = e.target;
+                  const userAnswer = input.value.trim().toLowerCase();
+                  const correctAnswer = input.getAttribute('data-answer').toLowerCase();
+                  
+                  if(userAnswer === correctAnswer) {
+                    input.classList.remove('border-red-500', 'bg-red-50');
+                    input.classList.add('border-green-500', 'bg-green-50');
+                  } else if(userAnswer) {
+                    input.classList.remove('border-green-500', 'bg-green-50');
+                    input.classList.add('border-red-500', 'bg-red-50');
+                  }
+                  
+                  // Hide the completion message when editing answers
+                  const completeMessage = document.getElementById('challenge-complete-2');
+                  if (completeMessage) {
+                    completeMessage.classList.add('hidden');
+                  }
+                }}
+              />
+              <code className="bg-gray-100 p-1 ml-2">] = "mango";</code>
+            </div>
+            <div className="hidden answer-feedback mt-1">Correct! fruits[1] = "mango" replaces the second element.</div>
           </div>
         </div>
-      ),
-      hints: "Think about the array methods we just learned about for adding and accessing elements.",
-    },
+        
+        <button 
+          className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+          onClick={() => {
+            // Check if all inputs are correct
+            const inputs = document.querySelectorAll('.bg-blue-50 input[data-answer]');
+            let allCorrect = true;
+            
+            inputs.forEach(input => {
+              const userAnswer = input.value.trim().toLowerCase();
+              // Handle single/double quotes normalization
+              const normalizedUserAnswer = userAnswer.replace(/'/g, '"').replace(/"/g, '"');
+              
+              const correctAnswer = input.getAttribute('data-answer').toLowerCase();
+              const normalizedCorrectAnswer = correctAnswer.replace(/'/g, '"').replace(/"/g, '"');
+              
+              // Check if the answer is correct with either exact match or normalized match
+              if (!(userAnswer === correctAnswer || normalizedUserAnswer === normalizedCorrectAnswer)) {
+                allCorrect = false;
+                
+                // Highlight incorrect answers in red for visual feedback
+                input.classList.remove('border-green-500', 'bg-green-50');
+                input.classList.add('border-red-500', 'bg-red-50');
+              } else {
+                // Highlight correct answers in green
+                input.classList.remove('border-red-500', 'bg-red-50');
+                input.classList.add('border-green-500', 'bg-green-50');
+              }
+            });
+            
+            // Show completion message only if all answers are correct
+            const completeMessage = document.getElementById('challenge-complete-2');
+            if (completeMessage) {
+              if (allCorrect) {
+                completeMessage.classList.remove('hidden');
+                
+                // Optional: You could add animation here for the points display
+                completeMessage.classList.add('animate-bounce');
+                setTimeout(() => {
+                  completeMessage.classList.remove('animate-bounce');
+                }, 1000);
+              } else {
+                completeMessage.classList.add('hidden');
+              }
+            }
+          }}
+        >
+          Check Answers
+        </button>
+        
+        <div className="mt-4 hidden text-center p-3 bg-green-100 rounded-lg" id="challenge-complete-2">
+          <p className="text-green-800 font-medium">Awesome! You know how to manipulate arrays! 🎉</p>
+          <p className="text-sm text-green-700">+50 points added to your score!</p>
+        </div>
+      </div>
+    </div>
+  ),
+  hints: "Think about the array methods we just learned about for adding and accessing elements.",
+},
     
     // Slide 7
     {
@@ -1060,7 +1099,7 @@ const IntroArrayData = {
             
             <div className="mt-4 hidden text-center p-3 bg-green-100 rounded-lg" id="challenge-complete-3">
               <p className="text-green-800 font-medium">Great debugging skills! You're getting good at this! 🎉</p>
-              <p className="text-sm text-green-700">+10 points added to your score!</p>
+              <p className="text-sm text-green-700">+30 points added to your score!</p>
             </div>
           </div>
         </div>
@@ -1070,96 +1109,164 @@ const IntroArrayData = {
     
     // Slide 10
     {
-      title: "Arrays in the Real World",
-      content: (
-        <div className="space-y-4">
-          <p className="text-lg font-medium text-center">
-            Arrays Are Everywhere! 🌎
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-              <h3 className="font-medium flex items-center mb-2">
-                <span className="text-blue-500 mr-2">🎮</span>
-                Gaming
-              </h3>
-              <ul className="text-sm list-disc list-inside">
-                <li>Storing player inventories</li>
-                <li>Tracking high scores</li>
-                <li>Managing enemy positions</li>
-                <li>Animation frame sequences</li>
-              </ul>
-            </div>
-            
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-              <h3 className="font-medium flex items-center mb-2">
-                <span className="text-green-500 mr-2">📱</span>
-                Apps
-              </h3>
-              <ul className="text-sm list-disc list-inside">
-                <li>Contact lists</li>
-                <li>Photo galleries</li>
-                <li>Music playlists</li>
-                <li>Social media feeds</li>
-              </ul>
-            </div>
-            
-            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-lg border border-pink-200">
-              <h3 className="font-medium flex items-center mb-2">
-                <span className="text-pink-500 mr-2">🖼️</span>
-                Graphics
-              </h3>
-              <ul className="text-sm list-disc list-inside">
-                <li>Images (2D arrays of pixels)</li>
-                <li>Color palettes</li>
-                <li>3D model coordinates</li>
-                <li>Animation keyframes</li>
-              </ul>
-            </div>
-            
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-              <h3 className="font-medium flex items-center mb-2">
-                <span className="text-purple-500 mr-2">🧠</span>
-                AI & Science
-              </h3>
-              <ul className="text-sm list-disc list-inside">
-                <li>Neural networks (arrays of weights)</li>
-                <li>Scientific measurements</li>
-                <li>Statistical data</li>
-                <li>Sensor readings</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-200">
-            <p className="font-medium mb-2">What's Next in Your Array Journey?</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Multidimensional arrays (arrays of arrays)</li>
-              <li>Array sorting algorithms</li>
-              <li>Array searching techniques</li>
-              <li>Advanced array methods</li>
+  title: "Key Array Takeaways",
+  content: (
+    <div className="space-y-4">
+      <p className="text-lg font-medium text-center text-blue-600">
+        🔑 Array Fundamentals: Key Takeaways 🔑
+      </p>
+      
+      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-lg border border-blue-200 shadow-md">
+        <h3 className="font-medium text-center mb-4 text-blue-800">What You've Learned About Arrays</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="bg-white p-4 rounded-lg border border-blue-200">
+            <h3 className="font-medium flex items-center mb-2">
+              <span className="bg-blue-100 p-1 rounded-full text-blue-600 mr-2">1</span>
+              Definition & Purpose
+            </h3>
+            <ul className="text-sm list-disc ml-5 space-y-1">
+              <li>Ordered collections of data</li>
+              <li>Store multiple values in a single variable</li>
+              <li>Access elements by numeric index</li>
+              <li>Foundation for complex data structures</li>
             </ul>
-            <p className="text-xs text-center mt-3">
-              Master arrays and unlock the power to organize all your data efficiently!
-            </p>
           </div>
           
-          <div className="bg-gradient-to-r from-orange-50 to-yellow-50 p-4 rounded-lg border border-yellow-200">
-            <p className="text-center mb-3">
-              <span className="font-medium text-lg">Did You Know? 🤔</span>
-            </p>
-            <div className="flex items-center">
-              <FaLightbulb className="text-3xl text-yellow-500 mr-3 flex-shrink-0" />
-              <p>
-                Arrays are so fundamental that they're often built directly into computer hardware! 
-                Memory in your computer is essentially one giant array of bytes.
-              </p>
-            </div>
+          <div className="bg-white p-4 rounded-lg border border-blue-200">
+            <h3 className="font-medium flex items-center mb-2">
+              <span className="bg-blue-100 p-1 rounded-full text-blue-600 mr-2">2</span>
+              Creating Arrays
+            </h3>
+            <ul className="text-sm list-disc ml-5 space-y-1">
+              <li>Array literals <code>['a', 'b', 'c']</code></li>
+              <li>Array constructor <code>new Array()</code></li>
+              <li>Can hold mixed data types</li>
+              <li>Zero-indexed (first element is at position 0)</li>
+            </ul>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg border border-blue-200">
+            <h3 className="font-medium flex items-center mb-2">
+              <span className="bg-blue-100 p-1 rounded-full text-blue-600 mr-2">3</span>
+              Basic Operations
+            </h3>
+            <ul className="text-sm list-disc ml-5 space-y-1">
+              <li>Accessing elements: <code>array[index]</code></li>
+              <li>Getting length: <code>array.length</code></li>
+              <li>Adding elements: <code>push()</code>, <code>unshift()</code></li>
+              <li>Removing elements: <code>pop()</code>, <code>shift()</code></li>
+            </ul>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg border border-blue-200">
+            <h3 className="font-medium flex items-center mb-2">
+              <span className="bg-blue-100 p-1 rounded-full text-blue-600 mr-2">4</span>
+              Common Methods
+            </h3>
+            <ul className="text-sm list-disc ml-5 space-y-1">
+              <li><code>splice()</code> - add/remove at any position</li>
+              <li><code>slice()</code> - extract a portion</li>
+              <li><code>join()</code> - combine into string</li>
+              <li><code>indexOf()</code> - find element position</li>
+            </ul>
           </div>
         </div>
-      ),
-      hints: "Arrays are the building blocks for more advanced data structures you'll learn later!",
-    },
+        
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mt-5">
+          <h3 className="font-medium flex items-center mb-2">
+            <span className="text-indigo-500 mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+              </svg>
+            </span>
+            Array Advantages
+          </h3>
+          <ul className="text-sm list-disc ml-5 grid grid-cols-1 md:grid-cols-2 gap-2">
+            <li>Fast access to elements (O(1) time)</li>
+            <li>Memory efficiency with same-type data</li>
+            <li>Built-in methods for common operations</li>
+            <li>Easy to iterate through with loops</li>
+            <li>Simple syntax for creation and access</li>
+            <li>Universal across programming languages</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm">
+          <h3 className="font-medium flex items-center mb-2 text-blue-800">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+              <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+            </svg>
+            Syntax Summary
+          </h3>
+          <div className="bg-gray-50 p-3 rounded-md font-mono text-xs">
+            <div className="mb-1">// Creating an array</div>
+            <div className="text-blue-600 mb-2">let fruits = ["apple", "banana", "orange"];</div>
+            
+            <div className="mb-1">// Accessing elements</div>
+            <div className="text-blue-600 mb-2">let firstFruit = fruits[0]; // "apple"</div>
+            
+            <div className="mb-1">// Modifying arrays</div>
+            <div className="text-blue-600 mb-2">fruits.push("grape"); // Add to end</div>
+            <div className="text-blue-600">fruits[1] = "mango"; // Replace element</div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm">
+          <h3 className="font-medium flex items-center mb-2 text-blue-800">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+            Common Patterns
+          </h3>
+          <ul className="text-sm space-y-2">
+            <li className="flex items-start">
+              <span className="bg-blue-100 text-blue-700 p-1 rounded-full mr-2 text-xs">→</span>
+              <span><strong>Iteration:</strong> Using <code>for</code> loops or <code>forEach()</code> to process each element</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-blue-100 text-blue-700 p-1 rounded-full mr-2 text-xs">→</span>
+              <span><strong>Transformation:</strong> Creating new arrays with modified elements</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-blue-100 text-blue-700 p-1 rounded-full mr-2 text-xs">→</span>
+              <span><strong>Filtering:</strong> Creating subsets based on conditions</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-blue-100 text-blue-700 p-1 rounded-full mr-2 text-xs">→</span>
+              <span><strong>Aggregation:</strong> Combining elements to create a single value</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-4 rounded-lg border border-yellow-200 shadow-sm">
+        <p className="font-medium flex items-center mb-2 text-amber-800">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          Remember
+        </p>
+        <ul className="text-sm list-disc ml-5 space-y-1">
+          <li>Arrays are zero-indexed (positions start at 0, not 1)</li>
+          <li>Some methods modify the original array (mutating), while others create new arrays</li>
+          <li>Arrays can change size dynamically</li>
+          <li>Out-of-bounds access returns <code>undefined</code> rather than causing errors</li>
+        </ul>
+      </div>
+      
+      <div className="bg-white p-4 rounded-lg border border-blue-200 text-center">
+        <p className="text-blue-800">
+          <span className="font-medium">Next Steps:</span> Build on these fundamentals as we explore more advanced array manipulation techniques in the coming lessons!
+        </p>
+      </div>
+    </div>
+  ),
+  hints: "These are the core concepts that form the foundation for all array operations you'll learn!",
+}
     
     
   ],

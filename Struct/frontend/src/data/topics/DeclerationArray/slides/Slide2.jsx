@@ -8,7 +8,7 @@ const Slide2 = () => {
   const checkAnswer = (option) => {
     setQuizAnswer(option);
     if (option === 2) {
-      setFeedback("Correct! Square brackets [] create an array literal in JavaScript.");
+      setFeedback("+20 points. Correct! Square brackets [] create an array literal in JavaScript.");
     } else {
       setFeedback("Not quite! The square brackets [] notation is the most common way to create array literals.");
     }

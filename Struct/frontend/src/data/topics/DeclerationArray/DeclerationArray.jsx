@@ -9,12 +9,12 @@ import Slide6Methods from "./slides/Slide6";
 import Slide7BestPractices from "./slides/Slide7";
 
 const ModifyingArrays = {
-  label: "Modifying Arrays",
+  label: "Declration of Arrays",
   icon: <FaCode className="text-4xl text-blue-300" />,
   content: [
     // Slide 1 – Introduction to Arrays
     {
-      title: "Introduction to Array Declaration",
+      title: "Array Decleration Introduction",
       content: <Slide1Introduction />,
       hints: "Arrays are fundamental data structures that store multiple values in a single variable.",
     },
@@ -47,7 +47,7 @@ const ModifyingArrays = {
       hints: "Methods like map(), filter(), and forEach() provide elegant ways to process array elements.",
     },
 
-    // Slide 6 - Array Methods and Utilities
+    // Slide 6 - Array Declaration Methods Challenge
     {
       title: "Array Declaration Methods Challenge",
       content: <Slide6Methods />,
