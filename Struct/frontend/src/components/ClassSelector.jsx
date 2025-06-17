@@ -171,7 +171,7 @@ const ClassSelector = ({ onJoinClick, onCreateClick }) => {
             <p className="text-gray-700 mb-4">
               {modalAction.type === "delete"
                 ? `Are you sure you want to delete "${modalAction.classObj?.name}"? This action cannot be undone and will remove the class for all students.`
-                : `Are you sure you want to leave "${modalAction.classObj?.name}"? You'll need a new class code to rejoin.`}
+                : `Are you sure you want to leave "${modalAction.classObj?.name}"? This will remove all your progress.`}
             </p>
             <div className="flex justify-end gap-3">
               <button

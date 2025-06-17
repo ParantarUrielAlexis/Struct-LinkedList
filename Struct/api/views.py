@@ -91,23 +91,30 @@ class JoinClassView(APIView):
 
     def post(self, request):
         code = request.data.get('code')
+        user = request.user
 
         if not code:
             return Response({"error": "Class code is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Check if user is already enrolled in any class
+            if user.user_type == 'student' and user.enrolled_classes.exists():
+                return Response({
+                    "error": "You are already enrolled in a class. Please leave your current class before joining a new one."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             class_obj = Class.objects.get(code=code)
 
-            # If user is already enrolled or is the teacher
-            if request.user in class_obj.students.all() or class_obj.teacher == request.user:
+            # If user is the teacher
+            if class_obj.teacher == user:
                 return Response({
                     "success": True,
-                    "message": "You are already enrolled in this class",
+                    "message": "You are the teacher of this class",
                     "class": ClassSerializer(class_obj).data
                 })
 
             # Add user to the class
-            class_obj.students.add(request.user)
+            class_obj.students.add(user)
 
             return Response({
                 "success": True,
@@ -161,18 +168,37 @@ class LeaveClassView(APIView):
     def post(self, request, pk):
         try:
             class_obj = Class.objects.get(pk=pk)
+            user = request.user
 
             # Check if user is enrolled in the class
-            if request.user not in class_obj.students.all():
+            if user not in class_obj.students.all():
                 return Response({"error": "You are not enrolled in this class"},
                                status=status.HTTP_400_BAD_REQUEST)
 
+            # Delete TypeTestProgress for this user in this class
+            TypeTestProgress.objects.filter(user=user).delete()
+            
+            # Delete SnakeGameProgress for this user
+            SnakeGameProgress.objects.filter(user=user).delete()
+            
+            # Delete SortShift related progress
+            SelectionSortResult.objects.filter(user=user).delete()
+            BubbleSortResult.objects.filter(user=user).delete()
+            InsertionSortResult.objects.filter(user=user).delete()
+            
+            # Reset UserProgress
+            user_progress, created = UserProgress.objects.get_or_create(user=user)
+            user_progress.selection_sort_passed = False
+            user_progress.bubble_sort_passed = False
+            user_progress.insertion_sort_passed = False
+            user_progress.save()
+
             # Remove student from class
-            class_obj.students.remove(request.user)
+            class_obj.students.remove(user)
 
             return Response({
                 "success": True,
-                "message": "Successfully left the class"
+                "message": "Successfully left the class and removed associated progress"
             })
 
         except Class.DoesNotExist:
