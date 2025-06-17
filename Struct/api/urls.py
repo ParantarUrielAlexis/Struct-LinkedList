@@ -23,6 +23,10 @@ urlpatterns = [
     path('classes/delete/<int:pk>/', DeleteClassView.as_view(), name='delete_class'),
     path('classes/leave/<int:pk>/', LeaveClassView.as_view(), name='leave_class'),
 
+    path('classes/<int:class_id>/students/', views.ClassStudentsView.as_view(), name='class_students'),
+    path('classes/<int:class_id>/add-student/', views.AddStudentToClassView.as_view(), name='add_student_to_class'),
+    path('classes/<int:class_id>/remove-student/<int:student_id>/', views.RemoveStudentFromClassView.as_view(), name='remove_student_from_class'),
+
     # Endpoint to submit new type test progress
     path('progress/create/', TypeTestProgressCreateView.as_view(), name='typetest-progress-create'),
 

@@ -1,5 +1,4 @@
-// src/components/ManageStudentsModal.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaUserGraduate,
   FaTimes,
@@ -12,34 +11,46 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
   const [activeTab, setActiveTab] = useState("students");
   const [searchTerm, setSearchTerm] = useState("");
   const [newStudentEmail, setNewStudentEmail] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
 
-  // Mock data - replace with actual API calls
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      joinedDate: "2024-01-15",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      joinedDate: "2024-01-16",
-    },
-    {
-      id: 3,
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      joinedDate: "2024-01-17",
-    },
-  ]);
+  // Fetch actual students when the modal opens and classData changes
+  useEffect(() => {
+    if (isOpen && classData?.id) {
+      fetchStudents();
+    }
+  }, [isOpen, classData?.id]);
 
+  const fetchStudents = async () => {
+    if (!classData?.id) return;
+    
+    setIsLoadingStudents(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(`http://localhost:8000/api/classes/${classData.id}/students/`, {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStudents(data.students || []);
+      } else {
+        console.error("Failed to fetch students");
+      }
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    } finally {
+      setIsLoadingStudents(false);
+    }
+  };
+
+  // Filter students based on search term
   const filteredStudents = students.filter(
     (student) =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -49,50 +60,57 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
 
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/classes/${classData.id}/add-student/`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email: newStudentEmail })
-      // });
+      // This would need a new API endpoint to add students by email
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(`http://localhost:8000/api/classes/${classData.id}/add-student/`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`
+        },
+        body: JSON.stringify({ email: newStudentEmail })
+      });
 
-      // Mock success - remove this when implementing real API
-      setTimeout(() => {
-        const newStudent = {
-          id: Date.now(),
-          name: newStudentEmail.split("@")[0],
-          email: newStudentEmail,
-          joinedDate: new Date().toISOString().split("T")[0],
-        };
-        setStudents([...students, newStudent]);
+      if (response.ok) {
+        // Refresh the student list
+        fetchStudents();
         setNewStudentEmail("");
-        setIsLoading(false);
-      }, 1000);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "Failed to add student");
+      }
     } catch (error) {
       console.error("Error adding student:", error);
+      alert("An error occurred while adding the student");
+    } finally {
       setIsLoading(false);
     }
   };
 
   const handleRemoveStudent = async (studentId) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to remove this student from the class?"
-      )
-    ) {
+    if (!window.confirm("Are you sure you want to remove this student from the class?")) {
       return;
     }
 
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`/api/classes/${classData.id}/remove-student/${studentId}/`, {
-      //   method: 'DELETE'
-      // });
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(`http://localhost:8000/api/classes/${classData.id}/remove-student/${studentId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      });
 
-      // Mock removal - remove this when implementing real API
-      setStudents(students.filter((student) => student.id !== studentId));
+      if (response.ok) {
+        // Remove student from local state
+        setStudents(students.filter((student) => student.id !== studentId));
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "Failed to remove student");
+      }
     } catch (error) {
       console.error("Error removing student:", error);
+      alert("An error occurred while removing the student");
     }
   };
 
@@ -165,7 +183,12 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
 
               {/* Students List */}
               <div className="space-y-3">
-                {filteredStudents.length === 0 ? (
+                {isLoadingStudents ? (
+                  <div className="text-center py-8">
+                    <div className="inline-block w-6 h-6 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin"></div>
+                    <p className="mt-2 text-gray-600">Loading students...</p>
+                  </div>
+                ) : filteredStudents.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     {searchTerm
                       ? "No students found matching your search."
@@ -183,13 +206,13 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
                         </div>
                         <div>
                           <p className="font-medium text-gray-800">
-                            {student.name}
+                            {student.username}
                           </p>
                           <p className="text-sm text-gray-500">
                             {student.email}
                           </p>
                           <p className="text-xs text-gray-400">
-                            Joined: {student.joinedDate}
+                            Joined: {new Date(student.date_joined).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -207,6 +230,7 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
             </div>
           )}
 
+          {/* Rest of the component remains the same... */}
           {activeTab === "add" && (
             <div>
               {/* Single Student Add */}
