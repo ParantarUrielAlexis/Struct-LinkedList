@@ -364,7 +364,10 @@ const handlePageChange = (newPage) => {
         />
       </div>
       <div className="content-container">
+       
+
         <div className="flex items-center justify-between mb-8">
+          
           {/* Page navigation button - Left */}
           <button
             onClick={() => handlePageChange(currentPage - 1)}
@@ -593,7 +596,17 @@ const handlePageChange = (newPage) => {
           </div>
         
         {/* Game description with progress summary */}
+        
         <div className="mt-8 max-w-3xl mx-auto p-6 bg-green-900/60 rounded-lg pixel-border">
+              <button 
+          onClick={() => window.location.href = '/games'}
+          className="mb-4 flex items-center gap-2 px-4 py-2 text-green-300 hover:text-green-100 
+                   bg-green-900/60 hover:bg-green-800/80 rounded-lg transition-all duration-300 
+                   pixel-text border border-green-500/30 text-sm w-full justify-center"
+        >
+          <FaChevronLeft />
+          Back to Games
+        </button>
   <h3 className="text-xl font-semibold mb-3 text-green-200 pixel-text">About Snake Game</h3>
   <p className="text-green-100/90 pixel-text mb-4 text-sm">
     Navigate the snake to collect food while avoiding walls and your own tail.

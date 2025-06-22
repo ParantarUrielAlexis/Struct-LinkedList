@@ -1,0 +1,688 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Press Start 2P', monospace;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+} */
+
+/* Prevent all scrolling */
+/* html, body {
+  overflow: hidden !important;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+} */
+
+/* Pixel text utility */
+.pixel-text {
+  font-family: 'Press Start 2P', monospace;
+  text-rendering: optimizeSpeed;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Modern pixel text for titles */
+.modern-pixel-text {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+/* Level select screen container */
+.level-select-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Background setup */
+.background-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.pixelated-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  filter: brightness(0.4) contrast(1.2);
+}
+
+/* Animated overlay for depth */
+.background-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(34, 197, 94, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, 
+      rgba(0, 0, 0, 0.7) 0%, 
+      rgba(20, 83, 45, 0.5) 25%,
+      rgba(34, 197, 94, 0.2) 50%,
+      rgba(20, 83, 45, 0.5) 75%,
+      rgba(0, 0, 0, 0.8) 100%
+    );
+  animation: backgroundPulse 8s ease-in-out infinite;
+  z-index: 1;
+}
+
+/* Grid overlay for pixel effect */
+.background-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(34, 197, 94, 0.03) 2px,
+      rgba(34, 197, 94, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(34, 197, 94, 0.03) 2px,
+      rgba(34, 197, 94, 0.03) 4px
+    );
+  z-index: 2;
+}
+
+@keyframes backgroundPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Content container - prevent overflow */
+.content-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  backdrop-filter: blur(1px);
+  overflow: hidden;
+}
+
+/* Header styling - smaller */
+.content-container h1 {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 1rem;
+  text-shadow: 
+    0 0 20px rgba(34, 197, 94, 0.8),
+    0 0 40px rgba(34, 197, 94, 0.6),
+    0 0 60px rgba(34, 197, 94, 0.4),
+    3px 3px 0 rgba(0, 0, 0, 0.8),
+    -1px -1px 0 rgba(0, 0, 0, 0.8),
+    1px -1px 0 rgba(0, 0, 0, 0.8),
+    -1px 1px 0 rgba(0, 0, 0, 0.8);
+  animation: titleGlow 3s ease-in-out infinite alternate;
+  flex-shrink: 0;
+}
+
+@keyframes titleGlow {
+  0% { 
+    text-shadow: 
+      0 0 20px rgba(34, 197, 94, 0.8),
+      0 0 40px rgba(34, 197, 94, 0.6),
+      3px 3px 0 rgba(0, 0, 0, 0.8);
+  }
+  100% { 
+    text-shadow: 
+      0 0 30px rgba(34, 197, 94, 1),
+      0 0 60px rgba(34, 197, 94, 0.8),
+      0 0 90px rgba(34, 197, 94, 0.6),
+      3px 3px 0 rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* Levels grid container - prevent overflow */
+.levels-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex: 1;
+  align-content: start;
+  padding: 0 0.5rem;
+  overflow: hidden;
+  max-height: 100%;
+}
+
+/* Level card styling - more compact */
+.level-card {
+  position: relative;
+  background: linear-gradient(145deg, 
+    rgba(20, 83, 45, 0.95) 0%,
+    rgba(34, 197, 94, 0.1) 50%,
+    rgba(20, 83, 45, 0.95) 100%
+  );
+  border: 3px solid;
+  border-image: linear-gradient(45deg, 
+    #22c55e, 
+    #16a34a, 
+    #15803d, 
+    #22c55e
+  ) 1;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  aspect-ratio: 4/5;
+  max-height: 280px;
+}
+
+/* Pixel border effect */
+.pixel-border {
+  position: relative;
+}
+
+.pixel-border::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, 
+    transparent 25%, 
+    rgba(34, 197, 94, 0.5) 25%, 
+    rgba(34, 197, 94, 0.5) 50%, 
+    transparent 50%, 
+    transparent 75%, 
+    rgba(34, 197, 94, 0.5) 75%
+  );
+  background-size: 8px 8px;
+  border-radius: 18px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.level-card:hover.pixel-border::before {
+  opacity: 1;
+  animation: borderShift 2s linear infinite;
+}
+
+@keyframes borderShift {
+  0% { background-position: 0 0; }
+  100% { background-position: 8px 8px; }
+}
+
+/* Card hover effects */
+.level-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 15px 30px rgba(34, 197, 94, 0.3),
+    0 0 25px rgba(34, 197, 94, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-image: linear-gradient(45deg, 
+    #4ade80, 
+    #22c55e, 
+    #16a34a, 
+    #4ade80
+  ) 1;
+}
+
+/* Locked state */
+.level-card.locked {
+  background: linear-gradient(145deg, 
+    rgba(55, 65, 81, 0.95) 0%,
+    rgba(75, 85, 99, 0.1) 50%,
+    rgba(55, 65, 81, 0.95) 100%
+  );
+  border-image: linear-gradient(45deg, #6b7280, #4b5563, #374151, #6b7280) 1;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.level-card.locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Completed state */
+.level-card.completed {
+  border-image: linear-gradient(45deg, #f59e0b, #d97706, #b45309, #f59e0b) 1;
+}
+
+.level-card.completed:hover {
+  box-shadow: 
+    0 15px 30px rgba(245, 158, 11, 0.3),
+    0 0 25px rgba(245, 158, 11, 0.4);
+}
+
+/* Level content styling */
+.level-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+/* Level number badge - smaller */
+.level-card .level-number {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #000;
+  border: 2px solid #fff;
+  background: linear-gradient(145deg, #22c55e, #16a34a);
+  box-shadow: 
+    0 3px 10px rgba(34, 197, 94, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  z-index: 3;
+}
+
+.level-card.locked .level-number {
+  background: linear-gradient(145deg, #6b7280, #4b5563);
+  color: #d1d5db;
+}
+
+.level-card.completed .level-number {
+  background: linear-gradient(145deg, #f59e0b, #d97706);
+}
+
+/* Level icon - smaller */
+.level-content .level-icon {
+  font-size: 2.5rem;
+  margin: 0.5rem 0;
+  filter: drop-shadow(0 0 8px currentColor);
+  transition: all 0.3s ease;
+}
+
+.level-card:hover .level-icon {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 15px currentColor);
+}
+
+/* Level title - smaller */
+.level-content h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Stars display */
+.stars-container {
+  display: flex;
+  justify-content: center;
+  gap: 0.2rem;
+  margin: 0.3rem 0;
+}
+
+.star {
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+.star:hover {
+  transform: scale(1.1) rotate(8deg);
+}
+
+/* Stats display - smaller */
+.level-stats {
+  text-align: center;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.3rem 0;
+}
+
+.level-card.locked .level-stats {
+  color: rgba(156, 163, 175, 0.8);
+}
+
+/* Difficulty indicators - smaller */
+.difficulty-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.3rem;
+  margin: 0.5rem 0;
+}
+
+.difficulty-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #22c55e, #16a34a);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+  transition: all 0.3s ease;
+}
+
+.level-card:hover .difficulty-dot {
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+}
+
+.level-card.locked .difficulty-dot {
+  background: linear-gradient(145deg, #6b7280, #4b5563);
+  box-shadow: none;
+}
+
+.level-card.completed .difficulty-dot {
+  background: linear-gradient(145deg, #f59e0b, #d97706);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+
+/* Level description - smaller */
+.level-description {
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  line-height: 1.3;
+  margin-top: auto;
+}
+
+/* Locked overlay */
+.locked-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  backdrop-filter: blur(2px);
+}
+
+.unlock-requirements {
+  text-align: center;
+  color: #d1d5db;
+}
+
+.unlock-requirements .lock-icon {
+  font-size: 1.5rem;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+
+.unlock-requirements p {
+  font-size: 0.7rem;
+  margin-bottom: 0.3rem;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 100px;
+  height: 6px;
+  background: rgba(55, 65, 81, 0.8);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0.3rem 0;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+/* Game description section - prevent overflow */
+.game-description {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(20, 83, 45, 0.3);
+  border: 2px solid rgba(34, 197, 94, 0.5);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.game-description h3 {
+  font-size: 0.9rem;
+  color: #22c55e;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.game-description p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.6rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+/* Progress summary - smaller */
+.progress-summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.6rem;
+  overflow: hidden;
+}
+
+.progress-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.progress-value {
+  color: #fbbf24;
+  font-weight: bold;
+  text-shadow: 0 0 4px rgba(251, 191, 36, 0.5);
+}
+
+/* Loading screen */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #22c55e;
+  overflow: hidden;
+}
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid rgba(34, 197, 94, 0.2);
+  border-top: 4px solid #22c55e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  color: rgba(34, 197, 94, 0.8);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .levels-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-container {
+    padding: 0.8rem;
+  }
+  
+  .content-container h1 {
+    font-size: clamp(1.2rem, 5vw, 2rem);
+    margin-bottom: 1rem;
+  }
+  
+  .levels-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.8rem;
+  }
+  
+  .level-card {
+    padding: 1rem;
+    aspect-ratio: 3/4;
+    max-height: 240px;
+  }
+  
+  .progress-summary {
+    gap: 1rem;
+    font-size: 0.55rem;
+  }
+  
+  .game-description {
+    padding: 0.8rem;
+    margin-top: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-container {
+    padding: 0.6rem;
+  }
+  
+  .levels-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+  
+  .level-card {
+    padding: 0.8rem;
+    aspect-ratio: 1/1.2;
+    max-height: 200px;
+  }
+  
+  .level-content h2 {
+    font-size: 1rem;
+  }
+  
+  .level-content .level-icon {
+    font-size: 2rem;
+  }
+  
+  .progress-summary {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .pixelated-bg {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Add this to your CSS module */
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #86efac; /* green-300 */
+  background-color: rgba(5, 150, 105, 0.3); /* green-900/50 */
+  border: 1px solid rgba(34, 197, 94, 0.3); /* green-500/30 */
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  color: #f0fdf4; /* green-100 */
+  background-color: rgba(6, 95, 70, 0.7); /* green-800/70 */
+  transform: translateY(-1px);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}

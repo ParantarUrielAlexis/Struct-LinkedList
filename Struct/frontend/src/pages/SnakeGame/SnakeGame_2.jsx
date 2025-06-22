@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import "./SnakeGame2.css";
 import "./SnakeGame.css";
-import "./LevelSelect.css";
 // Import your images
 import appleImg from "../../assets/snakegame/images/apple.png";
 import headUpImg from "../../assets/snakegame/images/head_up.png";

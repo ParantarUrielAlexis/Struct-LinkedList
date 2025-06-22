@@ -846,11 +846,15 @@ class ClassSnakeGameDataView(APIView):
                                 overall_best_score = best_score
                                 overall_best_level = level
                             
+                            # FIXED: Add completion status based on game_completed flag
+                            is_completed = completed_attempts > 0
+                            
                             level_data[level] = {
                                 "best_score": best_score,
                                 "best_stars": best_stars or 0,
                                 "attempts": attempts,
                                 "completed_attempts": completed_attempts,
+                                "completed": is_completed,  # ADD THIS LINE - missing completion flag
                                 "success_rate": round(success_rate, 1),
                                 "avg_score": round(avg_score, 1) if avg_score else 0,
                                 "best_food_eaten": best_food_eaten or 0,
@@ -876,6 +880,7 @@ class ClassSnakeGameDataView(APIView):
                                 "best_stars": 0,
                                 "attempts": 0,
                                 "completed_attempts": 0,
+                                "completed": False,  # ADD THIS LINE - explicit completion flag
                                 "success_rate": 0,
                                 "avg_score": 0,
                                 "best_food_eaten": 0,
@@ -1231,6 +1236,21 @@ class ClassSnakeGameDataView(APIView):
         else:
             return "Balanced Player" if completion_focused else "Casual Player"
     
+    def calculate_student_completion_rate(self, level_breakdown):
+        """Calculate completion rate for a student (completed levels out of total levels)"""
+        if not level_breakdown:
+            return 0
+        
+        completed_levels = 0
+        total_levels = 5
+        
+        for level in range(1, total_levels + 1):
+            level_data = level_breakdown.get(str(level), {})
+            if level_data.get('completed', False):
+                completed_levels += 1
+        
+        return (completed_levels / total_levels) * 100
+    
     def calculate_class_level_stats(self, students_data):
         """Calculate class-wide statistics per level"""
         level_stats = {}
@@ -1263,7 +1283,7 @@ class UserHeartsView(APIView):
     """API endpoint to get and manage user heart data"""
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, class_id):
         user = request.user
         
         now = timezone.now()
