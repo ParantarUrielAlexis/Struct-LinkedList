@@ -28,6 +28,7 @@ class User(AbstractUser):
     hearts_reset_date = models.DateTimeField(default=timezone.now)  # Changed from DateField to DateTimeField
     # Maximum hearts a user can gain in a day (limit)
     max_daily_hearts = models.IntegerField(default=3)
+    quiz_attempts = models.IntegerField(default=0)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'user_type']
@@ -102,7 +103,57 @@ class User(AbstractUser):
             )
             
             self.save(update_fields=['hearts', 'last_heart_regen_time', 'hearts_gained_today'])
+    
+    def post(self, request):
+        try:
+            points_to_add = request.data.get('score', 0)
+            quiz_type = request.data.get('quiz_type', 'unknown')
             
+            if not isinstance(points_to_add, (int, float)) or points_to_add < 0:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid score value'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = request.user
+            
+            with transaction.atomic():
+                user.points = F('points') + points_to_add
+                user.quiz_attempts = F('quiz_attempts') + 1
+                user.save(update_fields=['points', 'quiz_attempts'])
+                user.refresh_from_db()
+            
+            return Response({
+                'success': True,
+                'points_added': points_to_add,
+                'total_points': user.points,
+                'attempts': user.quiz_attempts,
+                'quiz_type': quiz_type
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def get(self, request):
+        user = request.user
+        # Force refresh from database to get latest values
+        user.refresh_from_db()
+        
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'user_type': user.user_type,
+            'points': user.points,
+            'hearts': user.hearts,
+            'hints': user.hints,
+            'quiz_attempts': getattr(user, 'quiz_attempts', 0),
+            'profile_photo_url': user.profile_photo.url if user.profile_photo else None,
+        })
+    
     def get_next_heart_time(self):
         """Calculate time until next heart regeneration"""
         # No regeneration if at max hearts or daily limit reached

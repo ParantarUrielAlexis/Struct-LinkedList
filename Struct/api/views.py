@@ -9,6 +9,7 @@ from django.db.models import Max, F, Avg
 from .serializers import UserRegistrationSerializer
 from .models import Class, TypeTestProgress, UserProgress
 from .serializers import ClassSerializer, ClassCreateSerializer, TypeTestProgressSerializer, UserProgressSerializer 
+from django.db import transaction
 
 from django.core.files.storage import default_storage
 
@@ -1486,3 +1487,29 @@ class RemoveStudentFromClassView(APIView):
                 {"error": "Class not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
+            
+class PointsUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        points_to_add = request.data.get('score', 0)  # Changed 'points' to 'score' to match frontend
+        quiz_type = request.data.get('quiz_type', 'unknown')
+        user = request.user
+        
+        # Use atomic transaction to ensure both updates happen together
+        with transaction.atomic():
+            # Update points and quiz attempts atomically
+            user.points = F('points') + points_to_add
+            user.quiz_attempts = F('quiz_attempts') + 1
+            user.save(update_fields=['points', 'quiz_attempts'])
+            
+            # Refresh user object to get updated values
+            user.refresh_from_db()
+        
+        return Response({
+            'success': True,
+            'points_added': points_to_add,
+            'total_points': user.points,
+            'attempts': user.quiz_attempts,
+            'quiz_type': quiz_type
+        }, status=status.HTTP_200_OK)

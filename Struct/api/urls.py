@@ -1,6 +1,6 @@
 # api/urls.py
 from django.urls import path
-from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView, ClassUserWPMView, SnakeGameProgressCreateView, UserSnakeGameProgressView, UserSnakeGameBestProgressView, SnakeGameLevelStatsView, SnakeGameOverallStatsView, ClassSnakeGameDataView, UserHeartsView  
+from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView, ClassUserWPMView, SnakeGameProgressCreateView, UserSnakeGameProgressView, UserSnakeGameBestProgressView, SnakeGameLevelStatsView, SnakeGameOverallStatsView, ClassSnakeGameDataView, UserHeartsView, PointsUpdateView
 from . import views
 
 # These URLs will be included under the /api/ prefix
@@ -57,4 +57,7 @@ urlpatterns = [
     path('snake-progress/level/<int:level>/stats/', SnakeGameLevelStatsView.as_view(), name='snake-level-stats'),
     path('snake-progress/stats/', SnakeGameOverallStatsView.as_view(), name='snake-overall-stats'),
     path('classes/<int:class_id>/snake-game/', ClassSnakeGameDataView.as_view(), name='class-snake-game-data'),
+    
+    # points update for pfp
+    path('update-points/', PointsUpdateView.as_view(), name='update_points'),
 ]

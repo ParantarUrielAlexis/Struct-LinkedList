@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FaTrophy, FaLightbulb, FaExclamationTriangle, FaPlay, FaClock, FaBolt, FaGamepad, FaMedal, FaArrowRight } from "react-icons/fa";
+import { FaTrophy, FaLightbulb, FaExclamationTriangle, FaPlay, FaClock, FaBolt, FaGamepad, FaMedal, FaArrowRight, FaSpinner, FaCheck, FaTimes } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from 'axios'; 
 
 const Slide3 = () => {
   const [gameStarted, setGameStarted] = useState(false);
@@ -10,6 +11,9 @@ const Slide3 = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showHint, setShowHint] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState([]);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState(null); // 'loading', 'success', 'error'
+  const [submissionMessage, setSubmissionMessage] = useState('');
 
   const allQuestions = [
     {
@@ -134,6 +138,93 @@ const Slide3 = () => {
     }
   ];
 
+  // Submit quiz score to backend
+  const submitQuizScore = async (finalScore) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No authentication token found");
+        return { success: false, error: "Not authenticated" };
+      }
+      
+      const API_BASE_URL = 'http://localhost:8000';
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/api/update-points/`,
+        {
+          score: finalScore,
+          quiz_type: 'array_access_challenge'
+        },
+        {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return {
+        success: true,
+        data: response.data
+      };
+      
+    } catch (error) {
+      console.error("Error submitting quiz score:", error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Failed to submit score" 
+      };
+    }
+  };
+
+  // Handle game completion and score submission
+  const handleGameCompletion = async (finalScore) => {
+    if (scoreSubmitted) return; // Prevent duplicate submissions
+    
+    setSubmissionStatus('loading');
+    setSubmissionMessage('Submitting your score...');
+    
+    try {
+      setScoreSubmitted(true);
+      
+      const result = await submitQuizScore(finalScore);
+      
+      if (result.success) {
+        console.log("Score submitted successfully:", result.data);
+        setSubmissionStatus('success');
+        setSubmissionMessage(`Great! You earned ${finalScore} points!`);
+        
+        // Show success message for a few seconds
+        setTimeout(() => {
+          setSubmissionStatus(null);
+          setSubmissionMessage('');
+        }, 3000);
+      } else {
+        console.error("Failed to submit score:", result.error);
+        setSubmissionStatus('error');
+        setSubmissionMessage(result.error || 'Failed to submit score');
+        
+        // Reset submission status to allow retry
+        setTimeout(() => {
+          setScoreSubmitted(false);
+          setSubmissionStatus(null);
+          setSubmissionMessage('');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Error in game completion:", error);
+      setSubmissionStatus('error');
+      setSubmissionMessage('An unexpected error occurred');
+      
+      // Reset submission status to allow retry
+      setTimeout(() => {
+        setScoreSubmitted(false);
+        setSubmissionStatus(null);
+        setSubmissionMessage('');
+      }, 3000);
+    }
+  };
+
   // Shuffle array function using Fisher-Yates algorithm
   const shuffleArray = (array) => {
     const newArray = [...array];
@@ -156,13 +247,16 @@ const Slide3 = () => {
     setShowResult(false);
     setSelectedAnswer(null);
     setShowHint(false);
+    setScoreSubmitted(false);
+    setSubmissionStatus(null);
+    setSubmissionMessage('');
   };
 
   const handleAnswer = (selectedIndex) => {
     setSelectedAnswer(selectedIndex);
     
     if (selectedIndex === quizQuestions[currentQuestion].correctAnswer) {
-      setScore(score + 1);
+      setScore(score + 10);
     }
   };
 
@@ -177,6 +271,13 @@ const Slide3 = () => {
     }
   };
 
+  // Effect to handle score submission when quiz is completed
+  useEffect(() => {
+    if (showResult && !scoreSubmitted && quizQuestions.length > 0) {
+      handleGameCompletion(score);
+    }
+  }, [showResult, scoreSubmitted, score, quizQuestions.length]);
+
   const resetQuiz = () => {
     setGameStarted(false);
     setCurrentQuestion(0);
@@ -184,6 +285,9 @@ const Slide3 = () => {
     setShowResult(false);
     setSelectedAnswer(null);
     setShowHint(false);
+    setScoreSubmitted(false);
+    setSubmissionStatus(null);
+    setSubmissionMessage('');
   };
 
   // Generate a random background pattern for the cover
@@ -195,6 +299,40 @@ const Slide3 = () => {
       'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'
     ];
     return patterns[Math.floor(Math.random() * patterns.length)];
+  };
+
+  // Render submission status component
+  const renderSubmissionStatus = () => {
+    if (!submissionStatus) return null;
+
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`mt-4 p-3 rounded-lg flex items-center ${
+          submissionStatus === 'loading' ? 'bg-blue-50 border border-blue-200' :
+          submissionStatus === 'success' ? 'bg-green-50 border border-green-200' :
+          'bg-red-50 border border-red-200'
+        }`}
+      >
+        {submissionStatus === 'loading' && (
+          <FaSpinner className="animate-spin text-blue-500 mr-2" />
+        )}
+        {submissionStatus === 'success' && (
+          <FaCheck className="text-green-500 mr-2" />
+        )}
+        {submissionStatus === 'error' && (
+          <FaTimes className="text-red-500 mr-2" />
+        )}
+        <span className={`text-sm font-medium ${
+          submissionStatus === 'loading' ? 'text-blue-700' :
+          submissionStatus === 'success' ? 'text-green-700' :
+          'text-red-700'
+        }`}>
+          {submissionMessage}
+        </span>
+      </motion.div>
+    );
   };
 
   // If not started yet, show cover page
@@ -251,8 +389,8 @@ const Slide3 = () => {
                 <div className="bg-gray-50 p-3 rounded-md flex items-start">
                   <FaMedal className="text-blue-500 mt-1 mr-2 flex-shrink-0" />
                   <div>
-                    <div className="font-medium text-sm">Earn Your Badge</div>
-                    <div className="text-xs text-gray-500">Master array fundamentals</div>
+                    <div className="font-medium text-sm">Earn Points</div>
+                    <div className="text-xs text-gray-500">Get points for each correct answer</div>
                   </div>
                 </div>
               </div>
@@ -379,7 +517,31 @@ const Slide3 = () => {
               </motion.div>
             )}
 
-           
+            {selectedAnswer !== null && (
+              <motion.div 
+                className="mt-4 flex justify-end"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <motion.button
+                  onClick={handleNextQuestion}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {currentQuestion < quizQuestions.length - 1 ? (
+                    <>
+                      Next Question <FaArrowRight className="ml-2" />
+                    </>
+                  ) : (
+                    <>
+                      Finish Quiz <FaTrophy className="ml-2" />
+                    </>
+                  )}
+                </motion.button>
+              </motion.div>
+            )}
 
             <div className="mt-4 flex justify-between items-center">
               <button
@@ -426,6 +588,9 @@ const Slide3 = () => {
             <p className="text-lg mb-4">
               Your score: <span className="font-bold text-blue-600">{score}</span> out of {quizQuestions.length}
             </p>
+            
+            {/* Submission Status */}
+            {renderSubmissionStatus()}
             
             {score === quizQuestions.length ? (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">

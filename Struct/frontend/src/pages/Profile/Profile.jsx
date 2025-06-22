@@ -43,76 +43,128 @@ const Profile = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (isAuthenticated) {
-        setIsDataLoading(true);
-        
-        try {
-          const token = localStorage.getItem("authToken");
-          if (!token) {
-            console.error("No authentication token found");
-            return;
-          }
-          
-          const API_BASE_URL = 'http://localhost:8000';
-          
-          // Fetch the latest user data directly from the API
-          const response = await axios.get(
-            `${API_BASE_URL}/api/user/profile/`,
-            {
-              headers: {
-                'Authorization': `Token ${token}`
-              }
-            }
-          );
-          
-          console.log("Fetched user data:", response.data);
-          
-          if (response.data) {
-            // Update user in context if needed
-            if (typeof updateUserFromContext === 'function') {
-              updateUserFromContext(response.data);
-            }
-            
-            // Update profile data with real values from the database
-            setProfileData(prevData => ({
-              ...prevData,
-              points: response.data.points || 0,
-              hearts: response.data.hearts || 0, // Default to 3 if not provided
-              hints: response.data.hints || 0    // Default to 3 if not provided
-            }));
-            
-            // Set profile photo if available
-            if (response.data.profile_photo_url) {
-              setLocalProfilePhoto(response.data.profile_photo_url);
-            }
-          }
-          
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        } finally {
-          setIsDataLoading(false);
+  // Enhanced fetch user data function
+  const fetchUserData = async () => {
+    if (isAuthenticated) {
+      setIsDataLoading(true);
+      
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          console.error("No authentication token found");
+          return;
         }
         
-        // Set sample modules/badges data if needed (this doesn't affect hearts/hints)
-        if (!profileData.modules.length) {
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        // Fetch the latest user data directly from the API
+        const response = await axios.get(
+          `${API_BASE_URL}/api/user/profile/`,
+          {
+            headers: {
+              'Authorization': `Token ${token}`
+            }
+          }
+        );
+        
+        console.log("Fetched user data:", response.data);
+        
+        if (response.data) {
+          // Update user in context if needed
+          if (typeof updateUserFromContext === 'function') {
+            updateUserFromContext(response.data);
+          }
+          
+          // Update profile data with real values from the database
           setProfileData(prevData => ({
             ...prevData,
-            modules: [
-              { id: 1, name: 'Arrays', progress: 100, completed: true },
-              { id: 2, name: 'Stacks', progress: 63, completed: false }
-            ],
-            badges: [
-              { id: 1, name: 'Array Novice', icon: '/path/to/array-badge.png', earned: true }
-            ]
+            points: response.data.points || 0,
+            hearts: response.data.hearts || 0,
+            hints: response.data.hints || 0
           }));
+          
+          // Set profile photo if available
+          if (response.data.profile_photo_url) {
+            setLocalProfilePhoto(response.data.profile_photo_url);
+          }
         }
+        
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsDataLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+    
+    // Set sample modules/badges data if needed (this doesn't affect hearts/hints)
+    if (!profileData.modules.length) {
+      setProfileData(prevData => ({
+        ...prevData,
+        modules: [
+          { id: 1, name: 'Arrays', progress: 100, completed: true },
+          { id: 2, name: 'Stacks', progress: 63, completed: false }
+        ],
+        badges: [
+          { id: 1, name: 'Array Novice', icon: '/path/to/array-badge.png', earned: true }
+        ]
+      }));
+    }
+  }, [isAuthenticated]);
+
+  // Add window focus event listener to refresh data when user returns to tab
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log("Window focused - refreshing user data");
+      fetchUserData();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("Tab became visible - refreshing user data");
+        fetchUserData();
       }
     };
+
+    // Add event listeners
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Set up periodic refresh every 30 seconds while user is active
+    const refreshInterval = setInterval(() => {
+      if (!document.hidden) {
+        fetchUserData();
+      }
+    }, 30000); // 30 seconds
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(refreshInterval);
+    };
+  }, [isAuthenticated]);
+
+  // Listen for custom events from other components (like quiz completion)
+  useEffect(() => {
+    const handleScoreUpdate = (event) => {
+      console.log("Score update event received:", event.detail);
+      // Refresh data immediately when score is updated
+      setTimeout(() => {
+        fetchUserData();
+      }, 1000); // Small delay to ensure backend has processed the update
+    };
+
+    // Listen for custom score update events
+    window.addEventListener('scoreUpdated', handleScoreUpdate);
     
-    fetchUserData();
-  }, [isAuthenticated]); // Remove authUser dependency to prevent circular updates
+    return () => {
+      window.removeEventListener('scoreUpdated', handleScoreUpdate);
+    };
+  }, []);
 
   // Heart regeneration logic
 const checkAndRegenerateHearts = async () => {
@@ -346,6 +398,18 @@ const formatTimeRemaining = (milliseconds) => {
 
   return (
     <div className="p-6 max-w-7xl mt-16 mx-auto h-[calc(100vh-4rem)] overflow-hidden">
+      {/* Add a refresh button for manual refresh */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Profile</h1>
+        <button 
+          onClick={fetchUserData}
+          disabled={isDataLoading}
+          className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 transition disabled:opacity-50"
+        >
+          {isDataLoading ? 'Refreshing...' : 'Refresh Data'}
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-6">
           <motion.div 
@@ -448,6 +512,9 @@ const formatTimeRemaining = (milliseconds) => {
                 <span className="text-4xl font-bold">{profileData.points}</span>
               </div>
               <p className="mt-2 text-gray-700">Points</p>
+              {isDataLoading && (
+                <p className="text-sm text-teal-600">Updating...</p>
+              )}
             </div>
             
             <div className="flex justify-around text-center">

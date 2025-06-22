@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaTrophy, FaSearch, FaPlay, FaLightbulb, FaStar, FaCheck, FaTimes, FaArrowRight } from "react-icons/fa";
+import { FaTrophy, FaSearch, FaPlay, FaLightbulb, FaStar, FaCheck, FaTimes, FaArrowRight, FaSpinner } from "react-icons/fa";
+import axios from 'axios';
 
 const Slide6SearchingChallenge = () => {
   const fruits = ["🍎", "🍌", "🍓", "🍊", "🍏", "🍇", "🥝", "🍒", "🍍", "🥭", "🍑", "🍐"];
@@ -142,6 +143,66 @@ const Slide6SearchingChallenge = () => {
   const [timeRemaining, setTimeRemaining] = useState(10);
   const [timerActive, setTimerActive] = useState(false);
   const [timerInterval, setTimerInterval] = useState(null);
+  
+  const [submissionStatus, setSubmissionStatus] = useState(null);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  
+  const submitQuizScore = async (finalScore) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No authentication token found");
+        return { success: false, error: "Not authenticated" };
+      }
+      
+      const API_BASE_URL = 'http://localhost:8000';
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/api/update-points/`,
+        {
+          score: finalScore,
+          quiz_type: 'array_search'
+        },
+        {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return {
+        success: true,
+        data: response.data
+      };
+      
+    } catch (error) {
+      console.error("Error submitting quiz score:", error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Failed to submit score" 
+      };
+    }
+  };
+
+  const handleGameCompletion = async (finalScore) => {
+    try {
+      setSubmissionStatus('submitting');
+      
+      const result = await submitQuizScore(finalScore);
+      
+      if (result.success) {
+        setSubmissionStatus('success');
+        setScoreSubmitted(true);
+      } else {
+        setSubmissionStatus('error');
+        console.error("Failed to submit score:", result.error);
+      }
+    } catch (error) {
+      setSubmissionStatus('error');
+      console.error("Error in game completion:", error);
+    }
+  };
 
   // Function to shuffle array using Fisher-Yates algorithm
   const shuffleArray = (array) => {
@@ -168,6 +229,9 @@ const Slide6SearchingChallenge = () => {
     setIsCompleted(false);
     setTimeRemaining(10);
     setTimerActive(true);
+    // Reset submission status
+    setSubmissionStatus(null);
+    setScoreSubmitted(false);
   };
   
   const checkAnswer = (optionIndex) => {
@@ -198,7 +262,10 @@ const Slide6SearchingChallenge = () => {
         setTimeRemaining(10);
         setTimerActive(true);
       } else {
+        // Quiz completed - submit score
+        const finalScore = score + (isCorrect && !succeeded[currentChallenge] ? 10 : 0);
         setIsCompleted(true);
+        handleGameCompletion(finalScore);
       }
     }, 3000);
     
@@ -245,7 +312,9 @@ const Slide6SearchingChallenge = () => {
           setTimeRemaining(10);
           setTimerActive(true);
         } else {
+          // Quiz completed due to timeout - submit score
           setIsCompleted(true);
+          handleGameCompletion(score);
         }
       }, 3000);
       
@@ -258,7 +327,7 @@ const Slide6SearchingChallenge = () => {
         clearInterval(interval);
       }
     };
-  }, [timerActive, timeRemaining, currentChallenge, challenges.length, selectedOption]);
+  }, [timerActive, timeRemaining, currentChallenge, challenges.length, selectedOption, score]);
   
   const goToNextChallenge = () => {
     // Clear any existing timers
@@ -281,7 +350,9 @@ const Slide6SearchingChallenge = () => {
         setTimerActive(true);
       }, 50);
     } else {
+      // Quiz completed manually - submit score
       setIsCompleted(true);
+      handleGameCompletion(score);
     }
   };
 
@@ -306,6 +377,8 @@ const Slide6SearchingChallenge = () => {
     setShowExample(false);
     setTimerActive(false);
     setTimeRemaining(10);
+    setSubmissionStatus(null);
+    setScoreSubmitted(false);
   };
 
   // Add this useEffect to ensure clean state on initial mount
@@ -487,6 +560,30 @@ const Slide6SearchingChallenge = () => {
             <p className="text-md mt-3">
               Correct Answers: <span className="font-bold text-green-600">{succeeded.filter(Boolean).length}</span> out of {challenges.length}
             </p>
+          </div>
+          
+          {/* Score submission status */}
+          <div className="mb-6">
+            {submissionStatus === 'submitting' && (
+              <div className="flex items-center justify-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <FaSpinner className="animate-spin text-blue-500 mr-2" />
+                <span className="text-blue-700">Submitting your score...</span>
+              </div>
+            )}
+            
+            {submissionStatus === 'success' && (
+              <div className="flex items-center justify-center p-3 bg-green-50 border border-green-200 rounded-lg">
+                <FaCheck className="text-green-500 mr-2" />
+                <span className="text-green-700">Score submitted successfully! Points added to your account.</span>
+              </div>
+            )}
+            
+            {submissionStatus === 'error' && (
+              <div className="flex items-center justify-center p-3 bg-red-50 border border-red-200 rounded-lg">
+                <FaTimes className="text-red-500 mr-2" />
+                <span className="text-red-700">Failed to submit score. Please try again later.</span>
+              </div>
+            )}
           </div>
           
           <div className={`p-4 rounded-lg mb-6 ${

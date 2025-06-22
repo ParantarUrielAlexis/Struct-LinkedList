@@ -49,14 +49,14 @@ const Store = () => {
       id: 'heart',
       name: 'Heart',
       icon: <FaHeart size={64} />,
-      price: 20,
+      price: 300,
       type: 'hearts'
     },
     {
       id: 'hint',
       name: 'Hint',
       icon: <FaLightbulb size={64} />,
-      price: 50,
+      price: 500,
       type: 'hints'
     }
   ];

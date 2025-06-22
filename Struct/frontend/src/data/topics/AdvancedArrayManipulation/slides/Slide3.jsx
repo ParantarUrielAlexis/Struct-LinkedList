@@ -1,5 +1,6 @@
 // Array Methods Educational Component with Interactive Game
 import React, { useState, useEffect } from "react";
+import axios from 'axios';
 
 const Slide3 = () => {
   // State management for interactive examples
@@ -17,7 +18,9 @@ const Slide3 = () => {
   const [chainInput, setChainInput] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   const [chainResult, setChainResult] = useState(null);
   const [error, setError] = useState("");
-  
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+ 
+    
   // Game state management
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -29,6 +32,44 @@ const Slide3 = () => {
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [currentQuestions, setCurrentQuestions] = useState([]);
   
+  const submitQuizScore = async (finalScore) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authentication token found");
+      return { success: false, error: "Not authenticated" };
+    }
+    
+    const API_BASE_URL = 'http://localhost:8000';
+    
+    const response = await axios.post(
+      `${API_BASE_URL}/api/update-points/`,
+      {
+        score: finalScore,
+        quiz_type: 'array_methods' // Optional: specify quiz type
+      },
+      {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return {
+      success: true,
+      data: response.data
+    };
+    
+  } catch (error) {
+    console.error("Error submitting quiz score:", error);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || "Failed to submit score" 
+    };
+  }
+};
+
   // Full set of 20 questions
   const allQuestions = [
     {
@@ -235,17 +276,40 @@ const Slide3 = () => {
   };
 
   // Move to next question
-  const moveToNextQuestion = () => {
-    if (currentQuestion < currentQuestions.length - 1) {
-      // Reset timer and go to next question
-      setTimer(10);
-      setCurrentQuestion(prev => prev + 1);
-      setTimerActive(true);
+  // const moveToNextQuestion = () => {
+  //   if (currentQuestion < currentQuestions.length - 1) {
+  //     // Reset timer and go to next question
+  //     setTimer(10);
+  //     setCurrentQuestion(prev => prev + 1);
+  //     setTimerActive(true);
+  //   } else {
+  //     // Game over
+  //     setGameEnded(true);
+  //   }
+  // };
+
+  const moveToNextQuestion = async () => {
+  if (currentQuestion < currentQuestions.length - 1) {
+    // Reset timer and go to next question
+    setTimer(10);
+    setCurrentQuestion(prev => prev + 1);
+    setTimerActive(true);
+  } else {
+    // Game over - submit score before setting gameEnded
+    setGameEnded(true);
+    
+    // Submit score to backend
+    const result = await submitQuizScore(score);
+    
+    if (result.success) {
+      setScoreSubmitted(true);
+      console.log(`Added ${score} points to your total!`);
     } else {
-      // Game over
-      setGameEnded(true);
+      console.error("Failed to submit score:", result.error);
+      setScoreSubmitted(false);
     }
-  };
+  }
+};
 
   // Reset game
   const resetGame = () => {
@@ -257,6 +321,8 @@ const Slide3 = () => {
     setUserAnswers([]);
     setShowCorrectAnswer(false);
     setCurrentQuestions([]);
+
+    setScoreSubmitted(false);
   };
 
   // Render correct symbols
@@ -671,7 +737,22 @@ const Slide3 = () => {
       {gameEnded && (
         <div className="game-results">
           <p className="font-bold text-gray-700 mb-4">Final Results:</p>
-          
+          <p className="font-bold text-gray-700 mb-4">Final Results:</p>
+            {scoreSubmitted ? (
+              <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-medium">
+                ✅ {score} points added to your total!
+              </div>
+            ) : (
+              <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg font-medium">
+                Score submission failed. Please try again.
+              </div>
+            )}
+
+          {!scoreSubmitted && gameEnded && (
+            <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg font-medium">
+              Score submission failed. Please try again.
+            </div>
+          )}
           <div className="text-center mb-6">
             <div className="inline-block bg-indigo-100 rounded-full p-3 mb-3">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

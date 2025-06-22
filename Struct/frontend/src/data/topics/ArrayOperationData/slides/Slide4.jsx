@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaTrophy, FaClock, FaPlay, FaRocket, FaStar, FaAngleRight, FaAngleDoubleRight } from "react-icons/fa";
-
+import axios from 'axios';
 const Slide4AddingRemovingChallenge = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [userArray, setUserArray] = useState(["🐶", "🐱", "🐭"]);
@@ -36,6 +36,62 @@ const Slide4AddingRemovingChallenge = () => {
     ["🐰", "🐼"]                           // Complete transformation
   ];
 
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  
+  const submitQuizScore = async (finalScore) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authentication token found");
+      return { success: false, error: "Not authenticated" };
+    }
+    
+    const API_BASE_URL = 'http://localhost:8000';
+    
+    const response = await axios.post(
+      `${API_BASE_URL}/api/update-points/`,
+      {
+        score: finalScore,
+        quiz_type: 'array_transformation'
+      },
+      {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return {
+      success: true,
+      data: response.data
+    };
+    
+  } catch (error) {
+    console.error("Error submitting quiz score:", error);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || "Failed to submit score" 
+    };
+  }
+};
+
+const handleGameCompletion = async (finalScore) => {
+  try {
+    setScoreSubmitted(true);
+    
+    const result = await submitQuizScore(finalScore);
+    
+    if (result.success) {
+      console.log("Score submitted successfully:", result.data);
+    } else {
+      console.error("Failed to submit score:", result.error);
+    }
+  } catch (error) {
+    console.error("Error in game completion:", error);
+  }
+};
+
   // Function to shuffle array
   const shuffleArray = (array) => {
     const newArray = [...array];
@@ -51,7 +107,7 @@ const Slide4AddingRemovingChallenge = () => {
     // Shuffle and select 5 target arrays
     const shuffled = shuffleArray([...allPossibleTargets]);
     setTargetArrays(shuffled.slice(0, 5));
-    
+    setScoreSubmitted(false);
     // Reset game state
     setUserArray(["🐶", "🐱", "🐭"]);
     setCurrentLevel(0);
@@ -88,6 +144,9 @@ const Slide4AddingRemovingChallenge = () => {
             // All levels completed
             setIsCompleted(true);
             setGameOver(true);
+              if (!scoreSubmitted) {
+              handleGameCompletion(score + 50); // +50 for the final level
+            }
           }
         }, 1500);
       }
@@ -105,6 +164,10 @@ const Slide4AddingRemovingChallenge = () => {
         if (prev <= 1) {
           clearInterval(timer);
           setGameOver(true);
+           // ADD THIS LINE:
+          if (!scoreSubmitted) {
+            handleGameCompletion(score);
+          }
           return 0;
         }
         return prev - 1;
@@ -112,7 +175,7 @@ const Slide4AddingRemovingChallenge = () => {
     }, 1000);
     
     return () => clearInterval(timer);
-  }, [gameStarted, gameOver]);
+  }, [gameStarted, gameOver, score, scoreSubmitted]);
 
   const arraysEqual = (a, b) => {
     if (a.length !== b.length) return false;
