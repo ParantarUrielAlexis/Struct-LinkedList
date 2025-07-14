@@ -5,7 +5,7 @@ import {
   Route,
   useLocation,
   Navigate,
-  useParams
+  useParams,
 } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
@@ -73,17 +73,23 @@ const AppLayout = () => {
   // Only show sidebar if user is authenticated and not on a header-only route
   const showSidebar = isAuthenticated && !isHeaderOnlyRoute;
   const SnakeGameLevelHandler = () => {
-  const { level } = useParams();
-  
-  switch(level) {
-    case '1': return <SnakeGame1 />;
-    case '2': return <SnakeGame2 />;
-    case '3': return <SnakeGame3 />;
-    case '4': return <SnakeGame4 />;
-    case '5': return <SnakeGame5 />;
-    default: return <Navigate to="/snake-game" />;
-  }
-};
+    const { level } = useParams();
+
+    switch (level) {
+      case "1":
+        return <SnakeGame1 />;
+      case "2":
+        return <SnakeGame2 />;
+      case "3":
+        return <SnakeGame3 />;
+      case "4":
+        return <SnakeGame4 />;
+      case "5":
+        return <SnakeGame5 />;
+      default:
+        return <Navigate to="/snake-game" />;
+    }
+  };
   return (
     <div className="flex min-h-screen">
       {showSidebar && (
@@ -97,8 +103,18 @@ const AppLayout = () => {
         <main className="flex-1">
           <Routes>
             {/* Public routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/login"
+              element={
+                isAuthenticated ? <Navigate to="/" replace /> : <Login />
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                isAuthenticated ? <Navigate to="/" replace /> : <Signup />
+              }
+            />
             <Route path="/" element={<LandingPage />} />
 
             {/* Protected routes */}
@@ -183,25 +199,25 @@ const AppLayout = () => {
               }
             />
             <Route
-            path="/snake-game"
-            element={
-              <ProtectedRoute>
-                <ClassRequiredWrapper>
-                  <LevelSelect />
-                </ClassRequiredWrapper>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-          path="/snake-game/:level"
-          element={
-            <ProtectedRoute>
-              <ClassRequiredWrapper>
-                <SnakeGameLevelHandler />
-              </ClassRequiredWrapper>
-            </ProtectedRoute>
-          }
-        />
+              path="/snake-game"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <LevelSelect />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/snake-game/:level"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <SnakeGameLevelHandler />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/sortshiftselection"
               element={
