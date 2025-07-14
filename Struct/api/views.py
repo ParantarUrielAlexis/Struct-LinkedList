@@ -1284,34 +1284,32 @@ class UserHeartsView(APIView):
     """API endpoint to get and manage user heart data"""
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, class_id):
+    def get(self, request, class_id=None):
         user = request.user
         
-        now = timezone.now()
-        
-        # Update last_heart_regen_time in TWO situations:
-        # 1. If hearts are full, update regen time to now to prevent instant regeneration later
-        # 2. If hearts_gained_today is manually reset to 0
-        
-        if user.hearts >= user.max_hearts:
-            # If hearts are full, always set last_heart_regen_time to now
-            # This prevents instant regeneration when hearts go below max
-            user.last_heart_regen_time = now
-            user.save(update_fields=['last_heart_regen_time'])
-        elif user.hearts_gained_today == 0 and user.hearts < user.max_hearts:
-            # Handle manual database reset of hearts_gained_today
-            # Check if last_heart_regen_time is too old (would allow instant regeneration)
-            time_diff = (now - user.last_heart_regen_time).total_seconds() / 60
-            if time_diff >= 30:  # If it would regenerate at least 1 heart
-                # Update last_heart_regen_time to now - forces waiting 30 mins for next heart
-                user.last_heart_regen_time = now
-                user.save(update_fields=['last_heart_regen_time'])
-
-        # Check and regenerate hearts based on time elapsed
+        # Simply regenerate hearts based on time elapsed
         user.regenerate_hearts()
+        
+        # Refresh from database to get latest values
+        user.refresh_from_db()
         
         serializer = UserHeartSerializer(user, context={'request': request})
         return Response(serializer.data)
+
+    def post(self, request):
+        """Endpoint to use a heart (decrement count)"""
+        user = request.user
+        
+        # Use the safe method to decrement hearts
+        if user.use_heart():
+            # Return updated heart info
+            serializer = UserHeartSerializer(user, context={'request': request})
+            return Response(serializer.data)
+        else:
+            return Response(
+                {"error": "No hearts available", "hearts": 0}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     def post(self, request):
         """Endpoint to use a heart (decrement count)"""

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FaHeart, FaLightbulb, FaCamera, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaHeart, FaCamera, FaCheck, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -17,7 +17,6 @@ const Profile = () => {
   const [profileData, setProfileData] = useState({
     points: 0,
     hearts: 0,
-    hints: 0,
     modules: [],
     badges: []
   });
@@ -79,8 +78,7 @@ const Profile = () => {
           setProfileData(prevData => ({
             ...prevData,
             points: response.data.points || 0,
-            hearts: response.data.hearts || 0,
-            hints: response.data.hints || 0
+            hearts: response.data.hearts || 0
           }));
           
           // Set profile photo if available
@@ -100,7 +98,7 @@ const Profile = () => {
   useEffect(() => {
     fetchUserData();
     
-    // Set sample modules/badges data if needed (this doesn't affect hearts/hints)
+    // Set sample modules/badges data if needed
     if (!profileData.modules.length) {
       setProfileData(prevData => ({
         ...prevData,
@@ -492,21 +490,21 @@ const formatTimeRemaining = (milliseconds) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-              className="bg-gray-200 p-6 rounded-lg shadow-md relative"
+            className="bg-gray-200 p-6 rounded-lg shadow-md relative"
           >
-          {/* Store button in top right corner */}
-          <div className="absolute top-4 right-4">
-            <Link
-              to ="/store"
-              className="flex flex-col items-center text-gray-700 hover:text-teal-600 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="text-sm mt-1">Store</span>
-            </Link>
-          </div>
-          
+            {/* Store button in top right corner */}
+            <div className="absolute top-4 right-4">
+              <Link
+                to="/store"
+                className="flex flex-col items-center text-gray-700 hover:text-teal-600 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span className="text-sm mt-1">Store</span>
+              </Link>
+            </div>
+            
             <div className="text-center mb-6">
               <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
                 <span className="text-4xl font-bold">{profileData.points}</span>
@@ -517,24 +515,14 @@ const formatTimeRemaining = (milliseconds) => {
               )}
             </div>
             
-            <div className="flex justify-around text-center">
+            {/* Centered heart counter */}
+            <div className="flex justify-center text-center">
               <div>
                 <div className="flex items-center justify-center text-xl mb-1">
                   <span className="mr-1">{profileData.hearts}</span>
-                  <FaHeart className={`${heartJustAdded ? 'animate-pulse text-2xl' : ''} text-red-black`} />
-                 
+                  <FaHeart className={`${heartJustAdded ? 'animate-pulse text-2xl' : ''} text-red-500`} />
                 </div>
                 <p className="text-sm">Hearts Available</p>
-                
-                
-              </div>
-              
-              <div>
-                <div className="flex items-center justify-center text-xl mb-1">
-                  <span className="mr-1">{profileData.hints}</span>
-                  <FaLightbulb className="text-black" />
-                </div>
-                <p className="text-sm">Hints Available</p>
               </div>
             </div>
           </motion.div>

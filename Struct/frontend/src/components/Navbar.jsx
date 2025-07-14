@@ -26,11 +26,10 @@ const Navbar = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   
-  // Add heart state variables
+  // Heart state variables
   const [hearts, setHearts] = useState(0);
-  const [maxHearts, setMaxHearts] = useState(5);
+  const [maxHearts, setMaxHearts] = useState(10); // Updated default to 10
   const [nextHeartIn, setNextHeartIn] = useState(null);
-  const [heartIntervalId, setHeartIntervalId] = useState(null);
 
   const handleLogout = () => {
     logout();
@@ -82,7 +81,7 @@ const Navbar = () => {
       const { hearts: userHearts, max_hearts, next_heart_in } = response.data;
       
       setHearts(userHearts);
-      setMaxHearts(max_hearts || 5);
+      setMaxHearts(max_hearts || 10); // Use the actual max_hearts from backend
       setNextHeartIn(next_heart_in);
       
     } catch (error) {
@@ -90,73 +89,35 @@ const Navbar = () => {
     }
   };
 
-  // Fetch heart data on component mount and when authentication state changes
+  // Single effect for heart data management
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchHeartData();
-      
-      // Set up interval to update the countdown every minute
-      const intervalId = setInterval(() => {
-        if (nextHeartIn !== null && nextHeartIn > 0) {
-          const newNextHeartIn = nextHeartIn - (60 * 1000); // Subtract one minute
-          
-          if (newNextHeartIn <= 0) {
-            // Time to regenerate a heart
-            fetchHeartData();
-          } else {
-            setNextHeartIn(newNextHeartIn);
-          }
-        }
-      }, 60 * 1000);
-      
-      setHeartIntervalId(intervalId);
-      
-      // Clear interval on component unmount
-      return () => {
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-      };
-    }
-  }, [isAuthenticated]);
-  
-  // Update countdown timer every second
-  useEffect(() => {
-    if (isAuthenticated && nextHeartIn !== null && nextHeartIn > 0) {
-      const countdownInterval = setInterval(() => {
-        setNextHeartIn(prev => {
-          if (prev <= 1000) {
-            // If we're below 1 second, fetch new data
-            fetchHeartData();
-            return null;
-          }
-          return prev - 1000;
-        });
-      }, 1000);
-      
-      return () => clearInterval(countdownInterval);
-    }
-  }, [nextHeartIn, isAuthenticated]);
+    if (!isAuthenticated) return;
 
-  // Also update this to refresh every second when hearts are regenerating
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchHeartData();
-      
-      // Set up interval to update the countdown timer
-      const intervalId = setInterval(() => {
-        fetchHeartData();
-      }, 60 * 1000); // Refresh every minute
-      
-      setHeartIntervalId(intervalId);
-      
-      // Clear interval on component unmount
-      return () => {
-        if (intervalId) {
-          clearInterval(intervalId);
+    // Initial fetch
+    fetchHeartData();
+
+    // Set up interval for periodic updates
+    const heartInterval = setInterval(fetchHeartData, 60000); // Every minute
+
+    // Set up countdown timer for next heart
+    const countdownInterval = setInterval(() => {
+      setNextHeartIn(prev => {
+        if (prev === null || prev <= 0) return null;
+        const newValue = prev - 1000;
+        if (newValue <= 0) {
+          // Trigger a fetch when countdown reaches zero
+          fetchHeartData();
+          return null;
         }
-      };
-    }
+        return newValue;
+      });
+    }, 1000);
+
+    // Cleanup intervals on unmount or auth change
+    return () => {
+      clearInterval(heartInterval);
+      clearInterval(countdownInterval);
+    };
   }, [isAuthenticated]);
 
   // Close the user menu when clicking outside

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaHeart, FaLightbulb, FaArrowLeft, FaCheck } from 'react-icons/fa';
+import { FaHeart, FaArrowLeft, FaCheck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
@@ -20,7 +20,7 @@ const Store = () => {
   const [userData, setUserData] = useState({
     points: 0,
     hearts: 0,
-    hints: 0
+    max_hearts: 5 // Add max_hearts to track the limit
   });
 
   // Fetch user data when component mounts
@@ -29,7 +29,7 @@ const Store = () => {
       setUserData({
         points: authUser.points || 0,
         hearts: authUser.hearts || 0,
-        hints: authUser.hints || 0
+        max_hearts: authUser.max_hearts || 5 // Get max_hearts from auth user
       });
     }
   }, [isAuthenticated, authUser]);
@@ -51,24 +51,34 @@ const Store = () => {
       icon: <FaHeart size={64} />,
       price: 300,
       type: 'hearts'
-    },
-    {
-      id: 'hint',
-      name: 'Hint',
-      icon: <FaLightbulb size={64} />,
-      price: 500,
-      type: 'hints'
     }
   ];
 
+  // Check if an item can be purchased
+  const canPurchaseItem = (item) => {
+    // Check if user has enough points
+    if (userData.points < item.price) {
+      return { canPurchase: false, reason: `Not enough points to purchase ${item.name}` };
+    }
+    
+    // Special check for hearts - prevent purchase if already at max
+    if (item.type === 'hearts' && userData.hearts >= userData.max_hearts) {
+      return { canPurchase: false, reason: `You already have the maximum number of hearts (${userData.max_hearts})` };
+    }
+    
+    return { canPurchase: true, reason: null };
+  };
+
   // Open confirm modal
   const openConfirmModal = (item) => {
-    // Check if user has enough points first
-    if (userData.points < item.price) {
-      setError(`Not enough points to purchase ${item.name}`);
+    const purchaseCheck = canPurchaseItem(item);
+    
+    if (!purchaseCheck.canPurchase) {
+      setError(purchaseCheck.reason);
       setTimeout(() => setError(null), 3000);
       return;
     }
+    
     setConfirmModal({ show: true, item });
   };
 
@@ -95,12 +105,18 @@ const Store = () => {
 
       const API_BASE_URL = 'http://localhost:8000';
       
+      // Calculate new values
+      const newPoints = userData.points - item.price;
+      const newItemValue = item.type === 'hearts' 
+        ? Math.min(userData[item.type] + 1, userData.max_hearts) // Respect max_hearts limit
+        : userData[item.type] + 1;
+      
       // Update user data in the backend
       const response = await axios.patch(
         `${API_BASE_URL}/api/user/profile/`,
         {
-          points: userData.points - item.price,
-          [item.type]: userData[item.type] + 1
+          points: newPoints,
+          [item.type]: newItemValue
         },
         {
           headers: {
@@ -114,16 +130,16 @@ const Store = () => {
         // Update local state
         setUserData(prevData => ({
           ...prevData,
-          points: prevData.points - item.price,
-          [item.type]: prevData[item.type] + 1
+          points: newPoints,
+          [item.type]: newItemValue
         }));
 
         // Update user in context
         if (typeof updateUser === 'function') {
           updateUser({
             ...authUser,
-            points: userData.points - item.price,
-            [item.type]: userData[item.type] + 1
+            points: newPoints,
+            [item.type]: newItemValue
           });
         }
 
@@ -188,15 +204,9 @@ const Store = () => {
             <span className="ml-1 text-sm">Hearts Available</span>
           </div>
           <div className="h-8 border-l border-gray-300"></div>
-           <div className="text-center">
+          <div className="text-center">
             <div className="text-lg font-bold">{userData.points}</div>
             <div className="text-sm text-gray-600">Points</div>
-          </div>
-          <div className="h-8 border-l border-gray-300"></div>
-          <div className="flex items-center">
-            <span className="text-2xl font-semibold mr-2">{userData.hints}</span>
-            <FaLightbulb className="text-black" />
-            <span className="ml-1 text-sm">Hints Available</span>
           </div>
         </div>
       </div>
@@ -216,28 +226,40 @@ const Store = () => {
 
       {/* Store items */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {storeItems.map((item) => (
-          <motion.div
-            key={item.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="bg-gray-200 rounded-lg p-8 flex flex-col items-center"
-          >
-            <div className="mb-2 text-lg font-semibold">{item.price} points</div>
-            <div className="my-6 text-black">{item.icon}</div>
-            <div className="mb-4 text-xl font-bold">{item.name}</div>
-            <button
-              onClick={() => openConfirmModal(item)}
-              disabled={isLoading || userData.points < item.price}
-              className={`bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-8 rounded-md ${
-                isLoading || userData.points < item.price ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+        {storeItems.map((item) => {
+          const purchaseCheck = canPurchaseItem(item);
+          
+          return (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-gray-200 rounded-lg p-8 flex flex-col items-center"
             >
-              {isLoading ? 'Processing...' : 'Buy'}
-            </button>
-          </motion.div>
-        ))}
+              <div className="mb-2 text-lg font-semibold">{item.price} points</div>
+              <div className="my-6 text-black">{item.icon}</div>
+              <div className="mb-4 text-xl font-bold">{item.name}</div>
+              
+              {/* Show special message for hearts at max */}
+              {item.type === 'hearts' && userData.hearts >= userData.max_hearts && (
+                <div className="mb-4 text-sm text-gray-600 text-center">
+                  Maximum hearts reached ({userData.max_hearts})
+                </div>
+              )}
+              
+              <button
+                onClick={() => openConfirmModal(item)}
+                disabled={isLoading || !purchaseCheck.canPurchase}
+                className={`bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-8 rounded-md ${
+                  isLoading || !purchaseCheck.canPurchase ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {isLoading ? 'Processing...' : 'Buy'}
+              </button>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Confirmation Modal */}
