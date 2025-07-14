@@ -22,12 +22,6 @@ const LandingPage = () => {
         >
           Get Started
         </Link>
-        <Link
-          to="/about"
-          className="bg-teal-500 border border-white px-6 py-3 rounded-lg shadow-lg font-semibold hover:bg-teal-600 transition duration-300"
-        >
-          Learn More
-        </Link>
       </div>
     </div>
   );
