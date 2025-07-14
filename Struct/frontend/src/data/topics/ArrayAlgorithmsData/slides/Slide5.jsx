@@ -5,6 +5,8 @@ import {
   FaTimes, FaPlay, FaChevronRight, FaSort, FaStar 
 } from "react-icons/fa";
 
+import axios from 'axios';
+
 const BubbleSortChallenge = () => {
   const [showCover, setShowCover] = useState(true);
   const [gameState, setGameState] = useState({
@@ -19,6 +21,61 @@ const BubbleSortChallenge = () => {
     isCompleted: false,
     showHint: false
   });
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  
+  const submitQuizScore = async (finalScore) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authentication token found");
+      return { success: false, error: "Not authenticated" };
+    }
+    
+    const API_BASE_URL = 'http://localhost:8000';
+    
+    const response = await axios.post(
+      `${API_BASE_URL}/api/update-points/`,
+      {
+        score: finalScore,
+        quiz_type: 'bubble_sort'
+      },
+      {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return {
+      success: true,
+      data: response.data
+    };
+    
+  } catch (error) {
+    console.error("Error submitting quiz score:", error);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || "Failed to submit score" 
+    };
+  }
+};
+
+const handleGameCompletion = async (finalScore) => {
+  try {
+    setScoreSubmitted(true);
+    
+    const result = await submitQuizScore(finalScore);
+    
+    if (result.success) {
+      console.log("Score submitted successfully:", result.data);
+    } else {
+      console.error("Failed to submit score:", result.error);
+    }
+  } catch (error) {
+    console.error("Error in game completion:", error);
+  }
+};
 
   // Initialize or reset the game when component mounts or reset is clicked
   useEffect(() => {
@@ -169,6 +226,7 @@ const BubbleSortChallenge = () => {
             feedback: "Congratulations! You've mastered Bubble Sort!",
             isCompleted: true
           });
+          handleGameCompletion(newScore);
         }
       } else {
         // Continue with next pass since array is not fully sorted
@@ -516,23 +574,43 @@ const BubbleSortChallenge = () => {
                   <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
                     <FaTrophy className="text-4xl text-yellow-500" />
                   </div>
-                  <h3 className="text-2xl font-bold text-green-800 mb-2">Challenge Complete!</h3>
+                  <h3 className="text-2xl font-bold text-green-800 mb-2">
+                    Challenge Complete!
+                  </h3>
                   <p className="mb-4">You've mastered the Bubble Sort algorithm!</p>
+                  
                   <div className="bg-gray-100 p-3 rounded-lg mb-4">
                     <p className="font-medium">Final Score: {gameState.score}</p>
+                    <p className="text-green-600">Points Awarded: +{gameState.score}</p>
+                   
                   </div>
-                  <div className="flex gap-3 justify-center">
+                  
+                  {scoreSubmitted ? (
+                    <p className="text-green-600 text-sm mb-4">
+                      ✓ Score saved successfully!
+                    </p>
+                  ) : (
+                    <p className="text-blue-600 text-sm mb-4">
+                      Saving score...
+                    </p>
+                  )}
+                  
+                  <div className="flex gap-2 justify-center">
                     <button 
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow transition"
-                      onClick={() => initializeGame(1)}
+                      onClick={() => {
+                        // Reset all completion states
+                        setScoreSubmitted(false);
+                        initializeGame(1);
+                      }}
                     >
                       Play Again
                     </button>
                     <button 
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md shadow transition"
+                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md shadow transition"
                       onClick={() => setShowCover(true)}
                     >
-                      View Instructions
+                      Back to Menu
                     </button>
                   </div>
                 </div>

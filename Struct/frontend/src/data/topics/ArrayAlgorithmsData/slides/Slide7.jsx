@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaGamepad, FaTrophy, FaSort, FaPlay, FaChevronRight, FaLightbulb, FaArrowRight } from "react-icons/fa";
-
+import axios from 'axios';
 const Slide7 = () => {
   const [showCover, setShowCover] = useState(true);
   
@@ -49,6 +49,78 @@ const Slide7 = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showNextLevelPopup, setShowNextLevelPopup] = useState(false);
   const [gameFinished, setGameFinished] = useState(false);
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  
+  const submitQuizScore = async (finalScore) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authentication token found");
+      return { success: false, error: "Not authenticated" };
+    }
+    
+    const API_BASE_URL = 'http://localhost:8000';
+    
+    const response = await axios.post(
+      `${API_BASE_URL}/api/update-points/`,
+      {
+        score: finalScore,
+        quiz_type: 'insertion_sort'
+      },
+      {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return {
+      success: true,
+      data: response.data
+    };
+    
+  } catch (error) {
+    console.error("Error submitting quiz score:", error);
+    
+    // Check if it's a network error
+    if (!error.response) {
+      return { 
+        success: false, 
+        error: "Network error - please check your connection" 
+      };
+    }
+    
+    return { 
+      success: false, 
+      error: error.response?.data?.message || "Failed to submit score" 
+    };
+  }
+};
+
+const handleGameCompletion = async (finalScore) => {
+  try {
+    setIsSubmittingScore(true);
+    setScoreSubmitted(false); // Reset this first
+    
+    const result = await submitQuizScore(finalScore);
+    
+    if (result.success) {
+      setScoreSubmitted(true);
+      console.log("Score submitted successfully:", result.data);
+    } else {
+      console.error("Failed to submit score:", result.error);
+      setScoreSubmitted(true);
+    }
+  } catch (error) {
+    console.error("Error in game completion:", error);
+    setScoreSubmitted(true);
+  } finally {
+    setIsSubmittingScore(false);
+  }
+};
   
   // Generate a random array with no duplicates
   const generateRandomArray = (size, range) => {
@@ -211,6 +283,7 @@ const Slide7 = () => {
               // Final level completion
               setGameFinished(true);
               setShowCelebration(true);
+              handleGameCompletion(score);
             } else {
               // Not final level - show next level popup
               setShowNextLevelPopup(true);
@@ -299,6 +372,8 @@ const Slide7 = () => {
   const playAgain = () => {
     setShowCelebration(false);
     setGameFinished(false);
+    setScoreSubmitted(false);
+    setIsSubmittingScore(false);
     
     // Small delay before reset
     setTimeout(() => {
@@ -549,7 +624,10 @@ const Slide7 = () => {
                   </div>
                   <h3 className="text-2xl font-bold text-green-600 mb-2">Amazing Job!</h3>
                   <p className="text-gray-700 mb-6">
-                    You've mastered all 5 levels of the Insertion Sort Challenge with a final score of {score}/500!
+                    You've mastered all 5 levels of the Insertion Sort Challenge!
+                    <span className="block mt-2 text-lg font-semibold">
+                        Score: {score}/500 (Submitting...)
+                      </span>
                   </p>
                   
                   {/* Play Again button - highlighted and prominent */}

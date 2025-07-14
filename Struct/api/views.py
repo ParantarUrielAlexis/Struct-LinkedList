@@ -9,6 +9,7 @@ from django.db.models import Max, F, Avg
 from .serializers import UserRegistrationSerializer
 from .models import Class, TypeTestProgress, UserProgress
 from .serializers import ClassSerializer, ClassCreateSerializer, TypeTestProgressSerializer, UserProgressSerializer 
+from django.db import transaction
 
 from django.core.files.storage import default_storage
 
@@ -846,11 +847,15 @@ class ClassSnakeGameDataView(APIView):
                                 overall_best_score = best_score
                                 overall_best_level = level
                             
+                            # FIXED: Add completion status based on game_completed flag
+                            is_completed = completed_attempts > 0
+                            
                             level_data[level] = {
                                 "best_score": best_score,
                                 "best_stars": best_stars or 0,
                                 "attempts": attempts,
                                 "completed_attempts": completed_attempts,
+                                "completed": is_completed,  # ADD THIS LINE - missing completion flag
                                 "success_rate": round(success_rate, 1),
                                 "avg_score": round(avg_score, 1) if avg_score else 0,
                                 "best_food_eaten": best_food_eaten or 0,
@@ -876,6 +881,7 @@ class ClassSnakeGameDataView(APIView):
                                 "best_stars": 0,
                                 "attempts": 0,
                                 "completed_attempts": 0,
+                                "completed": False,  # ADD THIS LINE - explicit completion flag
                                 "success_rate": 0,
                                 "avg_score": 0,
                                 "best_food_eaten": 0,
@@ -1231,6 +1237,21 @@ class ClassSnakeGameDataView(APIView):
         else:
             return "Balanced Player" if completion_focused else "Casual Player"
     
+    def calculate_student_completion_rate(self, level_breakdown):
+        """Calculate completion rate for a student (completed levels out of total levels)"""
+        if not level_breakdown:
+            return 0
+        
+        completed_levels = 0
+        total_levels = 5
+        
+        for level in range(1, total_levels + 1):
+            level_data = level_breakdown.get(str(level), {})
+            if level_data.get('completed', False):
+                completed_levels += 1
+        
+        return (completed_levels / total_levels) * 100
+    
     def calculate_class_level_stats(self, students_data):
         """Calculate class-wide statistics per level"""
         level_stats = {}
@@ -1263,34 +1284,32 @@ class UserHeartsView(APIView):
     """API endpoint to get and manage user heart data"""
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, class_id=None):
         user = request.user
         
-        now = timezone.now()
-        
-        # Update last_heart_regen_time in TWO situations:
-        # 1. If hearts are full, update regen time to now to prevent instant regeneration later
-        # 2. If hearts_gained_today is manually reset to 0
-        
-        if user.hearts >= user.max_hearts:
-            # If hearts are full, always set last_heart_regen_time to now
-            # This prevents instant regeneration when hearts go below max
-            user.last_heart_regen_time = now
-            user.save(update_fields=['last_heart_regen_time'])
-        elif user.hearts_gained_today == 0 and user.hearts < user.max_hearts:
-            # Handle manual database reset of hearts_gained_today
-            # Check if last_heart_regen_time is too old (would allow instant regeneration)
-            time_diff = (now - user.last_heart_regen_time).total_seconds() / 60
-            if time_diff >= 30:  # If it would regenerate at least 1 heart
-                # Update last_heart_regen_time to now - forces waiting 30 mins for next heart
-                user.last_heart_regen_time = now
-                user.save(update_fields=['last_heart_regen_time'])
-
-        # Check and regenerate hearts based on time elapsed
+        # Simply regenerate hearts based on time elapsed
         user.regenerate_hearts()
+        
+        # Refresh from database to get latest values
+        user.refresh_from_db()
         
         serializer = UserHeartSerializer(user, context={'request': request})
         return Response(serializer.data)
+
+    def post(self, request):
+        """Endpoint to use a heart (decrement count)"""
+        user = request.user
+        
+        # Use the safe method to decrement hearts
+        if user.use_heart():
+            # Return updated heart info
+            serializer = UserHeartSerializer(user, context={'request': request})
+            return Response(serializer.data)
+        else:
+            return Response(
+                {"error": "No hearts available", "hearts": 0}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     def post(self, request):
         """Endpoint to use a heart (decrement count)"""
@@ -1466,3 +1485,29 @@ class RemoveStudentFromClassView(APIView):
                 {"error": "Class not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
+            
+class PointsUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        points_to_add = request.data.get('score', 0)  # Changed 'points' to 'score' to match frontend
+        quiz_type = request.data.get('quiz_type', 'unknown')
+        user = request.user
+        
+        # Use atomic transaction to ensure both updates happen together
+        with transaction.atomic():
+            # Update points and quiz attempts atomically
+            user.points = F('points') + points_to_add
+            user.quiz_attempts = F('quiz_attempts') + 1
+            user.save(update_fields=['points', 'quiz_attempts'])
+            
+            # Refresh user object to get updated values
+            user.refresh_from_db()
+        
+        return Response({
+            'success': True,
+            'points_added': points_to_add,
+            'total_points': user.points,
+            'attempts': user.quiz_attempts,
+            'quiz_type': quiz_type
+        }, status=status.HTTP_200_OK)

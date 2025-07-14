@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaCheck, FaTimes, FaTrophy, FaCode, FaGamepad, FaLightbulb, FaRocket, FaStar, FaArrowRight, FaMedal, FaPlay, FaClock } from "react-icons/fa";
 import { motion } from "framer-motion";
-
+import axios from 'axios'; 
 const Slide6 = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [currentChallenge, setCurrentChallenge] = useState(0);
@@ -259,6 +259,96 @@ const Slide6 = () => {
     }
   ];
 
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState(null); // 'loading', 'success', 'error'
+  const [submissionMessage, setSubmissionMessage] = useState('');
+  // Submit quiz score to backend
+  const submitQuizScore = async (finalScore) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authentication token found");
+      return { success: false, error: "Not authenticated" };
+    }
+    
+    const API_BASE_URL = 'http://localhost:8000';
+    
+    const response = await axios.post(
+      `${API_BASE_URL}/api/update-points/`,
+      {
+        score: finalScore,
+        quiz_type: 'array_access_challenge'
+      },
+      {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return {
+      success: true,
+      data: response.data
+    };
+    
+  } catch (error) {
+    console.error("Error submitting quiz score:", error);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || "Failed to submit score" 
+    };
+  }
+};
+
+  // Handle game completion and score submission
+  const handleGameCompletion = async (finalScore) => {
+    if (scoreSubmitted) return; // Prevent duplicate submissions
+    
+    setSubmissionStatus('loading');
+    setSubmissionMessage('Submitting your score...');
+    
+    try {
+      setScoreSubmitted(true);
+      
+      const result = await submitQuizScore(finalScore);
+      
+      if (result.success) {
+        console.log("Score submitted successfully:", result.data);
+        setSubmissionStatus('success');
+        setSubmissionMessage(`Great! You earned ${finalScore} points!`);
+        
+        // Show success message for a few seconds
+        setTimeout(() => {
+          setSubmissionStatus(null);
+          setSubmissionMessage('');
+        }, 3000);
+      } else {
+        console.error("Failed to submit score:", result.error);
+        setSubmissionStatus('error');
+        setSubmissionMessage(result.error || 'Failed to submit score');
+        
+        // Reset submission status to allow retry
+        setTimeout(() => {
+          setScoreSubmitted(false);
+          setSubmissionStatus(null);
+          setSubmissionMessage('');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Error in game completion:", error);
+      setSubmissionStatus('error');
+      setSubmissionMessage('An unexpected error occurred');
+      
+      // Reset submission status to allow retry
+      setTimeout(() => {
+        setScoreSubmitted(false);
+        setSubmissionStatus(null);
+        setSubmissionMessage('');
+      }, 3000);
+    }
+  };
+
   // Fisher-Yates shuffle algorithm
   const shuffleArray = (array) => {
     let shuffled = [...array];
@@ -274,6 +364,13 @@ const Slide6 = () => {
     const shuffled = shuffleArray([...Array(allChallenges.length).keys()]);
     return shuffled.slice(0, 10); // Take 10 questions
   };
+
+  useEffect(() => {
+  if (showResult && !scoreSubmitted) {
+    // Auto-submit score when game completes
+    handleGameCompletion(points);
+  }
+}, [showResult, scoreSubmitted, points]);
 
   // Setup game when started
   useEffect(() => {
@@ -357,17 +454,21 @@ const Slide6 = () => {
 
   // Restart the game
   const restartGame = () => {
-    setGameStarted(false);
-    setCurrentChallenge(0);
-    setSelectedOption(null);
-    setIsCorrect(null);
-    setShowResult(false);
-    setCompletedChallenges(0);
-    setPoints(0);
-    setTimeLeft(10); // Reset to 10 seconds
-    setIsPaused(false);
-    if (timerRef.current) clearInterval(timerRef.current);
-  };
+  setGameStarted(false);
+  setCurrentChallenge(0);
+  setSelectedOption(null);
+  setIsCorrect(null);
+  setShowResult(false);
+  setCompletedChallenges(0);
+  setPoints(0);
+  setTimeLeft(10);
+  setIsPaused(false);
+  // Reset submission state
+  setScoreSubmitted(false);
+  setSubmissionStatus(null);
+  setSubmissionMessage('');
+  if (timerRef.current) clearInterval(timerRef.current);
+};
 
   // If game hasn't started yet, show cover page
   if (!gameStarted) {
@@ -503,7 +604,36 @@ const Slide6 = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="mb-4">
+          <div className="mb-4">{submissionStatus && (
+              <motion.div 
+                className={`mb-4 p-3 rounded-lg border ${
+                  submissionStatus === 'loading' ? 'bg-blue-50 border-blue-200' :
+                  submissionStatus === 'success' ? 'bg-green-50 border-green-200' :
+                  'bg-red-50 border-red-200'
+                }`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="flex items-center justify-center">
+                  {submissionStatus === 'loading' && (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mr-2"></div>
+                  )}
+                  {submissionStatus === 'success' && (
+                    <FaCheck className="text-green-500 mr-2" />
+                  )}
+                  {submissionStatus === 'error' && (
+                    <FaTimes className="text-red-500 mr-2" />
+                  )}
+                  <span className={`text-sm font-medium ${
+                    submissionStatus === 'loading' ? 'text-blue-700' :
+                    submissionStatus === 'success' ? 'text-green-700' :
+                    'text-red-700'
+                  }`}>
+                    {submissionMessage}
+                  </span>
+                </div>
+              </motion.div>
+            )}
             <div className="flex justify-between items-center">
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">
                 Question {currentChallenge + 1}/{challengeOrder.length}
@@ -677,7 +807,36 @@ const Slide6 = () => {
                 You got <span className="font-bold text-blue-600">{completedChallenges}</span> out of {challengeOrder.length} correct
               </p>
             </div>
-
+            {submissionStatus && (
+              <motion.div 
+                className={`mb-4 p-3 rounded-lg border ${
+                  submissionStatus === 'loading' ? 'bg-blue-50 border-blue-200' :
+                  submissionStatus === 'success' ? 'bg-green-50 border-green-200' :
+                  'bg-red-50 border-red-200'
+                }`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="flex items-center justify-center">
+                  {submissionStatus === 'loading' && (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mr-2"></div>
+                  )}
+                  {submissionStatus === 'success' && (
+                    <FaCheck className="text-green-500 mr-2" />
+                  )}
+                  {submissionStatus === 'error' && (
+                    <FaTimes className="text-red-500 mr-2" />
+                  )}
+                  <span className={`text-sm font-medium ${
+                    submissionStatus === 'loading' ? 'text-blue-700' :
+                    submissionStatus === 'success' ? 'text-green-700' :
+                    'text-red-700'
+                  }`}>
+                    {submissionMessage}
+                  </span>
+                </div>
+              </motion.div>
+            )}
             {completedChallenges === challengeOrder.length ? (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-6">
                 <h4 className="font-bold text-green-800 mb-2">Perfect Score! 🏆</h4>

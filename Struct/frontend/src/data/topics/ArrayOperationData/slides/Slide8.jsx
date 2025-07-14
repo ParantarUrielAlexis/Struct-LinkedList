@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaTrophy, FaCode, FaPlay, FaLightbulb, FaStar, FaCheck, FaTimes, FaArrowRight } from "react-icons/fa";
+import { FaTrophy, FaCode, FaPlay, FaLightbulb, FaStar, FaCheck, FaTimes, FaArrowRight, FaSpinner } from "react-icons/fa";
+import axios from 'axios';
 
 const Slide8MergingSplittingChallenge = () => {
   const allChallenges = [
@@ -270,6 +271,67 @@ const Slide8MergingSplittingChallenge = () => {
   const [timerActive, setTimerActive] = useState(false);
   const [autoAdvanceTimer, setAutoAdvanceTimer] = useState(null);
 
+  // Backend integration states
+  const [submissionStatus, setSubmissionStatus] = useState(null);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  
+  const submitQuizScore = async (finalScore) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No authentication token found");
+        return { success: false, error: "Not authenticated" };
+      }
+      
+      const API_BASE_URL = 'http://localhost:8000';
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/api/update-points/`,
+        {
+          score: finalScore,
+          quiz_type: 'array_merging_splitting'
+        },
+        {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return {
+        success: true,
+        data: response.data
+      };
+      
+    } catch (error) {
+      console.error("Error submitting quiz score:", error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Failed to submit score" 
+      };
+    }
+  };
+
+  const handleGameCompletion = async (finalScore) => {
+    try {
+      setSubmissionStatus('submitting');
+      
+      const result = await submitQuizScore(finalScore);
+      
+      if (result.success) {
+        setSubmissionStatus('success');
+        setScoreSubmitted(true);
+      } else {
+        setSubmissionStatus('error');
+        console.error("Failed to submit score:", result.error);
+      }
+    } catch (error) {
+      setSubmissionStatus('error');
+      console.error("Error in game completion:", error);
+    }
+  };
+  
   // Function to shuffle array
   const shuffleArray = (array) => {
     const newArray = [...array];
@@ -295,6 +357,9 @@ const Slide8MergingSplittingChallenge = () => {
     setIsCompleted(false);
     setTimeRemaining(10);
     setTimerActive(true);
+    // Reset submission states
+    setSubmissionStatus(null);
+    setScoreSubmitted(false);
   };
 
   // Timer effect
@@ -326,6 +391,8 @@ const Slide8MergingSplittingChallenge = () => {
           setTimerActive(true);
         } else {
           setIsCompleted(true);
+          // Submit score when quiz completes
+          handleGameCompletion(score);
         }
       }, 3000);
       
@@ -336,7 +403,7 @@ const Slide8MergingSplittingChallenge = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [timerActive, timeRemaining, currentChallenge, challenges.length, selectedOption]);
+  }, [timerActive, timeRemaining, currentChallenge, challenges.length, selectedOption, score]);
 
   // Cleanup effect
   useEffect(() => {
@@ -357,7 +424,10 @@ const Slide8MergingSplittingChallenge = () => {
     const isCorrect = optionIndex === challenges[currentChallenge].correct;
     
     if (isCorrect && !succeeded[currentChallenge]) {
-      setScore(score => score + 20); // Changed to 20 points per correct answer
+      setScore(prevScore => {
+        const newScore = prevScore + 20;
+        return newScore;
+      });
       setSucceeded(prev => {
         const newSucceeded = [...prev];
         newSucceeded[currentChallenge] = true;
@@ -376,6 +446,9 @@ const Slide8MergingSplittingChallenge = () => {
         setTimerActive(true);
       } else {
         setIsCompleted(true);
+        // Submit score when quiz completes - use the updated score
+        const finalScore = score + (isCorrect ? 20 : 0);
+        handleGameCompletion(finalScore);
       }
     }, 3000);
     
@@ -398,6 +471,8 @@ const Slide8MergingSplittingChallenge = () => {
       setTimerActive(true);
     } else {
       setIsCompleted(true);
+      // Submit score when manually finishing
+      handleGameCompletion(score);
     }
   };
 
@@ -417,6 +492,9 @@ const Slide8MergingSplittingChallenge = () => {
     setShowExplanation(false);
     setTimerActive(false);
     setTimeRemaining(10);
+    // Reset submission states
+    setSubmissionStatus(null);
+    setScoreSubmitted(false);
   };
 
   // Cover page
@@ -451,7 +529,7 @@ const Slide8MergingSplittingChallenge = () => {
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <FaStar className="mr-2 text-blue-500" /> 5 Array Manipulation Challenges
+                <FaStar className="mr-2 text-blue-500" /> 10 Array Manipulation Challenges
               </h2>
               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded flex items-center">
                 <FaStar className="mr-1" /> 20 points per correct answer
@@ -578,6 +656,30 @@ const Slide8MergingSplittingChallenge = () => {
             <p className="text-md mt-3">
               Correct Answers: <span className="font-bold text-green-600">{succeeded.filter(Boolean).length}</span> out of {challenges.length}
             </p>
+          </div>
+          
+          {/* Score Submission Status */}
+          <div className="mb-6">
+            {submissionStatus === 'submitting' && (
+              <div className="flex items-center justify-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <FaSpinner className="animate-spin text-blue-500 mr-2" />
+                <span className="text-blue-700">Submitting your score...</span>
+              </div>
+            )}
+            
+            {submissionStatus === 'success' && scoreSubmitted && (
+              <div className="flex items-center justify-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                <FaCheck className="text-green-500 mr-2" />
+                <span className="text-green-700">Score submitted successfully! Points added to your account.</span>
+              </div>
+            )}
+            
+            {submissionStatus === 'error' && (
+              <div className="flex items-center justify-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                <FaTimes className="text-red-500 mr-2" />
+                <span className="text-red-700">Failed to submit score. Please try again later.</span>
+              </div>
+            )}
           </div>
           
           <div className={`p-4 rounded-lg mb-6 ${

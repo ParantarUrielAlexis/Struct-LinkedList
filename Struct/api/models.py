@@ -21,13 +21,14 @@ class User(AbstractUser):
     hearts = models.IntegerField(default=3)
     hints = models.IntegerField(default=3)
     # New fields for heart regeneration
-    max_hearts = models.IntegerField(default=10)  # Maximum hearts a user can have
+    max_hearts = models.IntegerField(default=5)  # Maximum hearts a user can have
     last_heart_regen_time = models.DateTimeField(default=timezone.now)  # When the last heart regenerated
     # Add this new field to track daily heart regeneration
     hearts_gained_today = models.IntegerField(default=0)
     hearts_reset_date = models.DateTimeField(default=timezone.now)  # Changed from DateField to DateTimeField
     # Maximum hearts a user can gain in a day (limit)
     max_daily_hearts = models.IntegerField(default=3)
+    quiz_attempts = models.IntegerField(default=0)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'user_type']
@@ -44,6 +45,18 @@ class User(AbstractUser):
         if self.profile_photo:
             return self.profile_photo.url
         return None
+    
+    def save(self, *args, **kwargs):
+        """Override save to enforce heart cap"""
+        # Always enforce maximum heart limit
+        if self.hearts > self.max_hearts:
+            self.hearts = self.max_hearts
+        
+        # Ensure hearts can't go below 0
+        if self.hearts < 0:
+            self.hearts = 0
+            
+        super().save(*args, **kwargs)
         
     def regenerate_hearts(self):
         """Regenerate hearts based on time elapsed since last regeneration"""
@@ -56,6 +69,10 @@ class User(AbstractUser):
         if self.hearts >= self.max_hearts:
             return
         
+        # If daily limit reached, nothing to do
+        if self.hearts_gained_today >= self.max_daily_hearts:
+            return
+        
         # Calculate time elapsed since last heart regeneration
         now = timezone.now()
         if not self.last_heart_regen_time:
@@ -66,13 +83,6 @@ class User(AbstractUser):
         # Get time difference in minutes
         time_diff = (now - self.last_heart_regen_time).total_seconds() / 60
         heart_regen_minutes = 30  # Time in minutes to regenerate one heart
-        
-        # IMPORTANT: Add a safeguard to prevent instant regeneration when hearts_gained_today is manually reset
-        # If this appears to be the first regeneration after a counter reset (hearts_gained_today is 0 but hearts < max_hearts)
-        # and it hasn't been at least heart_regen_minutes since the last regeneration
-        if self.hearts_gained_today == 0 and self.hearts < self.max_hearts and time_diff < heart_regen_minutes:
-            # Don't allow instant regeneration - enforce waiting period
-            return
         
         # Calculate how many hearts to add based on time passed
         hearts_to_add = int(time_diff / heart_regen_minutes)
@@ -88,7 +98,7 @@ class User(AbstractUser):
         if hearts_to_add <= 0:
             return  # Daily limit reached
             
-        # Add hearts, but don't exceed max
+        # Add hearts, but don't exceed max (this is now also enforced in save())
         new_hearts = min(self.hearts + hearts_to_add, self.max_hearts)
         hearts_added = new_hearts - self.hearts
         
@@ -102,7 +112,79 @@ class User(AbstractUser):
             )
             
             self.save(update_fields=['hearts', 'last_heart_regen_time', 'hearts_gained_today'])
+    
+    def add_hearts(self, amount):
+        """Safely add hearts while respecting the maximum limit"""
+        if amount <= 0:
+            return False
+        
+        # Calculate how many hearts can actually be added
+        hearts_to_add = min(amount, self.max_hearts - self.hearts)
+        
+        if hearts_to_add > 0:
+            self.hearts += hearts_to_add
+            self.save(update_fields=['hearts'])
+            return True
+        return False
+    
+    def use_heart(self):
+        """Use a heart (decrement count) if available"""
+        if self.hearts > 0:
+            self.hearts -= 1
+            self.save(update_fields=['hearts'])
+            return True
+        return False
+    
+    def post(self, request):
+        try:
+            points_to_add = request.data.get('score', 0)
+            quiz_type = request.data.get('quiz_type', 'unknown')
             
+            if not isinstance(points_to_add, (int, float)) or points_to_add < 0:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid score value'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = request.user
+            
+            with transaction.atomic():
+                user.points = F('points') + points_to_add
+                user.quiz_attempts = F('quiz_attempts') + 1
+                user.save(update_fields=['points', 'quiz_attempts'])
+                user.refresh_from_db()
+            
+            return Response({
+                'success': True,
+                'points_added': points_to_add,
+                'total_points': user.points,
+                'attempts': user.quiz_attempts,
+                'quiz_type': quiz_type
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def get(self, request):
+        user = request.user
+        # Force refresh from database to get latest values
+        user.refresh_from_db()
+        
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'user_type': user.user_type,
+            'points': user.points,
+            'hearts': user.hearts,
+            'hints': user.hints,
+            'quiz_attempts': getattr(user, 'quiz_attempts', 0),
+            'profile_photo_url': user.profile_photo.url if user.profile_photo else None,
+        })
+    
     def get_next_heart_time(self):
         """Calculate time until next heart regeneration"""
         # No regeneration if at max hearts or daily limit reached
@@ -111,7 +193,6 @@ class User(AbstractUser):
             
         # Calculate when the next heart will be available
         next_heart_time = self.last_heart_regen_time + timezone.timedelta(minutes=30)
-        #next_heart_time = self.last_heart_regen_time + timezone.timedelta(minutes=1)
         time_remaining = next_heart_time - timezone.now()
         
         # Return milliseconds for easy frontend use
