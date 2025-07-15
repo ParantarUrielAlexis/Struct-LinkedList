@@ -1311,31 +1311,6 @@ class UserHeartsView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    def post(self, request):
-        """Endpoint to use a heart (decrement count)"""
-        user = request.user
-        
-        # First check if user has hearts available
-        if user.hearts <= 0:
-            return Response(
-                {"error": "No hearts available", "hearts": 0}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Decrement heart count
-        user.hearts -= 1
-        
-        # Don't update last_heart_regen_time when using a heart
-        # This ensures the regeneration timer continues properly
-        user.save(update_fields=['hearts'])
-        
-        # Return updated heart info
-        serializer = UserHeartSerializer(user, context={'request': request})
-        return Response(serializer.data)
-    
-
-# Add these new view classes to your views.py file
-
 class ClassStudentsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     

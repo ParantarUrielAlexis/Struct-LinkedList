@@ -80,12 +80,12 @@ class User(AbstractUser):
             self.save(update_fields=['last_heart_regen_time'])
             return
         
-        # Get time difference in minutes
-        time_diff = (now - self.last_heart_regen_time).total_seconds() / 60
-        heart_regen_minutes = 30  # Time in minutes to regenerate one heart
+        # Get time difference in seconds (more precise than minutes)
+        time_diff_seconds = (now - self.last_heart_regen_time).total_seconds()
+        heart_regen_seconds = 30 * 60  # 30 minutes in seconds
         
         # Calculate how many hearts to add based on time passed
-        hearts_to_add = int(time_diff / heart_regen_minutes)
+        hearts_to_add = int(time_diff_seconds / heart_regen_seconds)
         
         # If no hearts should be added based on time passed, return early
         if hearts_to_add <= 0:
@@ -98,7 +98,7 @@ class User(AbstractUser):
         if hearts_to_add <= 0:
             return  # Daily limit reached
             
-        # Add hearts, but don't exceed max (this is now also enforced in save())
+        # Add hearts, but don't exceed max
         new_hearts = min(self.hearts + hearts_to_add, self.max_hearts)
         hearts_added = new_hearts - self.hearts
         
@@ -108,7 +108,7 @@ class User(AbstractUser):
             
             # Update the last regen time based on complete intervals only
             self.last_heart_regen_time = self.last_heart_regen_time + timezone.timedelta(
-                minutes=hearts_added * heart_regen_minutes
+                seconds=hearts_added * heart_regen_seconds
             )
             
             self.save(update_fields=['hearts', 'last_heart_regen_time', 'hearts_gained_today'])
@@ -190,13 +190,24 @@ class User(AbstractUser):
         # No regeneration if at max hearts or daily limit reached
         if self.hearts >= self.max_hearts or self.hearts_gained_today >= self.max_daily_hearts:
             return None
-            
-        # Calculate when the next heart will be available
-        next_heart_time = self.last_heart_regen_time + timezone.timedelta(minutes=30)
-        time_remaining = next_heart_time - timezone.now()
+        
+        # Get current time and heart regeneration interval
+        now = timezone.now()
+        heart_regen_seconds = 30 * 60  # 30 minutes in seconds
+        
+        # Calculate time since last regeneration
+        time_since_last_regen_seconds = (now - self.last_heart_regen_time).total_seconds()
+        
+        # If enough time has passed for a heart, return 0 (should regenerate now)
+        if time_since_last_regen_seconds >= heart_regen_seconds:
+            return 0
+        
+        # Calculate remaining time until next heart
+        remaining_seconds = heart_regen_seconds - time_since_last_regen_seconds
+        remaining_milliseconds = remaining_seconds * 1000
         
         # Return milliseconds for easy frontend use
-        return max(0, time_remaining.total_seconds() * 1000) if time_remaining.total_seconds() > 0 else 0
+        return max(0, int(remaining_milliseconds))
 
     def reset_daily_hearts_if_needed(self):
         """Reset hearts_gained_today at 8AM each day"""

@@ -28,8 +28,10 @@ const Navbar = () => {
   
   // Heart state variables
   const [hearts, setHearts] = useState(0);
-  const [maxHearts, setMaxHearts] = useState(10); // Updated default to 10
+  const [maxHearts, setMaxHearts] = useState(5);
   const [nextHeartIn, setNextHeartIn] = useState(null);
+  const [heartFetchInterval, setHeartFetchInterval] = useState(null);
+  const [countdownInterval, setCountdownInterval] = useState(null);
 
   const handleLogout = () => {
     logout();
@@ -46,7 +48,7 @@ const Navbar = () => {
 
   // Function to format remaining time
   const formatTimeRemaining = (milliseconds) => {
-    if (!milliseconds) return null;
+    if (!milliseconds || milliseconds <= 0) return null;
     
     const minutes = Math.floor(milliseconds / (60 * 1000));
     const seconds = Math.floor((milliseconds % (60 * 1000)) / 1000);
@@ -80,45 +82,89 @@ const Navbar = () => {
       
       const { hearts: userHearts, max_hearts, next_heart_in } = response.data;
       
+      console.log("API Response:", response.data);
+      
       setHearts(userHearts);
-      setMaxHearts(max_hearts || 10); // Use the actual max_hearts from backend
-      setNextHeartIn(next_heart_in);
+      setMaxHearts(max_hearts || 3);
+      
+      // Handle next_heart_in - convert to number if it's a string
+      if (next_heart_in !== null && next_heart_in !== undefined) {
+        const nextHeartTime = typeof next_heart_in === 'string' ? parseFloat(next_heart_in) : next_heart_in;
+        setNextHeartIn(nextHeartTime > 0 ? nextHeartTime : null);
+      } else {
+        setNextHeartIn(null);
+      }
       
     } catch (error) {
       console.error("Error fetching heart data:", error);
     }
   };
 
-  // Single effect for heart data management
+  // Clear existing intervals
+  const clearIntervals = () => {
+    if (heartFetchInterval) {
+      clearInterval(heartFetchInterval);
+      setHeartFetchInterval(null);
+    }
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      setCountdownInterval(null);
+    }
+  };
+
+  // Setup intervals for heart management
+  const setupHeartIntervals = () => {
+    // Clear any existing intervals first
+    clearIntervals();
+
+    // Set up interval for periodic heart data fetching (every 30 seconds)
+    const fetchInterval = setInterval(() => {
+      fetchHeartData();
+    }, 30000);
+    setHeartFetchInterval(fetchInterval);
+
+    // Set up countdown timer for next heart (every second)
+    const countdown = setInterval(() => {
+      setNextHeartIn(prev => {
+        if (prev === null || prev <= 0) {
+          // When countdown reaches zero, fetch new heart data
+          fetchHeartData();
+          return null;
+        }
+        return prev - 1000; // Decrement by 1 second (1000ms)
+      });
+    }, 1000);
+    setCountdownInterval(countdown);
+  };
+
+  // Main effect for heart data management
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      clearIntervals();
+      return;
+    }
 
     // Initial fetch
     fetchHeartData();
 
-    // Set up interval for periodic updates
-    const heartInterval = setInterval(fetchHeartData, 60000); // Every minute
+    // Setup intervals after initial fetch
+    const setupTimer = setTimeout(() => {
+      setupHeartIntervals();
+    }, 100);
 
-    // Set up countdown timer for next heart
-    const countdownInterval = setInterval(() => {
-      setNextHeartIn(prev => {
-        if (prev === null || prev <= 0) return null;
-        const newValue = prev - 1000;
-        if (newValue <= 0) {
-          // Trigger a fetch when countdown reaches zero
-          fetchHeartData();
-          return null;
-        }
-        return newValue;
-      });
-    }, 1000);
-
-    // Cleanup intervals on unmount or auth change
+    // Cleanup function
     return () => {
-      clearInterval(heartInterval);
-      clearInterval(countdownInterval);
+      clearTimeout(setupTimer);
+      clearIntervals();
     };
   }, [isAuthenticated]);
+
+  // Cleanup intervals when component unmounts
+  useEffect(() => {
+    return () => {
+      clearIntervals();
+    };
+  }, []);
 
   // Close the user menu when clicking outside
   useEffect(() => {
@@ -176,7 +222,7 @@ const Navbar = () => {
                   <span className="text-[10px] text-gray-500 ml-1">/{maxHearts}</span>
                 </div>
                 
-                {nextHeartIn && hearts < maxHearts && (
+                {nextHeartIn && nextHeartIn > 0 && hearts < maxHearts && (
                   <div className="text-[10px] text-gray-600 bg-gray-100 px-2 py-1 rounded-md mt-1">
                      {formatTimeRemaining(nextHeartIn)}
                   </div>
