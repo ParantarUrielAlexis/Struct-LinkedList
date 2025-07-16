@@ -31,7 +31,7 @@ const Navbar = () => {
   const [maxHearts, setMaxHearts] = useState(5);
   const [nextHeartIn, setNextHeartIn] = useState(null);
   const [heartFetchInterval, setHeartFetchInterval] = useState(null);
-  const [countdownInterval, setCountdownInterval] = useState(null);
+  const [lastFetchTime, setLastFetchTime] = useState(Date.now());
 
   const handleLogout = () => {
     logout();
@@ -49,17 +49,8 @@ const Navbar = () => {
   // Function to format remaining time
   const formatTimeRemaining = (milliseconds) => {
     if (!milliseconds || milliseconds <= 0) return null;
-    
-    const minutes = Math.floor(milliseconds / (60 * 1000));
-    const seconds = Math.floor((milliseconds % (60 * 1000)) / 1000);
-    
-    if (minutes >= 60) {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return `${hours}h ${mins}m`;
-    }
-    
-    return `${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+    const minutes = Math.ceil(milliseconds / (60 * 1000));
+    return `${minutes}m`;
   };
 
   // Function to fetch heart data
@@ -69,7 +60,7 @@ const Navbar = () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) return;
-      
+      setLastFetchTime(Date.now());
       const API_BASE_URL = 'http://localhost:8000';
       const response = await axios.get(
         `${API_BASE_URL}/api/user/hearts/`,
@@ -102,40 +93,21 @@ const Navbar = () => {
 
   // Clear existing intervals
   const clearIntervals = () => {
-    if (heartFetchInterval) {
-      clearInterval(heartFetchInterval);
-      setHeartFetchInterval(null);
-    }
-    if (countdownInterval) {
-      clearInterval(countdownInterval);
-      setCountdownInterval(null);
-    }
-  };
+  if (heartFetchInterval) {
+    clearInterval(heartFetchInterval);
+    setHeartFetchInterval(null);
+  }
+};
 
   // Setup intervals for heart management
   const setupHeartIntervals = () => {
-    // Clear any existing intervals first
-    clearIntervals();
+  clearIntervals();
 
-    // Set up interval for periodic heart data fetching (every 30 seconds)
-    const fetchInterval = setInterval(() => {
-      fetchHeartData();
-    }, 30000);
-    setHeartFetchInterval(fetchInterval);
-
-    // Set up countdown timer for next heart (every second)
-    const countdown = setInterval(() => {
-      setNextHeartIn(prev => {
-        if (prev === null || prev <= 0) {
-          // When countdown reaches zero, fetch new heart data
-          fetchHeartData();
-          return null;
-        }
-        return prev - 1000; // Decrement by 1 second (1000ms)
-      });
-    }, 1000);
-    setCountdownInterval(countdown);
-  };
+  // Fetch immediately and then every 30 seconds
+  fetchHeartData();
+  const fetchInterval = setInterval(fetchHeartData, 30000);
+  setHeartFetchInterval(fetchInterval);
+};
 
   // Main effect for heart data management
   useEffect(() => {

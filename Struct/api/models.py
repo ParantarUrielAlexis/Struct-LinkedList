@@ -210,28 +210,21 @@ class User(AbstractUser):
         return max(0, int(remaining_milliseconds))
 
     def reset_daily_hearts_if_needed(self):
-        """Reset hearts_gained_today at 8AM each day"""
         now = timezone.now()
-        today = now.date()
-        
-        # Create today's reset time (8AM today)
-        todays_reset = timezone.make_aware(
-            datetime.datetime.combine(today, datetime.time(hour=8, minute=0))
+        # Calculate today's reset time (8 AM today)
+        today_8am = timezone.make_aware(
+            datetime.datetime.combine(now.date(), datetime.time(8, 0))
         )
-        
-        # If we're before 8AM, we should compare with yesterday's 8AM
-        if now.hour < 8:
-            todays_reset = todays_reset - timezone.timedelta(days=1)
-        
-        # If the last reset was before today's reset time (8AM)
-        if self.hearts_reset_date < todays_reset:
-            # Only reset the counter, don't give hearts immediately
+        # If now is before 8 AM, use yesterday's 8 AM
+        if now < today_8am:
+            reset_time = today_8am - timezone.timedelta(days=1)
+        else:
+            reset_time = today_8am
+
+        # Reset if last reset was before the calculated reset time
+        if self.hearts_reset_date < reset_time:
             self.hearts_gained_today = 0
             self.hearts_reset_date = now
-            
-            # Don't update hearts or last_heart_regen_time here
-            # This ensures that when hearts_gained_today is reset, 
-            # hearts still regenerate according to the timer
             self.save(update_fields=['hearts_gained_today', 'hearts_reset_date'])
 
 def generate_class_code():
