@@ -6,6 +6,10 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+
+import { FaHeart } from "react-icons/fa";
+import axios from "axios";
+
 import { useParams, useNavigate } from "react-router-dom";
 // Assuming levels and sound files are correctly pathed
 import typingSoundFile from "../../assets/typing.mp3";
@@ -24,7 +28,64 @@ import {
 } from "./TypeTestComponents"; // Adjust path if you saved them elsewhere
 
 function TypeTest() {
-  const { isAuthenticated, user, authToken } = useAuth();
+  const { isAuthenticated, user, authToken, updateUser } = useAuth();
+
+  const [hearts, setHearts] = useState(0);
+  const [showNoHeartsModal, setShowNoHeartsModal] = useState(false);
+  const [hasDeductedHeart, setHasDeductedHeart] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setHearts(user.hearts || 0);
+    }
+  }, [isAuthenticated, user]);
+
+  const deductHeart = async () => {
+    try {
+      if (isAuthenticated && user) {
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+
+        // Check if user has hearts before deducting
+        const currentHearts = user.hearts || 0;
+        if (currentHearts <= 0) {
+          setShowNoHeartsModal(true);
+          return false;
+        }
+
+        const newHeartCount = Math.max(0, currentHearts - 1);
+        const API_BASE_URL = "http://localhost:8000";
+
+        // Update backend first
+        await axios.patch(
+          `${API_BASE_URL}/api/user/profile/`,
+          { hearts: newHeartCount },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
+
+        // Update local state
+        setHearts(newHeartCount);
+
+        // Update user context
+        if (typeof updateUser === "function") {
+          updateUser({
+            ...user,
+            hearts: newHeartCount,
+          });
+        }
+
+        return true;
+      }
+    } catch (error) {
+      console.error("Error deducting heart:", error);
+      return false;
+    }
+  };
 
   const { levelIndex: levelIndexParam } = useParams();
   const navigate = useNavigate();
@@ -299,15 +360,82 @@ function TypeTest() {
     setGameStarted(false);
     setTimeout(() => inputRef.current?.focus(), 100);
   }, [resetGameState]);
-  const handleStartGame = useCallback(() => {
+
+  const handleStartGame = useCallback(async () => {
+    // Check hearts before starting
+    if (isAuthenticated && (user.hearts || 0) <= 0) {
+      setShowNoHeartsModal(true);
+      return;
+    }
+
+    // Deduct heart when starting the game
+    if (isAuthenticated && !hasDeductedHeart) {
+      const success = await deductHeart();
+      if (!success) {
+        return; // Don't start game if heart deduction failed
+      }
+      setHasDeductedHeart(true);
+    }
+
     setGameStarted(true);
     if (!startTime) setStartTime(Date.now());
     setTimeout(() => inputRef.current?.focus(), 0);
-  }, [startTime]);
-  const navigateToNextLevel = useCallback(
-    () => navigate(`/type-test/${currentLevelIndex + 1}`),
-    [navigate, currentLevelIndex]
-  );
+  }, [startTime, isAuthenticated, user, hasDeductedHeart]);
+
+  // Add handler for no hearts modal continue button
+  const handleContinueClick = () => {
+    navigate("/type-test/levels");
+  };
+
+  // Add redirection timer for no hearts modal
+  useEffect(() => {
+    let redirectTimer;
+
+    if (showNoHeartsModal) {
+      redirectTimer = setTimeout(() => {
+        navigate("/type-test/levels");
+      }, 5000); // 5 seconds timeout
+    }
+
+    return () => {
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+    };
+  }, [showNoHeartsModal, navigate]);
+
+  // Add page refresh protection
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (gameStarted && !gameOver) {
+        const message =
+          "Are you sure you want to leave? Your heart has already been deducted.";
+        e.preventDefault();
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [gameStarted, gameOver]);
+
+  // Add this missing function after your other callback functions
+  const navigateToNextLevel = useCallback(() => {
+    const nextLevelIndex = currentLevelIndex + 1;
+    if (nextLevelIndex < levels.length) {
+      navigate(`/type-test/${nextLevelIndex}`);
+    }
+  }, [currentLevelIndex, navigate]);
+
+  // Reset heart deduction flag when level changes
+  useEffect(() => {
+    setHasDeductedHeart(false);
+  }, [currentLevelIndex]);
+
   const navigateToLevels = useCallback(
     () => navigate("/type-test/levels"),
     [navigate]
@@ -500,6 +628,14 @@ function TypeTest() {
             />
           )}
 
+          {/* Add heart counter - place this after the navbar
+          <div className="absolute top-4 right-4 z-10">
+            <div className="flex items-center bg-gray-700 px-3 py-2 rounded-lg shadow-lg">
+              <FaHeart className="text-red-500 mr-2" />
+              <span className="text-white font-bold">{hearts}</span>
+            </div>
+          </div> */}
+
           <div className="px-6 pb-6">
             <LevelProgressDisplay
               gameStarted={gameStarted}
@@ -566,6 +702,34 @@ function TypeTest() {
           </div>
         </div>
       </div>
+      {/* Add the no hearts modal */}
+      {showNoHeartsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-96 shadow-xl border border-gray-600">
+            <div className="text-center">
+              <div className="mb-4">
+                <FaHeart className="text-red-500 text-6xl mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Out of Hearts!
+                </h2>
+              </div>
+              <p className="text-gray-300 mb-6">
+                You don't have any hearts left to play. Hearts regenerate over
+                time or you can earn more through achievements.
+              </p>
+              <div className="text-sm text-gray-400 mb-4">
+                Redirecting to levels in 5 seconds...
+              </div>
+              <button
+                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors w-full"
+                onClick={handleContinueClick}
+              >
+                Return to Levels
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
