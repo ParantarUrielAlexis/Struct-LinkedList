@@ -565,7 +565,7 @@ export const GameOverScreen = React.memo(
       />
 
       <div className="flex flex-wrap justify-center gap-4">
-        {allWordsTyped && !isLastLevel ? (
+        {/* {allWordsTyped && !isLastLevel ? (
           <button
             onClick={onNavigateToNextLevel}
             className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-all shadow-lg hover:shadow-green-500/50 transform hover:-translate-y-1"
@@ -579,7 +579,7 @@ export const GameOverScreen = React.memo(
           >
             <FaTrophy /> All Levels Cleared! (Select Level)
           </button>
-        ) : null}
+        ) : null} */}
         <button
           onClick={onRestartLevel}
           className="flex items-center gap-2 px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-600 transition-all shadow-lg hover:shadow-yellow-500/50 transform hover:-translate-y-1"
