@@ -11,7 +11,7 @@ from .models import Class, TypeTestProgress, UserProgress
 from .serializers import ClassSerializer, ClassCreateSerializer, TypeTestProgressSerializer, UserProgressSerializer 
 
 from django.core.files.storage import default_storage
-
+from django.db import transaction
 from .serializers import UserRegistrationSerializer, UserProfileSerializer
 from .models import Class, User
 from .serializers import ClassSerializer, ClassCreateSerializer, SelectionSortResultSerializer, BubbleSortResultSerializer, InsertionSortResultSerializer
@@ -820,11 +820,15 @@ class ClassSnakeGameDataView(APIView):
                                 overall_best_score = best_score
                                 overall_best_level = level
                             
+                            # FIXED: Add completion status based on game_completed flag
+                            is_completed = completed_attempts > 0
+                            
                             level_data[level] = {
                                 "best_score": best_score,
                                 "best_stars": best_stars or 0,
                                 "attempts": attempts,
                                 "completed_attempts": completed_attempts,
+                                "completed": is_completed,  # ADD THIS LINE - missing completion flag
                                 "success_rate": round(success_rate, 1),
                                 "avg_score": round(avg_score, 1) if avg_score else 0,
                                 "best_food_eaten": best_food_eaten or 0,
@@ -850,6 +854,7 @@ class ClassSnakeGameDataView(APIView):
                                 "best_stars": 0,
                                 "attempts": 0,
                                 "completed_attempts": 0,
+                                "completed": False,  # ADD THIS LINE - explicit completion flag
                                 "success_rate": 0,
                                 "avg_score": 0,
                                 "best_food_eaten": 0,
@@ -1205,6 +1210,21 @@ class ClassSnakeGameDataView(APIView):
         else:
             return "Balanced Player" if completion_focused else "Casual Player"
     
+    def calculate_student_completion_rate(self, level_breakdown):
+        """Calculate completion rate for a student (completed levels out of total levels)"""
+        if not level_breakdown:
+            return 0
+        
+        completed_levels = 0
+        total_levels = 5
+        
+        for level in range(1, total_levels + 1):
+            level_data = level_breakdown.get(str(level), {})
+            if level_data.get('completed', False):
+                completed_levels += 1
+        
+        return (completed_levels / total_levels) * 100
+    
     def calculate_class_level_stats(self, students_data):
         """Calculate class-wide statistics per level"""
         level_stats = {}
@@ -1230,6 +1250,7 @@ class ClassSnakeGameDataView(APIView):
             }
         
         return level_stats
+
 
 from .serializers import UserHeartSerializer
 
@@ -1287,3 +1308,179 @@ class UserHeartsView(APIView):
         # Return updated heart info
         serializer = UserHeartSerializer(user, context={'request': request})
         return Response(serializer.data)
+    
+class PointsUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        points_to_add = request.data.get('score', 0)  # Changed 'points' to 'score' to match frontend
+        quiz_type = request.data.get('quiz_type', 'unknown')
+        user = request.user
+        
+        # Use atomic transaction to ensure both updates happen together
+        with transaction.atomic():
+            # Update points and quiz attempts atomically
+            user.points = F('points') + points_to_add
+            user.quiz_attempts = F('quiz_attempts') + 1
+            user.save(update_fields=['points', 'quiz_attempts'])
+            
+            # Refresh user object to get updated values
+            user.refresh_from_db()
+        
+        return Response({
+            'success': True,
+            'points_added': points_to_add,
+            'total_points': user.points,
+            'attempts': user.quiz_attempts,
+            'quiz_type': quiz_type
+        }, status=status.HTTP_200_OK)
+    
+class ClassStudentsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, class_id):
+        """Get all students in a class"""
+        try:
+            # Verify the class exists and user has access (must be the teacher)
+            class_obj = Class.objects.get(id=class_id)
+            
+            if request.user != class_obj.teacher:
+                return Response(
+                    {"error": "You don't have permission to view this class's students"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+                
+            # Get all students in the class
+            students = class_obj.students.all()
+            student_data = []
+            
+            for student in students:
+                student_data.append({
+                    "id": student.id,
+                    "username": student.username,
+                    "email": student.email,
+                    "date_joined": student.date_joined,
+                    "profile_photo_url": request.build_absolute_uri(student.profile_photo.url) if student.profile_photo else None
+                })
+                
+            return Response({"students": student_data})
+            
+        except Class.DoesNotExist:
+            return Response(
+                {"error": "Class not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class AddStudentToClassView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, class_id):
+        """Add a student to a class by email"""
+        try:
+            email = request.data.get('email')
+            if not email:
+                return Response(
+                    {"error": "Email is required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            # Verify the class exists and user is the teacher
+            class_obj = Class.objects.get(id=class_id)
+            if request.user != class_obj.teacher:
+                return Response(
+                    {"error": "You don't have permission to add students to this class"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+                
+            # Find the student by email
+            try:
+                student = User.objects.get(email=email, user_type='student')
+            except User.DoesNotExist:
+                return Response(
+                    {"error": "No student found with this email"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+                
+            # Check if student is already in another class
+            if student.enrolled_classes.exists():
+                return Response(
+                    {"error": "This student is already enrolled in another class"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            # Add student to class
+            class_obj.students.add(student)
+            
+            return Response({
+                "success": True,
+                "message": f"Student {student.username} added to class",
+                "student": {
+                    "id": student.id,
+                    "username": student.username,
+                    "email": student.email
+                }
+            })
+            
+        except Class.DoesNotExist:
+            return Response(
+                {"error": "Class not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class RemoveStudentFromClassView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def delete(self, request, class_id, student_id):
+        """Remove a student from a class"""
+        try:
+            # Verify the class exists and user is the teacher
+            class_obj = Class.objects.get(id=class_id)
+            if request.user != class_obj.teacher:
+                return Response(
+                    {"error": "You don't have permission to remove students from this class"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+                
+            # Find the student
+            try:
+                student = User.objects.get(id=student_id, user_type='student')
+            except User.DoesNotExist:
+                return Response(
+                    {"error": "Student not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+                
+            # Check if student is in this class
+            if student not in class_obj.students.all():
+                return Response(
+                    {"error": "This student is not enrolled in this class"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            # Delete the student's progress data
+            TypeTestProgress.objects.filter(user=student).delete()
+            SnakeGameProgress.objects.filter(user=student).delete()
+            SelectionSortResult.objects.filter(user=student).delete()
+            BubbleSortResult.objects.filter(user=student).delete()
+            InsertionSortResult.objects.filter(user=student).delete()
+            
+            # Reset UserProgress
+            user_progress, created = UserProgress.objects.get_or_create(user=student)
+            user_progress.selection_sort_passed = False
+            user_progress.bubble_sort_passed = False
+            user_progress.insertion_sort_passed = False
+            user_progress.save()
+                
+            # Remove student from class
+            class_obj.students.remove(student)
+            
+            return Response({
+                "success": True,
+                "message": f"Student {student.username} removed from class"
+            })
+            
+        except Class.DoesNotExist:
+            return Response(
+                {"error": "Class not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )

@@ -315,84 +315,140 @@ export const GamePlayArea = React.memo(
     completedWords,
     currentLevelWords,
     currentWordIndex,
-  }) => (
-    <div className="flex flex-col md:flex-row w-full h-full">
-      <div className="hidden md:flex flex-col items-center justify-center flex-1 p-4 min-w-[150px]">
-        {completedWords.length > 0 && (
-          <div className="text-green-500 text-xl font-bold flex items-center">
-            <FaCheck className="mr-2" />
-            {completedWords[completedWords.length - 1]}
-          </div>
-        )}
-      </div>
-      <div className="flex flex-col items-center justify-center flex-2 p-6 w-full md:w-auto">
-        <div
-          className={`text-3xl font-bold mb-6 p-4 border-b-2 border-blue-500 ${
-            wordAnimation ? "scale-110 transition-transform duration-300" : ""
-          }`}
-        >
-          <HighlightedWordDisplay
-            word={currentWordToDisplay}
-            inputValue={inputValue}
-            wordAnimation={false} // Parent div handles the pop for completed word
-          />
-        </div>
-        <input
-          type="text"
-          className="w-full md:w-4/5 p-4 border-2 border-blue-500 bg-gray-700 text-white rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xl"
-          value={inputValue}
-          onChange={onInputChange}
-          placeholder="Type the word here"
-          ref={inputRef}
-          disabled={isInputDisabled}
-          autoFocus
-        />
-        <div className="flex justify-center items-center gap-x-4 w-full md:w-4/5 mb-6">
-          <div className="flex items-center bg-gray-700 px-4 py-2 rounded-lg">
-            <FaFire className="text-orange-500 mr-2" />
-            <span className="text-lg font-bold text-white">
-              WPM: <span className="text-yellow-400">{wpm}</span>
-            </span>
-          </div>
-          {mode === "Competitive" && (
-            <div className="flex items-center bg-gray-700 px-4 py-2 rounded-lg">
-              <FaClock className="text-blue-400 mr-2" />
-              <span className="text-lg font-bold text-white">
-                Time:{" "}
-                <span
-                  className={`${
-                    timeLeft !== null && timeLeft <= 5 && timeLeft > 0
-                      ? "text-red-500 animate-pulse"
-                      : "text-white"
-                  }`}
-                >
-                  {timeLeft !== null ? `${timeLeft}s` : "--"}
-                </span>
-              </span>
+  }) => {
+    // Handler to prevent paste events
+    const handlePaste = (e) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Handler to prevent certain key combinations
+    const handleKeyDown = (e) => {
+      // Prevent Ctrl+V (paste)
+      if (e.ctrlKey && e.key === 'v') {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Prevent Ctrl+A (select all)
+      if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Prevent Ctrl+C (copy) - optional
+      if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Prevent Ctrl+X (cut) - optional
+      if (e.ctrlKey && e.key === 'x') {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Prevent right-click context menu key
+      if (e.key === 'ContextMenu') {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    // Handler to prevent right-click context menu
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+      return false;
+    };
+
+    return (
+      <div className="flex flex-col md:flex-row w-full h-full">
+        <div className="hidden md:flex flex-col items-center justify-center flex-1 p-4 min-w-[150px]">
+          {completedWords.length > 0 && (
+            <div className="text-green-500 text-xl font-bold flex items-center">
+              <FaCheck className="mr-2" />
+              {completedWords[completedWords.length - 1]}
             </div>
           )}
         </div>
-        <button
-          onClick={onRestartLevel}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-1"
-        >
-          <FaRedo /> Restart Level
-        </button>
-      </div>
-      <div className="hidden md:flex flex-col items-center justify-center flex-1 p-4 min-w-[150px]">
-        {currentWordIndex + 1 < currentLevelWords.length && (
-          <div className="text-gray-400 text-xl font-bold my-2">
-            {currentLevelWords[currentWordIndex + 1]}
+        <div className="flex flex-col items-center justify-center flex-2 p-6 w-full md:w-auto">
+          <div
+            className={`text-3xl font-bold mb-6 p-4 border-b-2 border-blue-500 ${
+              wordAnimation ? "scale-110 transition-transform duration-300" : ""
+            }`}
+          >
+            <HighlightedWordDisplay
+              word={currentWordToDisplay}
+              inputValue={inputValue}
+              wordAnimation={false}
+            />
           </div>
-        )}
-        {currentWordIndex + 2 < currentLevelWords.length && (
-          <div className="text-gray-500 text-lg my-1">
-            {currentLevelWords[currentWordIndex + 2]}
+          <input
+            type="text"
+            className="w-full md:w-4/5 p-4 border-2 border-blue-500 bg-gray-700 text-white rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xl"
+            value={inputValue}
+            onChange={onInputChange}
+            onPaste={handlePaste}
+            onKeyDown={handleKeyDown}
+            onContextMenu={handleContextMenu}
+            placeholder="Type the word here"
+            ref={inputRef}
+            disabled={isInputDisabled}
+            autoFocus
+            autoComplete="off"
+            spellCheck="false"
+            // Additional security attributes
+            data-gramm="false" // Disable Grammarly
+            data-gramm_editor="false"
+            data-enable-grammarly="false"
+          />
+          <div className="flex justify-center items-center gap-x-4 w-full md:w-4/5 mb-6">
+            <div className="flex items-center bg-gray-700 px-4 py-2 rounded-lg">
+              <FaFire className="text-orange-500 mr-2" />
+              <span className="text-lg font-bold text-white">
+                WPM: <span className="text-yellow-400">{wpm}</span>
+              </span>
+            </div>
+            {mode === "Competitive" && (
+              <div className="flex items-center bg-gray-700 px-4 py-2 rounded-lg">
+                <FaClock className="text-blue-400 mr-2" />
+                <span className="text-lg font-bold text-white">
+                  Time:{" "}
+                  <span
+                    className={`${
+                      timeLeft !== null && timeLeft <= 5 && timeLeft > 0
+                        ? "text-red-500 animate-pulse"
+                        : "text-white"
+                    }`}
+                  >
+                    {timeLeft !== null ? `${timeLeft}s` : "--"}
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
-        )}
+          <button
+            onClick={onRestartLevel}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-1"
+          >
+            <FaRedo /> Restart Level
+          </button>
+        </div>
+        <div className="hidden md:flex flex-col items-center justify-center flex-1 p-4 min-w-[150px]">
+          {currentWordIndex + 1 < currentLevelWords.length && (
+            <div className="text-gray-400 text-xl font-bold my-2">
+              {currentLevelWords[currentWordIndex + 1]}
+            </div>
+          )}
+          {currentWordIndex + 2 < currentLevelWords.length && (
+            <div className="text-gray-500 text-lg my-1">
+              {currentLevelWords[currentWordIndex + 2]}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
 );
 GamePlayArea.displayName = "GamePlayArea";
 
@@ -509,7 +565,7 @@ export const GameOverScreen = React.memo(
       />
 
       <div className="flex flex-wrap justify-center gap-4">
-        {allWordsTyped && !isLastLevel ? (
+        {/* {allWordsTyped && !isLastLevel ? (
           <button
             onClick={onNavigateToNextLevel}
             className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-all shadow-lg hover:shadow-green-500/50 transform hover:-translate-y-1"
@@ -523,7 +579,7 @@ export const GameOverScreen = React.memo(
           >
             <FaTrophy /> All Levels Cleared! (Select Level)
           </button>
-        ) : null}
+        ) : null} */}
         <button
           onClick={onRestartLevel}
           className="flex items-center gap-2 px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-600 transition-all shadow-lg hover:shadow-yellow-500/50 transform hover:-translate-y-1"

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaGamepad, FaTrophy, FaRedo, FaLightbulb, FaArrowRight, FaSort, FaPlay, FaStar, FaChevronRight } from "react-icons/fa";
+import axios from 'axios';
+
 
 const Slide3 = () => {
   const [showCover, setShowCover] = useState(true);
@@ -15,11 +17,77 @@ const Slide3 = () => {
     isCompleted: false,
     showHint: false
   });
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  const [isNewHighScore, setIsNewHighScore] = useState(false);
+  const [pointsAwarded, setPointsAwarded] = useState(0);
 
   // Initialize or reset the game when component mounts or reset is clicked
   useEffect(() => {
     initializeGame(1);
   }, []);
+  const submitQuizScore = async (finalScore) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authentication token found");
+      return { success: false, error: "Not authenticated" };
+    }
+    
+    const API_BASE_URL = 'http://localhost:8000';
+    
+    const response = await axios.post(
+      `${API_BASE_URL}/api/update-points/`,
+      {
+        score: finalScore,
+        quiz_type: 'selection_sort' 
+      },
+      {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return {
+      success: true,
+      data: response.data
+    };
+    
+  } catch (error) {
+    console.error("Error submitting quiz score:", error);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || "Failed to submit score" 
+    };
+  }
+};
+
+const handleGameCompletion = async (finalScore) => {
+  try {
+    setScoreSubmitted(true);
+    
+    const result = await submitQuizScore(finalScore);
+    
+    if (result.success) {
+      // Check if it's a new high score
+      if (result.data.is_new_high_score) {
+        setIsNewHighScore(true);
+      }
+      
+      // Set points awarded 
+      const points = result.data.points_awarded || finalScore;
+      setPointsAwarded(points);
+      
+      console.log("Score submitted successfully:", result.data);
+    } else {
+      console.error("Failed to submit score:", result.error);
+    }
+  } catch (error) {
+    console.error("Error in game completion:", error);
+  }
+};
+
 
   // Generate a random array for the game
   const generateRandomArray = (size) => {
@@ -134,6 +202,7 @@ const Slide3 = () => {
           feedback: "Congratulations! You've mastered Selection Sort!",
           isCompleted: true
         });
+        handleGameCompletion(newScore);
       }
     } else {
       // Continue with next pass
@@ -408,17 +477,55 @@ const Slide3 = () => {
                   <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
                     <FaTrophy className="text-4xl text-yellow-500" />
                   </div>
-                  <h3 className="text-2xl font-bold text-green-800 mb-2">Challenge Complete!</h3>
+                  <h3 className="text-2xl font-bold text-green-800 mb-2">
+                    Challenge Complete!
+                  </h3>
+                  
+                  {isNewHighScore && (
+                    <div className="mb-2 p-2 bg-yellow-100 border border-yellow-300 rounded-lg">
+                      <p className="text-yellow-800 font-bold">🎉 New High Score! 🎉</p>
+                    </div>
+                  )}
+                  
                   <p className="mb-4">You've mastered the Selection Sort algorithm!</p>
+                  
                   <div className="bg-gray-100 p-3 rounded-lg mb-4">
                     <p className="font-medium">Final Score: {gameState.score}</p>
+                    {pointsAwarded > 0 && (
+                      <p className="text-green-600">Points Awarded: +{pointsAwarded}</p>
+                    )}
                   </div>
-                  <button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow transition"
-                    onClick={() => initializeGame(1)}
-                  >
-                    Play Again
-                  </button>
+                  
+                  {scoreSubmitted ? (
+                    <p className="text-green-600 text-sm mb-4">
+                      ✓ Score saved successfully!
+                    </p>
+                  ) : (
+                    <p className="text-blue-600 text-sm mb-4">
+                      Saving score...
+                    </p>
+                  )}
+                  
+                  <div className="flex gap-2 justify-center">
+                    <button 
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow transition"
+                      onClick={() => {
+                        // Reset all completion states
+                        setScoreSubmitted(false);
+                        setIsNewHighScore(false);
+                        setPointsAwarded(0);
+                        initializeGame(1);
+                      }}
+                    >
+                      Play Again
+                    </button>
+                    <button 
+                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md shadow transition"
+                      onClick={() => setShowCover(true)}
+                    >
+                      Back to Menu
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

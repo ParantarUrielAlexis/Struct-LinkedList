@@ -10,6 +10,7 @@ import {
   FaFire,
   FaChevronLeft,
   FaChevronRight,
+  FaHeart, // Add this import
 } from "react-icons/fa";
 import { levels } from "./TypeTestLevelsData";
 import { useAuth } from "../../contexts/AuthContext";
@@ -17,6 +18,9 @@ import { useAuth } from "../../contexts/AuthContext";
 const TypeTestLevels = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  // Add hearts state
+  const [hearts, setHearts] = useState(0);
 
   // Define level unlock requirements - each index corresponds to level,
   // value is stars needed from previous level
@@ -41,6 +45,13 @@ const TypeTestLevels = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const levelsPerPage = 3;
+
+  // Add this useEffect to update hearts when user data changes
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setHearts(user.hearts || 0);
+    }
+  }, [isAuthenticated, user]);
 
   // Fetch user progress from backend
   useEffect(() => {
@@ -124,9 +135,14 @@ const TypeTestLevels = () => {
     fetchUserProgress();
   }, [isAuthenticated]);
 
-  // Handle level selection
+  // Handle level selection - Add heart check
   const handleLevelSelect = (levelIndex) => {
     if (userProgress.unlockedLevels.includes(levelIndex)) {
+      // Check if user has hearts before allowing play
+      if (hearts <= 0) {
+        alert("You need at least 1 heart to play! Hearts regenerate over time.");
+        return;
+      }
       navigate(`/type-test/${levelIndex}`);
     }
   };
@@ -174,8 +190,16 @@ const TypeTestLevels = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start py-8 px-4 bg-gradient-to-br from-blue-900 via-purple-900 to-gray-900 text-gray-100 relative overflow-hidden">
-      {/* Header with explanation */}
-      <div className="mb-8 text-center">
+      {/* Header with explanation and heart counter */}
+      <div className="mb-8 text-center relative w-full">
+        {/* Heart counter - positioned in top right */}
+        {isAuthenticated && (
+          <div className="absolute top-0 right-4 flex items-center bg-gray-800 px-4 py-2 rounded-lg shadow-lg border border-gray-600">
+            <FaHeart className="text-red-500 mr-2 text-lg" />
+            <span className="text-white font-bold text-lg">{hearts}</span>
+          </div>
+        )}
+        
         <h1 className="text-3xl font-bold text-blue-300 mb-3">
           Typing Challenge Levels
         </h1>
@@ -183,6 +207,18 @@ const TypeTestLevels = () => {
           Complete each level with speed and accuracy to earn stars. Earn stars
           to unlock new challenges and test your skills!
         </p>
+        
+        {/* Heart warning message */}
+        {isAuthenticated && hearts <= 0 && (
+          <div className="mt-4 mx-auto max-w-md bg-red-900 border border-red-600 rounded-lg p-3">
+            <div className="flex items-center justify-center text-red-200">
+              <FaHeart className="text-red-400 mr-2" />
+              <span className="text-sm font-medium">
+                You need hearts to play levels! Hearts regenerate over time.
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Level Selection Grid - Now paginated */}
@@ -207,19 +243,22 @@ const TypeTestLevels = () => {
           const status = getLevelStatus(originalIndex);
           const starsForLevel = userProgress.stars[originalIndex] || 0;
           const unlockProgress = getProgressTowardUnlock(originalIndex);
+          
+          // Check if level should be disabled due to no hearts
+          const isDisabledDueToHearts = isAuthenticated && hearts <= 0 && status !== "locked";
 
           return (
             <motion.div
               key={originalIndex}
               className={`relative rounded-xl p-5 flex flex-col items-center cursor-pointer
                 ${
-                  status === "locked"
+                  status === "locked" || isDisabledDueToHearts
                     ? "bg-gray-800 opacity-80"
                     : status === "completed"
                     ? "bg-gradient-to-br from-purple-900 to-blue-900 border-2 border-blue-400"
                     : "bg-gradient-to-br from-purple-600 to-blue-700 border-2 border-yellow-400 shadow-lg shadow-blue-500/20"
                 }`}
-              whileHover={status !== "locked" ? { scale: 1.03, y: -5 } : {}}
+              whileHover={status !== "locked" && !isDisabledDueToHearts ? { scale: 1.03, y: -5 } : {}}
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0 },
@@ -231,12 +270,12 @@ const TypeTestLevels = () => {
                 className="absolute -top-3 -left-3 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg"
                 style={{
                   background:
-                    status === "locked"
+                    status === "locked" || isDisabledDueToHearts
                       ? "#1F2937" // Darker gray that blends with the locked overlay
                       : status === "completed"
                       ? "linear-gradient(to bottom right, #8B5CF6, #3B82F6)"
                       : "linear-gradient(to bottom right, #FBBF24, #F59E0B)",
-                  zIndex: status === "locked" ? 50 : 10, // Make locked level numbers appear above the overlay
+                  zIndex: status === "locked" || isDisabledDueToHearts ? 50 : 10,
                 }}
               >
                 {originalIndex + 1}
@@ -244,7 +283,7 @@ const TypeTestLevels = () => {
 
               {/* Level icon */}
               <div className="mb-4 text-4xl">
-                {status === "locked" ? (
+                {status === "locked" || isDisabledDueToHearts ? (
                   <FaLock className="text-gray-500" />
                 ) : status === "completed" ? (
                   <FaTrophy className="text-yellow-400" />
@@ -304,19 +343,19 @@ const TypeTestLevels = () => {
               <motion.div
                 className={`mt-2 flex items-center justify-center rounded-full w-12 h-12
                   ${
-                    status === "locked"
+                    status === "locked" || isDisabledDueToHearts
                       ? "bg-gray-700"
                       : status === "current"
                       ? "bg-gradient-to-r from-green-500 to-blue-500"
                       : "bg-gradient-to-r from-purple-500 to-blue-500"
                   }`}
                 whileHover={
-                  status !== "locked" ? { scale: 1.2, rotate: 10 } : {}
+                  status !== "locked" && !isDisabledDueToHearts ? { scale: 1.2, rotate: 10 } : {}
                 }
               >
                 <FaPlayCircle
                   className={`text-2xl ${
-                    status === "locked" ? "text-gray-500" : "text-white"
+                    status === "locked" || isDisabledDueToHearts ? "text-gray-500" : "text-white"
                   }`}
                 />
               </motion.div>
@@ -357,6 +396,21 @@ const TypeTestLevels = () => {
                         </div>
                       </>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* No hearts overlay */}
+              {isDisabledDueToHearts && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black bg-opacity-90">
+                  <div className="text-center px-4">
+                    <FaHeart className="text-3xl text-red-400 mx-auto mb-2" />
+                    <p className="text-gray-200 mb-2 font-semibold text-shadow">
+                      No Hearts Left
+                    </p>
+                    <p className="text-sm text-gray-300 text-shadow">
+                      Hearts regenerate over time
+                    </p>
                   </div>
                 </div>
               )}

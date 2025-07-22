@@ -24,7 +24,7 @@ const TeacherDashboard = () => {
   const [studentWPMData, setStudentWPMData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeGameType, setActiveGameType] = useState("overall");
+  const [activeGameType, setActiveGameType] = useState("typingTest");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   // New state for SortShift algorithm filter
   const [activeAlgorithm, setActiveAlgorithm] = useState("all");
@@ -481,12 +481,12 @@ const TeacherDashboard = () => {
 
   // Game type options
   const gameTypes = [
-    {
-      id: "overall",
-      name: "Overall Leaderboard",
-      icon: <FaTrophy className="text-yellow-500" />,
-      color: "yellow",
-    },
+      // {
+      //   id: "overall",
+      //   name: "Overall Leaderboard",
+      //   icon: <FaTrophy className="text-yellow-500" />,
+      //   color: "yellow",
+      // },
     {
       id: "typingTest",
       name: "Typing Test",
@@ -720,91 +720,6 @@ const TeacherDashboard = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              {/* Overall Leaderboard */}
-              {activeGameType === "overall" && (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Rank
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Student Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Overall Score
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Typing Test
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Snake Game
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        SortShift
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {sortedStudents.map((student, index) => (
-                      <tr
-                        key={`overall-${student.user_id}`}
-                        className={
-                          index === 0 ? "bg-yellow-50" : "hover:bg-gray-50"
-                        }
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {index === 0 ? (
-                            <div className="flex items-center">
-                              <FaTrophy className="text-yellow-500 mr-1" />
-                              <span className="font-bold">{index + 1}</span>
-                            </div>
-                          ) : (
-                            <span>{index + 1}</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 flex items-center justify-center bg-teal-100 rounded-full">
-                              <FaUserGraduate className="text-teal-600" />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {student.username}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {student.email}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                            {Math.round(student.overall_avg_wpm * 10)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {student.overall_avg_wpm} WPM
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            {/* Placeholder for Snake Game score */}
-                            {Math.floor(Math.random() * 500) + 100}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
-                            {/* Placeholder for SortShift score */}
-                            {Math.floor(Math.random() * 100) + 50}s
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
 
               {/* Typing Test Performance */}
               {activeGameType === "typingTest" && (

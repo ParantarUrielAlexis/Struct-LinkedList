@@ -53,4 +53,5 @@ urlpatterns = [
     path('snake-progress/level/<int:level>/stats/', SnakeGameLevelStatsView.as_view(), name='snake-level-stats'),
     path('snake-progress/stats/', SnakeGameOverallStatsView.as_view(), name='snake-overall-stats'),
     path('classes/<int:class_id>/snake-game/', ClassSnakeGameDataView.as_view(), name='class-snake-game-data'),
+
 ]
