@@ -1,6 +1,6 @@
 # api/urls.py
 from django.urls import path
-from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView, ClassUserWPMView, SnakeGameProgressCreateView, UserSnakeGameProgressView, UserSnakeGameBestProgressView, SnakeGameLevelStatsView, SnakeGameOverallStatsView, ClassSnakeGameDataView, UserHeartsView  
+from .views import UserRegistrationView, LoginView, ClassCreateView, JoinClassView, UserClassesView, DeleteClassView, LeaveClassView, TypeTestProgressCreateView, UserTypeTestProgressView, UserTypeTestBestProgressView, UserProgressView, ClassUserWPMView, SnakeGameProgressCreateView, UserSnakeGameProgressView, UserSnakeGameBestProgressView, SnakeGameLevelStatsView, SnakeGameOverallStatsView, ClassSnakeGameDataView, UserHeartsView, PointsUpdateView
 from . import views
 
 # These URLs will be included under the /api/ prefix
@@ -12,7 +12,7 @@ urlpatterns = [
     # Profile Management
     path('user/profile/', views.UserProfileView.as_view(), name='user_profile'),
     path('user/update-profile-photo/', views.update_profile_photo, name='update_profile_photo'),
-    
+
     # Heart Management
     path('user/hearts/', UserHeartsView.as_view(), name='user_hearts'),
 
@@ -22,6 +22,10 @@ urlpatterns = [
     path('classes/user/', UserClassesView.as_view(), name='user_classes'),
     path('classes/delete/<int:pk>/', DeleteClassView.as_view(), name='delete_class'),
     path('classes/leave/<int:pk>/', LeaveClassView.as_view(), name='leave_class'),
+
+    path('classes/<int:class_id>/students/', views.ClassStudentsView.as_view(), name='class_students'),
+    path('classes/<int:class_id>/add-student/', views.AddStudentToClassView.as_view(), name='add_student_to_class'),
+    path('classes/<int:class_id>/remove-student/<int:student_id>/', views.RemoveStudentFromClassView.as_view(), name='remove_student_from_class'),
 
     # Endpoint to submit new type test progress
     path('progress/create/', TypeTestProgressCreateView.as_view(), name='typetest-progress-create'),
@@ -35,7 +39,7 @@ urlpatterns = [
 
 
     path('classes/<int:class_id>/users/wpm/', ClassUserWPMView.as_view(), name='class-users-wpm'),
-   
+
     # Sortshift API Endpoints
     path('selection-sort/results/', views.SelectionSortResultCreateView.as_view(), name='selection_sort_results'),
     path('bubble-sort/results/', views.BubbleSortResultCreateView.as_view(), name='bubble_sort_results'),
@@ -45,7 +49,7 @@ urlpatterns = [
     # path('login/', LoginView.as_view(), name='login'),
     # path('users/', UserListView.as_view(), name='user-list'),
     # etc.
-    
+
      # Snake Game Progress Endpoints
     path('snake-progress/', SnakeGameProgressCreateView.as_view(), name='snake-progress-create'),
     path('snake-progress/me/', UserSnakeGameProgressView.as_view(), name='snake-my-progress'),
@@ -54,4 +58,6 @@ urlpatterns = [
     path('snake-progress/stats/', SnakeGameOverallStatsView.as_view(), name='snake-overall-stats'),
     path('classes/<int:class_id>/snake-game/', ClassSnakeGameDataView.as_view(), name='class-snake-game-data'),
 
+    # points update for pfp
+    path('update-points/', PointsUpdateView.as_view(), name='update_points'),
 ]

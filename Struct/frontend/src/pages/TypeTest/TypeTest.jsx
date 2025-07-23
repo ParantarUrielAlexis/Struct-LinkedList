@@ -14,7 +14,7 @@ import { useParams, useNavigate } from "react-router-dom";
 // Assuming levels and sound files are correctly pathed
 import typingSoundFile from "../../assets/typing.mp3";
 import pingSoundFile from "../../assets/ping.mp3";
-import { levels } from "./TypeTestLevelsData";
+import { levels, randomizeLevel } from "./TypeTestLevelsData";
 import { useAuth } from "../../contexts/AuthContext";
 
 // Import the split components
@@ -99,10 +99,15 @@ function TypeTest() {
     [levelIndexParam]
   );
 
-  const currentLevel = useMemo(
-    () => levels[currentLevelIndex],
-    [currentLevelIndex]
-  );
+  const [currentLevel, setCurrentLevel] = useState(null);
+
+  // Initialize currentLevel when component mounts or levelIndex changes
+  useEffect(() => {
+    if (currentLevelIndex >= 0 && currentLevelIndex < levels.length) {
+      setCurrentLevel(levels[currentLevelIndex]);
+    }
+  }, [currentLevelIndex]);
+
   const currentLevelWords = useMemo(
     () => (currentLevel ? currentLevel.words : []),
     [currentLevel]
@@ -271,7 +276,10 @@ function TypeTest() {
         setMultiplier(
           (prevMultiplier) => prevMultiplier + (mistakes === 0 ? 1 : 0.5)
         );
-        setMultiplierAnimation(true);
+        // Only trigger multiplier animation if game has started
+        if (gameStarted) {
+          setMultiplierAnimation(true);
+        }
 
         if (currentWordIndex + 1 < currentLevelWords.length) {
           setCurrentWordIndex((prevIndex) => prevIndex + 1);
@@ -290,7 +298,10 @@ function TypeTest() {
             setMultiplier((prevMultiplier) =>
               Math.max(1, prevMultiplier - 0.5)
             );
-            setMultiplierAnimation(true);
+            // Only trigger multiplier animation if game has started
+            if (gameStarted) {
+              setMultiplierAnimation(true);
+            }
           }
         }
       }
@@ -355,21 +366,35 @@ function TypeTest() {
       return !prev;
     });
   }, []);
+  // In TypeTest.jsx - modify the restartCurrentLevel function
   const restartCurrentLevel = useCallback(() => {
+    // Re-randomize the current level
+    const newLevel = randomizeLevel(currentLevelIndex);
+    if (newLevel) {
+      // Update the current level with new randomized words
+      setCurrentLevel(newLevel); // You'll need to add this state
+    }
+
     resetGameState();
     setGameStarted(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [resetGameState]);
+  }, [resetGameState, currentLevelIndex]);
 
   const handleStartGame = useCallback(async () => {
-    // Check hearts before starting
-    if (isAuthenticated && (user.hearts || 0) <= 0) {
+    // Check hearts before starting (only in Competitive mode)
+    if (isAuthenticated && mode === "Competitive" && (user.hearts || 0) <= 0) {
       setShowNoHeartsModal(true);
       return;
     }
 
-    // Deduct heart when starting the game
-    if (isAuthenticated && !hasDeductedHeart) {
+    // Randomize the current level when starting the game
+    const newLevel = randomizeLevel(currentLevelIndex);
+    if (newLevel) {
+      setCurrentLevel(newLevel);
+    }
+
+    // Deduct heart when starting the game (only in Competitive mode)
+    if (isAuthenticated && mode === "Competitive" && !hasDeductedHeart) {
       const success = await deductHeart();
       if (!success) {
         return; // Don't start game if heart deduction failed
@@ -380,7 +405,14 @@ function TypeTest() {
     setGameStarted(true);
     if (!startTime) setStartTime(Date.now());
     setTimeout(() => inputRef.current?.focus(), 0);
-  }, [startTime, isAuthenticated, user, hasDeductedHeart]);
+  }, [
+    startTime,
+    isAuthenticated,
+    user,
+    hasDeductedHeart,
+    currentLevelIndex,
+    mode,
+  ]);
 
   // Add handler for no hearts modal continue button
   const handleContinueClick = () => {

@@ -52,7 +52,7 @@ const ClassInfo = () => {
           </div>
 
           {user?.userType === "teacher" && (
-            <button 
+            <button
               onClick={() => setShowManageModal(true)}
               className="bg-teal-100 hover:bg-teal-200 text-teal-800 py-1 px-3 rounded text-sm transition-colors"
             >

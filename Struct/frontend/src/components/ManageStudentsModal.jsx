@@ -9,7 +9,14 @@ import {
 } from "react-icons/fa";
 
 // Custom Confirmation Modal Component
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, studentName }) => {
+const ConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  studentName,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -68,7 +75,7 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [students, setStudents] = useState([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
-  
+
   // Confirmation modal state
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -85,15 +92,18 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
 
   const fetchStudents = async () => {
     if (!classData?.id) return;
-    
+
     setIsLoadingStudents(true);
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/classes/${classData.id}/students/`, {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-      });
+      const response = await fetch(
+        `http://localhost:8000/api/classes/${classData.id}/students/`,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -123,14 +133,17 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
     try {
       // This would need a new API endpoint to add students by email
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/classes/${classData.id}/add-student/`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        },
-        body: JSON.stringify({ email: newStudentEmail })
-      });
+      const response = await fetch(
+        `http://localhost:8000/api/classes/${classData.id}/add-student/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify({ email: newStudentEmail }),
+        }
+      );
 
       if (response.ok) {
         // Refresh the student list
@@ -158,15 +171,18 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
 
   const handleConfirmRemove = async () => {
     const { studentId } = confirmModal;
-    
+
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/classes/${classData.id}/remove-student/${studentId}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Token ${token}`
+      const response = await fetch(
+        `http://localhost:8000/api/classes/${classData.id}/remove-student/${studentId}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
         }
-      });
+      );
 
       if (response.ok) {
         // Remove student from local state
@@ -286,7 +302,10 @@ const ManageStudentsModal = ({ isOpen, onClose, classData }) => {
                               {student.email}
                             </p>
                             <p className="text-xs text-gray-400">
-                              Joined: {new Date(student.date_joined).toLocaleDateString()}
+                              Joined:{" "}
+                              {new Date(
+                                student.date_joined
+                              ).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
