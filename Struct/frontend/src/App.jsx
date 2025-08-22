@@ -17,6 +17,8 @@ import Profile from "./pages/Profile/Profile";
 import Store from "./pages/Store/Store";
 
 import GameShowcase from "./pages/GameShowcase";
+import GalistGame from "./pages/GalistGame/GalistGame";
+
 
 import TeacherDashboard from "./pages/TeacherDashboard";
 
@@ -40,6 +42,7 @@ const AppLayout = () => {
     "/sortshiftbubble",
     "/sortshiftinsertion",
     "/snake-game",
+    "/galist-game",
   ];
 
   // Check if the current route is in the header-only routes
@@ -94,6 +97,17 @@ const AppLayout = () => {
                 <ProtectedRoute>
                   <ClassRequiredWrapper>
                     <GameShowcase />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/galist-game"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <GalistGame />
                   </ClassRequiredWrapper>
                 </ProtectedRoute>
               }

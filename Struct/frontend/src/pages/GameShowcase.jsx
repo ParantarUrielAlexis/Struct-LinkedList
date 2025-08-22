@@ -7,29 +7,13 @@ const GameShowcase = () => {
   const navigate = useNavigate();
 
   const games = [
+   
     {
       id: 1,
-      name: "Type Test",
-      description:
-        "Sharpen your array syntax skills with this typing challenge!",
-      // Change the route to the levels screen
-      route: "/type-test/levels",
-      icon: <FaKeyboard className="text-6xl text-amber-500 drop-shadow-md" />,
-    },
-    {
-      id: 2,
-      name: "Snake Game",
-      description:
-        "Learn array overviews while playing the classic Snake game!",
-      route: "/snake-game",
-      icon: <FaGamepad className="text-6xl text-emerald-500 drop-shadow-md" />,
-    },
-    {
-      id: 3,
-      name: "SortShift",
-      description: "Master sorting algorithms with this interactive game!",
-      route: "/sortshift",
-      icon: <FaSort className="text-6xl text-rose-400 drop-shadow-md" />,
+      name: "Galist Game",
+      description: "Test your skills with the Galist game!",
+      route: "/galist-game",
+      icon: <FaGamepad className="text-6xl text-purple-500 drop-shadow-md" />,
     },
   ];
 

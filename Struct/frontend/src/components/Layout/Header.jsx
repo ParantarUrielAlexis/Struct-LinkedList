@@ -6,6 +6,11 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Hide header on Galist Game
+  if (location.pathname.startsWith("/galist-game")) {
+    return null;
+  }
+
   // Map routes to game names
   // Use a function or check for a prefix for dynamic routes
   const getGameName = (pathname) => {
