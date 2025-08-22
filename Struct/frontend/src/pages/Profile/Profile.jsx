@@ -1,0 +1,532 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { FaHeart, FaCamera, FaCheck, FaTimes } from 'react-icons/fa';
+import { useAuth } from '../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+
+const Profile = () => {
+  const { isAuthenticated, user: authUser } = useAuth();
+  const updateUserFromContext = useAuth().updateUser;
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [localProfilePhoto, setLocalProfilePhoto] = useState(null);
+  const [profileData, setProfileData] = useState({
+    points: 0,
+    hearts: 0,
+    modules: [],
+    badges: []
+  });
+
+  const [isDataLoading, setIsDataLoading] = useState(false);
+
+  // Add these state variables alongside your other useState declarations
+  const [lastHeartRegenTime, setLastHeartRegenTime] = useState(null);
+  const [nextHeartIn, setNextHeartIn] = useState(null);
+  const [maxHearts, setMaxHearts] = useState(5);
+  const [regenerationIntervalId, setRegenerationIntervalId] = useState(null);
+  // Add this state variable
+  const [heartsGainedToday, setHeartsGainedToday] = useState(0);
+  const [heartJustAdded, setHeartJustAdded] = useState(false);
+
+  useEffect(() => {
+    // Prevent scrolling on the body when this component is mounted
+    document.body.style.overflow = 'hidden';
+    
+    // Cleanup: restore scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
+  // Enhanced fetch user data function
+  const fetchUserData = async () => {
+    if (isAuthenticated) {
+      setIsDataLoading(true);
+      
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          console.error("No authentication token found");
+          return;
+        }
+        
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        // Fetch the latest user data directly from the API
+        const response = await axios.get(
+          `${API_BASE_URL}/api/user/profile/`,
+          {
+            headers: {
+              'Authorization': `Token ${token}`
+            }
+          }
+        );
+        
+        console.log("Fetched user data:", response.data);
+        
+        if (response.data) {
+          // Update user in context if needed
+          if (typeof updateUserFromContext === 'function') {
+            updateUserFromContext(response.data);
+          }
+          
+          // Update profile data with real values from the database
+          setProfileData(prevData => ({
+            ...prevData,
+            points: response.data.points || 0,
+            hearts: response.data.hearts || 0
+          }));
+          
+          // Set profile photo if available
+          if (response.data.profile_photo_url) {
+            setLocalProfilePhoto(response.data.profile_photo_url);
+          }
+        }
+        
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsDataLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+    
+    // Set sample modules/badges data if needed
+    if (!profileData.modules.length) {
+      setProfileData(prevData => ({
+        ...prevData,
+        modules: [
+          { id: 1, name: 'Arrays', progress: 100, completed: true },
+          { id: 2, name: 'Stacks', progress: 63, completed: false }
+        ],
+        badges: [
+          { id: 1, name: 'Array Novice', icon: '/path/to/array-badge.png', earned: true }
+        ]
+      }));
+    }
+  }, [isAuthenticated]);
+
+  // Add window focus event listener to refresh data when user returns to tab
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log("Window focused - refreshing user data");
+      fetchUserData();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("Tab became visible - refreshing user data");
+        fetchUserData();
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Set up periodic refresh every 30 seconds while user is active
+    const refreshInterval = setInterval(() => {
+      if (!document.hidden) {
+        fetchUserData();
+      }
+    }, 30000); // 30 seconds
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(refreshInterval);
+    };
+  }, [isAuthenticated]);
+
+  // Listen for custom events from other components (like quiz completion)
+  useEffect(() => {
+    const handleScoreUpdate = (event) => {
+      console.log("Score update event received:", event.detail);
+      // Refresh data immediately when score is updated
+      setTimeout(() => {
+        fetchUserData();
+      }, 1000); // Small delay to ensure backend has processed the update
+    };
+
+    // Listen for custom score update events
+    window.addEventListener('scoreUpdated', handleScoreUpdate);
+    
+    return () => {
+      window.removeEventListener('scoreUpdated', handleScoreUpdate);
+    };
+  }, []);
+
+  // Heart regeneration logic
+const checkAndRegenerateHearts = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+    
+    const API_BASE_URL = 'http://localhost:8000';
+    const response = await axios.get(
+      `${API_BASE_URL}/api/user/hearts/`,
+      {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      }
+    );
+    
+    const { 
+      hearts, 
+      last_heart_regen_time, 
+      max_hearts, 
+      hearts_gained_today,
+      max_daily_hearts,
+      next_heart_in 
+    } = response.data;
+    
+    // Update local state
+    setProfileData(prevData => ({
+      ...prevData,
+      hearts: hearts
+    }));
+    
+    setLastHeartRegenTime(last_heart_regen_time ? new Date(last_heart_regen_time) : new Date());
+    setMaxHearts(max_hearts || 5);
+    setHeartsGainedToday(hearts_gained_today || 0);
+    
+    // Set next_heart_in directly from the API if available
+    // This ensures we respect the backend's decision about regeneration
+    if (next_heart_in === null) {
+      setNextHeartIn(null); // No regeneration needed (at max or daily limit)
+    } else {
+      setNextHeartIn(next_heart_in);
+    }
+    
+    if (hearts > profileData.hearts) {
+      setHeartJustAdded(true);
+      setTimeout(() => setHeartJustAdded(false), 2000);
+    }
+  } catch (error) {
+    console.error("Error checking heart regeneration:", error);
+  }
+};
+
+// Calculate time until next heart regeneration
+const calculateNextHeartTime = (currentHearts, lastRegenTime) => {
+  if (currentHearts >= maxHearts) {
+    setNextHeartIn(null);
+    return;
+  }
+  
+  const lastRegen = lastRegenTime ? new Date(lastRegenTime) : new Date();
+  const nextRegenTime = new Date(lastRegen.getTime() + (30 * 60 * 1000)); // 30 minutes
+  const timeUntilNextHeart = nextRegenTime - new Date();
+  
+  if (timeUntilNextHeart > 0) {
+    setNextHeartIn(timeUntilNextHeart);
+  } else {
+    // If time has passed, we should have a new heart - fetch updated data
+    checkAndRegenerateHearts();
+  }
+};
+
+  // Set up heart regeneration timer
+useEffect(() => {
+  if (isAuthenticated) {
+    // Initial check for hearts
+    checkAndRegenerateHearts();
+
+    // Set up interval to decrement timer locally every second
+    const intervalId = setInterval(() => {
+      if (nextHeartIn !== null && nextHeartIn > 0) {
+        setNextHeartIn(prev => {
+          if (prev - 1000 <= 0) {
+            // Only call API when timer reaches zero
+            checkAndRegenerateHearts();
+            return null;
+          }
+          return prev - 1000;
+        });
+      }
+    }, 1000); // Check every second for smoother countdown
+
+    setRegenerationIntervalId(intervalId);
+
+    // Cleanup on unmount
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }
+  // Only depend on isAuthenticated
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [isAuthenticated]);
+
+  // Handler to open file dialog
+  const handlePhotoClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Handler for file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      setUploadError('Please select a valid image file (JPEG, PNG, GIF)');
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Image must be smaller than 5MB');
+      return;
+    }
+
+    setSelectedFile(file);
+    setUploadError(null);
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Handler to cancel photo upload
+  const handleCancelUpload = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setUploadError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
+  // Handler to confirm and upload photo
+  const handleConfirmUpload = async () => {
+    if (!selectedFile) return;
+    
+    try {
+      setIsUploading(true);
+      setUploadError(null);
+      
+      const formData = new FormData();
+      formData.append('photo', selectedFile);
+      
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        setUploadError("Authentication token is missing. Please log in again.");
+        setIsUploading(false);
+        return;
+      }
+      
+      const API_BASE_URL = 'http://localhost:8000';
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/api/user/update-profile-photo/`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Token ${token}`
+          }
+        }
+      );
+      
+      console.log('Upload response:', response.data);
+      
+      if (response.data.success && response.data.profile_photo_url) {
+        // Update context if possible
+        if (typeof updateUserFromContext === 'function') {
+          try {
+            // Only update the current user's profile photo in context
+            updateUserFromContext({
+              ...authUser,
+              profile_photo_url: response.data.profile_photo_url
+            });
+          } catch (err) {
+            console.warn("Could not update user in context:", err);
+          }
+        }
+        
+        // Update local state for current user's profile photo
+        setLocalProfilePhoto(response.data.profile_photo_url);
+        
+        // Reset file selection
+        setSelectedFile(null);
+        setPreviewUrl(null);
+      }
+      
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      setUploadError('Failed to upload photo. Please try again later.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Format time remaining until next heart
+const formatTimeRemaining = (milliseconds) => {
+  if (!milliseconds) return null;
+  
+  const minutes = Math.floor(milliseconds / (60 * 1000));
+  const seconds = Math.floor((milliseconds % (60 * 1000)) / 1000);
+  
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  }
+  
+  return `${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+};
+
+  if (!isAuthenticated || !authUser) {
+    return (
+      <div className="p-6 max-w-7xl mt-16 mx-auto text-center">
+        <h2 className="text-xl font-bold">Please log in to view your profile</h2>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-7xl mt-16 mx-auto h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Profile</h1>
+        <button 
+          onClick={fetchUserData}
+          disabled={isDataLoading}
+          className="bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 transition disabled:opacity-50"
+        >
+          {isDataLoading ? 'Refreshing...' : 'Refresh Data'}
+        </button>
+      </div>
+
+      <div className="flex flex-row flex-wrap items-start justify-center gap-6">
+        {/* Profile Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gray-200 p-6 rounded-lg shadow-md text-center w-full max-w-md"
+        >
+          <div className="w-36 h-36 rounded-full bg-gray-300 mx-auto overflow-hidden relative group">
+            <img 
+              src={previewUrl || localProfilePhoto || authUser?.profile_photo_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E"} 
+              alt={authUser?.username || 'User'} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.onError = null; 
+                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/%3E%3C/svg%3E";
+              }}
+            />
+            {!previewUrl && (
+              <div 
+                className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={handlePhotoClick}
+              >
+                <FaCamera className="text-white text-2xl" />
+              </div>
+            )}
+            <input 
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/jpeg,image/png,image/gif"
+              onChange={handleFileChange}
+            />
+          </div>
+          {isUploading && (
+            <p className="text-teal-600 mt-2 text-sm">Uploading...</p>
+          )}
+          {uploadError && (
+            <p className="text-red-500 mt-2 text-sm">{uploadError}</p>
+          )}
+          <h2 className="text-2xl font-bold mt-4">{authUser.username}</h2>
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-700 mt-1">
+            <span className="capitalize text-teal-600">
+              {authUser.user_type}
+            </span>
+          </div>
+          {selectedFile ? (
+            <div className="flex justify-center gap-3 mt-4">
+              <button 
+                onClick={handleCancelUpload}
+                className="flex items-center gap-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-400 transition"
+                disabled={isUploading}
+              >
+                <FaTimes /> Cancel
+              </button>
+              <button 
+                onClick={handleConfirmUpload}
+                className="flex items-center gap-1 bg-teal-500 text-white px-4 py-2 rounded-full hover:bg-teal-600 transition"
+                disabled={isUploading}
+              >
+                <FaCheck /> Save
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={handlePhotoClick} 
+              className="mt-4 bg-teal-500 text-white px-6 py-2 rounded-full hover:bg-teal-600 transition-all flex items-center justify-center gap-2 mx-auto"
+            >
+              <FaCamera /> Upload Photo
+            </button>
+          )}
+        </motion.div>
+
+        {/* Points & Hearts Card BELOW profile */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-gray-200 p-6 rounded-lg shadow-md relative w-full max-w-md"
+        >
+          <div className="absolute top-4 right-4">
+            <Link
+              to="/store"
+              className="flex flex-col items-center text-gray-700 hover:text-teal-600 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span className="text-sm mt-1">Store</span>
+            </Link>
+          </div>
+          <div className="text-center mb-6">
+            <div className="w-36 h-36 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
+              <span className="text-4xl font-bold">{profileData.points}</span>
+            </div>
+            <p className="mt-2 text-gray-700">Points</p>
+            {isDataLoading && (
+              <p className="text-sm text-teal-600">Updating...</p>
+            )}
+          </div>
+          <div className="flex justify-center text-center">
+            <div>
+              <div className="flex items-center justify-center text-xl mb-1">
+                <span className="mr-1">{profileData.hearts}</span>
+                <FaHeart className={`${heartJustAdded ? 'animate-pulse text-2xl' : ''} text-red-500`} />
+              </div>
+              <p className="text-sm">Hearts Available</p>
+              {/* Show next heart timer if applicable */}
+              {nextHeartIn !== null && nextHeartIn > 0 && (
+                <p className="text-xs text-gray-600 mt-1">
+                  Next heart in: <span className="font-semibold">{formatTimeRemaining(nextHeartIn)}</span>
+                </p>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;

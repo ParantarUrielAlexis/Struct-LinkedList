@@ -1,0 +1,19 @@
+.purchase-button {
+  background-color: #06b6d4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.purchase-button:hover {
+  background-color: #0891b2;
+}
+
+.purchase-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

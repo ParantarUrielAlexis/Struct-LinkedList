@@ -36,6 +36,43 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    profile_photo_url = serializers.SerializerMethodField()
+    next_heart_in = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'user_type', 'profile_photo_url', 
+                 'points', 'hearts', 'max_hearts', 'hints', 'next_heart_in',
+                 'hearts_gained_today', 'max_daily_hearts')
+    
+    def get_profile_photo_url(self, user):
+        if user.profile_photo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(user.profile_photo.url)
+        return None
+    
+    def get_next_heart_in(self, user):
+        """Return time until next heart regeneration in milliseconds"""
+        return user.get_next_heart_time()
+
+class UserHeartSerializer(serializers.ModelSerializer):
+    next_heart_in = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = ['hearts', 'max_hearts', 'last_heart_regen_time', 'next_heart_in', 'hearts_gained_today', 'max_daily_hearts']
+    
+    def get_next_heart_in(self, user):
+        """Return time until next heart regeneration in milliseconds"""
+        return user.get_next_heart_time()
+
+class ProfilePhotoUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['profile_photo']
 
 class ClassSerializer(serializers.ModelSerializer):
     students_count = serializers.SerializerMethodField()
@@ -59,3 +96,4 @@ class ClassCreateSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         validated_data['teacher'] = user
         return super().create(validated_data)
+

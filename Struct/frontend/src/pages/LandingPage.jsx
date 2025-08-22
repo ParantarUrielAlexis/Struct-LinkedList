@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const LandingPage = () => {
   return (
-    <div className="bg-teal-600 min-h-screen flex flex-col items-center justify-center text-white">
+    <div className="bg-teal-500 min-h-screen flex flex-col items-center justify-center text-white">
       {/* Header Section */}
       <header className="text-center mb-10">
         <h1 className="text-5xl font-bold tracking-wide mb-4">

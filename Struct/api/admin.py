@@ -3,3 +3,4 @@ from .models import User, Class
 # Register your models here.
 admin.site.register(User)
 admin.site.register(Class)
+

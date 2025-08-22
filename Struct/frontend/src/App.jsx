@@ -4,27 +4,28 @@ import {
   Routes,
   Route,
   useLocation,
-  Navigate,
 } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
 
-import SortRush from "./pages/SortRush";
-import TypeTest from "./pages/TypeTest";
-import Module from "./pages/Module";
+import Navbar from "./components/Layout/Navbar";
+import Sidebar from "./components/Layout/Sidebar";
+import Header from "./components/Layout/Header";
+
 import LandingPage from "./pages/LandingPage";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import CreateBadgeForm from "./pages/CreateBadgeForm";
-import SortShift from "./pages/SortShift/SortShift";
-import SortShiftSelection from "./pages/SortShiftSelection/SortShiftSelection";
-import SortShiftBubble from "./pages/SortShiftBubble/SortShiftBubble";
-import SortShiftInsertion from "./pages/SortShiftInsertion/SortShiftInsertion";
-import SnakeGame from "./pages/SnakeGame";
+import Login from "./pages/Auth/Login";
+import Signup from "./pages/Auth/Signup";
+import Profile from "./pages/Profile/Profile";
+import Store from "./pages/Store/Store";
+
+import GameShowcase from "./pages/GameShowcase";
+import GalistGame from "./pages/GalistGame/GalistGame";
+
+
 import TeacherDashboard from "./pages/TeacherDashboard";
+
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ClassProvider } from "./contexts/ClassContext";
+
+import ClassRequiredWrapper from "./components/ClassManagement/ClassRequiredWrapper";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import TeacherRoute from "./routes/TeacherRoute";
@@ -41,14 +42,13 @@ const AppLayout = () => {
     "/sortshiftbubble",
     "/sortshiftinsertion",
     "/snake-game",
+    "/galist-game",
   ];
 
-  // Define routes where user authentication isn't required
-  const publicRoutes = ["/login", "/signup", "/"];
-
   // Check if the current route is in the header-only routes
-  const isHeaderOnlyRoute = headerOnlyRoutes.includes(location.pathname);
-  const isPublicRoute = publicRoutes.includes(location.pathname);
+  const isHeaderOnlyRoute = headerOnlyRoutes.some((route) =>
+    location.pathname.startsWith(route)
+  );
 
   // Only show sidebar if user is authenticated and not on a header-only route
   const showSidebar = isAuthenticated && !isHeaderOnlyRoute;
@@ -72,77 +72,47 @@ const AppLayout = () => {
 
             {/* Protected routes */}
             <Route
-              path="/sort"
+              path="/store"
               element={
                 <ProtectedRoute>
-                  <SortRush />
+                  <ClassRequiredWrapper>
+                    <Store />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/type-test"
+              path="/profile"
               element={
                 <ProtectedRoute>
-                  <TypeTest />
+                  <ClassRequiredWrapper>
+                    <Profile />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/module"
+              path="/games"
               element={
                 <ProtectedRoute>
-                  <Module />
+                  <ClassRequiredWrapper>
+                    <GameShowcase />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
+
             <Route
-              path="/badges"
+              path="/galist-game"
               element={
                 <ProtectedRoute>
-                  <CreateBadgeForm />
+                  <ClassRequiredWrapper>
+                    <GalistGame />
+                  </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/sortshift"
-              element={
-                <ProtectedRoute>
-                  <SortShift />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/snake-game"
-              element={
-                <ProtectedRoute>
-                  <SnakeGame />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sortshiftselection"
-              element={
-                <ProtectedRoute>
-                  <SortShiftSelection />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sortshiftbubble"
-              element={
-                <ProtectedRoute>
-                  <SortShiftBubble />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sortshiftinsertion"
-              element={
-                <ProtectedRoute>
-                  <SortShiftInsertion />
-                </ProtectedRoute>
-              }
-            />
+
             <Route
               path="/teacher-dashboard"
               element={
