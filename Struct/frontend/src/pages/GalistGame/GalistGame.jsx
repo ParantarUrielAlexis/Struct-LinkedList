@@ -4,6 +4,7 @@ import { ExerciseManager } from "./LinkedListExercise";
 import { collisionDetection } from "./CollisionDetection";
 import PortalComponent from "./PortalComponent";
 import ModeSelect from "./ModeSelect";
+import SinglyLevels from "./SinglyLevels";
 import GameMenu from "./GameMenu";
 
 function GalistGame() {
@@ -54,13 +55,16 @@ function GalistGame() {
   const [validationResult, setValidationResult] = useState(null);
   const [showInstructionPopup, setShowInstructionPopup] = useState(false);
   const [selectedMode, setSelectedMode] = useState(null); // 'singly' | 'doubly'
+  const [selectedLevel, setSelectedLevel] = useState(null); // 1..5
 
   // Apply navigation state to UI
   const applyNavigationState = useCallback((st) => {
     const screen = st?.screen || "menu";
     const mode = st?.mode || null;
+    const level = st?.level || null;
     setShowMenu(screen === "menu");
-    setSelectedMode(screen === "play" ? mode : null);
+    setSelectedMode(screen === "play" || screen === "levels" ? mode : null);
+    setSelectedLevel(screen === "play" ? level : null);
   }, []);
 
   // Function to toggle instruction popup
@@ -95,14 +99,24 @@ function GalistGame() {
     setShowInstructionPopup(false);
     setShowMenu(false);
     setSelectedMode(null);
+    setSelectedLevel(null);
   }, []);
 
   const handleSelectMode = useCallback((mode) => {
-    const next = { screen: "play", mode };
+    const next = { screen: "levels", mode };
     window.history.pushState(next, "");
     setSelectedMode(mode);
     setShowMenu(false);
   }, []);
+
+  const handleSelectLevel = useCallback(
+    (level) => {
+      const next = { screen: "play", mode: selectedMode, level };
+      window.history.pushState(next, "");
+      setSelectedLevel(level);
+    },
+    [selectedMode]
+  );
 
   // Initialize history state and handle browser back/forward
   useEffect(() => {
@@ -1228,8 +1242,11 @@ function GalistGame() {
 
       {showMenu && <GameMenu onStart={startGame} />}
       {!showMenu && !selectedMode && <ModeSelect onSelect={handleSelectMode} />}
+      {!showMenu && selectedMode === "singly" && !selectedLevel && (
+        <SinglyLevels onSelect={handleSelectLevel} />
+      )}
 
-      {!showMenu && selectedMode && (
+      {!showMenu && selectedMode && selectedLevel && (
         <button
           className={styles.instructionButton}
           onClick={toggleInstructionPopup}
@@ -1264,7 +1281,7 @@ function GalistGame() {
           </div>
         )}
 
-      {!showMenu && (
+      {!showMenu && selectedLevel && (
         <>
           {selectedMode && (
             <>
@@ -1281,7 +1298,7 @@ function GalistGame() {
         </>
       )}
 
-      {!showMenu && selectedMode && (
+      {!showMenu && selectedMode && selectedLevel && (
         <div className={styles.controls}>
           <input
             type="text"
@@ -1363,7 +1380,7 @@ function GalistGame() {
           );
         })}
 
-      {!showMenu && selectedMode && (
+      {!showMenu && selectedMode && selectedLevel && (
         <svg className={styles.connectionLines}>
           {connections.map((connection) => {
             const fromCircle = circles.find((c) => c.id === connection.from);
