@@ -283,6 +283,13 @@
   width: 300px;
 }
 
+.inputField:disabled {
+  background-color: #444 !important;
+  color: #aaa !important;
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
 .inputFieldInputError {
   border-color: #ff4444;
   animation: shake 0.3s ease-in-out;
@@ -327,10 +334,16 @@
   border: none;
   box-sizing: border-box;
 }
-
-.launchButton:hover {
-  background-color: #bbb;
+.launchButton:disabled{
+  background-color: #444 !important;
+  color: #aaa !important;
+  cursor: not-allowed;
+  opacity: 0.3;
 }
+
+/* .launchButton:hover {
+  background-color: #bbb;
+} */
 
 .buttonContainer {
   position: relative;

@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./GalistGameDeletion.module.css";
 import { ExerciseManager } from "../../../LinkedListExercise";
 import { collisionDetection } from "./../../../CollisionDetection";
+import { INITIAL_CIRCLES } from "./DeletionExercise";
 import PortalComponent from "../../../PortalComponent";
 
 function GalistGameDeletion() {
-  // Remove showMenu, selectedMode, startGame, applyNavigationState
+  // Launch initial circles from INITIAL_CIRCLES one at a time, using the same launch logic as the manual launch button
+  // --- Move all useState declarations to the top ---
   const [address, setAddress] = useState("");
   const [value, setValue] = useState("");
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -26,6 +28,62 @@ function GalistGameDeletion() {
   const [suckedCircles, setSuckedCircles] = useState([]);
   const [currentEntryOrder, setCurrentEntryOrder] = useState([]);
   const [originalSubmission, setOriginalSubmission] = useState(null);
+
+  // --- Launch initial circles from INITIAL_CIRCLES one at a time ---
+  // Prevent double-launching
+  const hasLaunchedRef = useRef(false);
+  useEffect(() => {
+    if (circles.length === 0 && !hasLaunchedRef.current) {
+      hasLaunchedRef.current = true;
+      // Find the true head: node whose address is not referenced by any 'next' in INITIAL_CIRCLES
+      const referencedAddresses = INITIAL_CIRCLES.map(n => n.next).filter(Boolean);
+      const headNode = INITIAL_CIRCLES.find(n => !referencedAddresses.includes(n.address));
+      // Traverse the list using 'next' pointers to get the launch order
+      const launchOrder = [];
+      let current = headNode;
+      const addressToNode = Object.fromEntries(INITIAL_CIRCLES.map(n => [n.address, n]));
+      while (current) {
+        launchOrder.push(current);
+        current = current.next ? addressToNode[current.next] : null;
+      }
+      // Add any remaining nodes not in the main chain (disconnected/extra nodes)
+      const mainChainIds = new Set(launchOrder.map(n => n.id));
+      const restNodes = INITIAL_CIRCLES.filter(n => !mainChainIds.has(n.id));
+      const finalLaunchOrder = [...launchOrder, ...restNodes];
+      let idx = 0;
+      function launchNext() {
+        if (idx >= finalLaunchOrder.length) return;
+        const c = finalLaunchOrder[idx];
+        const newCircle = {
+          id: c.id,
+          address: c.address,
+          value: c.value,
+          x: window.innerWidth - 10,
+          y: window.innerHeight - 55,
+          velocityX: -8 - Math.random() * 5,
+          velocityY: -5 - Math.random() * 3,
+        };
+        setCircles(prev => [...prev, newCircle]);
+        // Add connection if this node has a next
+        if (c.next) {
+          const nextNode = INITIAL_CIRCLES.find(n => n.address === c.next);
+          if (nextNode) {
+            setConnections(prev => [
+              ...prev,
+              {
+                id: `conn-${c.id}-${nextNode.id}`,
+                from: c.id,
+                to: nextNode.id,
+              }
+            ]);
+          }
+        }
+        idx++;
+        setTimeout(launchNext, 400);
+      }
+      launchNext();
+    }
+  }, [circles.length]);
 
   // Portal state management
   const [portalInfo, setPortalInfo] = useState({
@@ -1247,6 +1305,7 @@ function GalistGameDeletion() {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           className={styles.inputField}
+          disabled={true}
         />
         <input
           type="text"
@@ -1254,6 +1313,7 @@ function GalistGameDeletion() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           className={styles.inputField}
+          disabled={true}
         />
         <div className={styles.buttonContainer}>
           {showInsertButton && (
@@ -1271,6 +1331,7 @@ function GalistGameDeletion() {
             className={styles.launchButton}
             onMouseEnter={handleLunchHoverStart}
             onMouseLeave={handleLunchHoverEnd}
+            disabled={true}
           >
             LUNCH
           </button>
@@ -1287,8 +1348,20 @@ function GalistGameDeletion() {
       </div>
 
       {circles.map((circle) => {
-        const isHead = isHeadNode(circle.id);
-        const isTail = isTailNode(circle.id);
+        // Only label as head the unique node with outgoing connections and no incoming connections
+        // that is also the start of a connected component (reachable by others)
+        const hasOutgoing = connections.some(conn => conn.from === circle.id);
+        const hasIncoming = connections.some(conn => conn.to === circle.id);
+        const isConnected = hasOutgoing || hasIncoming;
+        // Find all possible heads (connected, has outgoing, no incoming)
+        const possibleHeads = circles.filter(c => {
+          const out = connections.some(conn => conn.from === c.id);
+          const inc = connections.some(conn => conn.to === c.id);
+          return (out && !inc && (out || inc));
+        });
+        // Only one node should be labeled as head: the first in possibleHeads
+        const isHead = isConnected && hasOutgoing && !hasIncoming && possibleHeads.length > 0 && possibleHeads[0].id === circle.id;
+        const isTail = isConnected && hasIncoming && !hasOutgoing;
 
         return (
           <div
@@ -1322,24 +1395,15 @@ function GalistGameDeletion() {
         {connections.map((connection) => {
           const fromCircle = circles.find((c) => c.id === connection.from);
           const toCircle = circles.find((c) => c.id === connection.to);
-
-          if (!fromCircle && !toCircle) return null;
-
-          const entranceX = 10 + portalInfo.canvasWidth / 2;
-          const entranceY = window.innerHeight / 2;
-
-          const fromX = fromCircle ? fromCircle.x : entranceX;
-          const fromY = fromCircle ? fromCircle.y : entranceY;
-          const toX = toCircle ? toCircle.x : entranceX;
-          const toY = toCircle ? toCircle.y : entranceY;
-
+          // Only render if both ends exist
+          if (!fromCircle || !toCircle) return null;
           return (
             <g key={connection.id}>
               <line
-                x1={fromX}
-                y1={fromY}
-                x2={toX}
-                y2={toY}
+                x1={fromCircle.x}
+                y1={fromCircle.y}
+                x2={toCircle.x}
+                y2={toCircle.y}
                 className={styles.animatedLine}
                 markerEnd="url(#arrowhead)"
               />
