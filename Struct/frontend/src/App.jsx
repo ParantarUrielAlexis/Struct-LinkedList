@@ -1,4 +1,3 @@
-import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -18,7 +17,7 @@ import Store from "./pages/Store/Store";
 
 import GameShowcase from "./pages/GameShowcase";
 import GalistGame from "./pages/GalistGame/GalistGame";
-
+import GalistGameDeletion from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelFour/GalistDeletion";
 
 import TeacherDashboard from "./pages/TeacherDashboard";
 
@@ -43,6 +42,7 @@ const AppLayout = () => {
     "/sortshiftinsertion",
     "/snake-game",
     "/galist-game",
+    "/galist-game-deletion"
   ];
 
   // Check if the current route is in the header-only routes
@@ -108,6 +108,17 @@ const AppLayout = () => {
                 <ProtectedRoute>
                   <ClassRequiredWrapper>
                     <GalistGame />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/galist-game-deletion"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <GalistGameDeletion />
                   </ClassRequiredWrapper>
                 </ProtectedRoute>
               }

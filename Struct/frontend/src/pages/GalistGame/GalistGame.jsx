@@ -3,8 +3,9 @@ import styles from "./GalistGame.module.css";
 import { ExerciseManager } from "./LinkedListExercise";
 import { collisionDetection } from "./CollisionDetection";
 import PortalComponent from "./PortalComponent";
-import ModeSelect from "./ModeSelect";
-import GameMenu from "./GameMenu";
+import ModeSelect from "./ModeSelect/ModeSelect";
+import GameMenu from "./GameMenu/GameMenu";
+import SinglyLinkedListsSelection from "./ModeSelect/SinglyLinkedLists/SinglyLinkedListsSelection";
 
 function GalistGame() {
   // Game menu state
@@ -54,6 +55,7 @@ function GalistGame() {
   const [validationResult, setValidationResult] = useState(null);
   const [showInstructionPopup, setShowInstructionPopup] = useState(false);
   const [selectedMode, setSelectedMode] = useState(null); // 'singly' | 'doubly'
+  const [selectedSLL, setSelectedSLL] = useState(null); // Track selected singly linked list
 
   // Apply navigation state to UI
   const applyNavigationState = useCallback((st) => {
@@ -98,12 +100,16 @@ function GalistGame() {
   }, []);
 
   const handleSelectMode = useCallback((mode) => {
-    const next = { screen: "play", mode };
-    window.history.pushState(next, "");
+    const sll = { screen: "singly", mode: "singly" };
+    const dll = { screen: "doubly", mode: "doubly" };
+    window.history.pushState(mode === "singly" ? sll : dll, "");
     setSelectedMode(mode);
     setShowMenu(false);
   }, []);
-
+  const handleSelectionSLL = useCallback((sll) => {
+    setSelectedSLL(sll);
+    setSelectedMode(false)
+  }, []);
   // Initialize history state and handle browser back/forward
   useEffect(() => {
     const state = window.history.state;
@@ -1229,104 +1235,102 @@ function GalistGame() {
       {showMenu && <GameMenu onStart={startGame} />}
       {!showMenu && !selectedMode && <ModeSelect onSelect={handleSelectMode} />}
 
-      {!showMenu && selectedMode && (
-        <button
-          className={styles.instructionButton}
-          onClick={toggleInstructionPopup}
-        >
-          i
-        </button>
+      {/* Show SLL selection UI if mode is singly and no SLL is selected */}
+      {!showMenu && selectedMode === "singly" && !selectedSLL && (
+        <SinglyLinkedListsSelection onSelect={handleSelectionSLL} />
       )}
 
-      {showInstructionPopup &&
-        currentExercise &&
-        currentExercise.expectedStructure && (
-          <div className={styles.instructionPopup}>
-            <div className={styles.instructionContent}>
-              <h1>{currentExercise.title}</h1>
-              <div className={styles.instructionList}>
-                {currentExercise.expectedStructure.map((node, index) => (
-                  <div key={index} className={styles.instructionItem}>
-                    <span className={styles.instructionValue}>
-                      Value: {node.value}
-                    </span>
-                    <span className={styles.instructionArrow}>→</span>
-                    <span className={styles.instructionAddress}>
-                      Address: {node.address}
-                    </span>
+      {/* Only show the rest of the game UI if not in SLL selection UI */}
+      {!showMenu && ((selectedMode === "doubly") || (selectedMode === "singly" && selectedSLL)) && (
+        <>
+          <button
+            className={styles.instructionButton}
+            onClick={toggleInstructionPopup}
+          >
+            i
+          </button>
+
+          {showInstructionPopup &&
+            currentExercise &&
+            currentExercise.expectedStructure && (
+              <div className={styles.instructionPopup}>
+                <div className={styles.instructionContent}>
+                  <h1>{currentExercise.title}</h1>
+                  <div className={styles.instructionList}>
+                    {currentExercise.expectedStructure.map((node, index) => (
+                      <div key={index} className={styles.instructionItem}>
+                        <span className={styles.instructionValue}>
+                          Value: {node.value}
+                        </span>
+                        <span className={styles.instructionArrow}>→</span>
+                        <span className={styles.instructionAddress}>
+                          Address: {node.address}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                  <button className={styles.startButton} onClick={startExercise}>
+                    Start
+                  </button>
+                </div>
               </div>
-              <button className={styles.startButton} onClick={startExercise}>
-                Start
+            )}
+
+          <PortalComponent
+            onPortalStateChange={handlePortalStateChange}
+            isOpen={isPortalOpen}
+          />
+          <div
+            className={styles.rightSquare}
+            style={{ outlineOffset: "5px" }}
+          />
+
+          <div className={styles.controls}>
+            <input
+              type="text"
+              placeholder="ENTER ADDRESS"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className={styles.inputField}
+            />
+            <input
+              type="text"
+              placeholder="ENTER VALUE"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className={styles.inputField}
+            />
+            <div className={styles.buttonContainer}>
+              {showInsertButton && (
+                <button
+                  onClick={handleInsert}
+                  className={styles.insertButton}
+                  onMouseEnter={handleInsertHover}
+                  onMouseLeave={handleInsertLeave}
+                >
+                  INSERT
+                </button>
+              )}
+              <button
+                onClick={launchCircle}
+                className={styles.launchButton}
+                onMouseEnter={handleLunchHoverStart}
+                onMouseLeave={handleLunchHoverEnd}
+              >
+                LUNCH
               </button>
             </div>
-          </div>
-        )}
-
-      {!showMenu && (
-        <>
-          {selectedMode && (
-            <>
-              <PortalComponent
-                onPortalStateChange={handlePortalStateChange}
-                isOpen={isPortalOpen}
-              />
-              <div
-                className={styles.rightSquare}
-                style={{ outlineOffset: "5px" }}
-              />
-            </>
-          )}
-        </>
-      )}
-
-      {!showMenu && selectedMode && (
-        <div className={styles.controls}>
-          <input
-            type="text"
-            placeholder="ENTER ADDRESS"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className={styles.inputField}
-          />
-          <input
-            type="text"
-            placeholder="ENTER VALUE"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className={styles.inputField}
-          />
-          <div className={styles.buttonContainer}>
-            {showInsertButton && (
-              <button
-                onClick={handleInsert}
-                className={styles.insertButton}
-                onMouseEnter={handleInsertHover}
-                onMouseLeave={handleInsertLeave}
-              >
-                INSERT
-              </button>
-            )}
             <button
-              onClick={launchCircle}
-              className={styles.launchButton}
-              onMouseEnter={handleLunchHoverStart}
-              onMouseLeave={handleLunchHoverEnd}
+              onClick={isPortalButtonEnabled ? togglePortal : undefined}
+              className={`${styles.portalButton} ${
+                !isPortalButtonEnabled ? styles.portalButtonDisabled : ""
+              } ${isPortalOpen ? styles.portalButtonOpen : ""}`}
+              disabled={!isPortalButtonEnabled}
             >
-              LUNCH
+              {isPortalOpen ? "CLOSE PORTAL" : "OPEN PORTAL"}
             </button>
           </div>
-          <button
-            onClick={isPortalButtonEnabled ? togglePortal : undefined}
-            className={`${styles.portalButton} ${
-              !isPortalButtonEnabled ? styles.portalButtonDisabled : ""
-            } ${isPortalOpen ? styles.portalButtonOpen : ""}`}
-            disabled={!isPortalButtonEnabled}
-          >
-            {isPortalOpen ? "CLOSE PORTAL" : "OPEN PORTAL"}
-          </button>
-        </div>
+        </>
       )}
 
       {!showMenu &&
