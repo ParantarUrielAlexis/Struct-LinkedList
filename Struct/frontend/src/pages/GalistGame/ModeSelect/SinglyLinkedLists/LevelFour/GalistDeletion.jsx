@@ -37,11 +37,11 @@ function GalistGameDeletion() {
       hasLaunchedRef.current = true;
       // Find the true head: node whose address is not referenced by any 'next' in INITIAL_CIRCLES
       const referencedAddresses = INITIAL_CIRCLES.map(n => n.next).filter(Boolean);
-      const headNode = INITIAL_CIRCLES.find(n => !referencedAddresses.includes(n.address));
+      const headNode = INITIAL_CIRCLES.find(n => !referencedAddresses.includes(n.id));
       // Traverse the list using 'next' pointers to get the launch order
       const launchOrder = [];
       let current = headNode;
-      const addressToNode = Object.fromEntries(INITIAL_CIRCLES.map(n => [n.address, n]));
+      const addressToNode = Object.fromEntries(INITIAL_CIRCLES.map(n => [n.id, n]));
       while (current) {
         launchOrder.push(current);
         current = current.next ? addressToNode[current.next] : null;
@@ -79,7 +79,7 @@ function GalistGameDeletion() {
           }
         }
         idx++;
-        setTimeout(launchNext, 400);
+        setTimeout(launchNext, 200);
       }
       launchNext();
     }

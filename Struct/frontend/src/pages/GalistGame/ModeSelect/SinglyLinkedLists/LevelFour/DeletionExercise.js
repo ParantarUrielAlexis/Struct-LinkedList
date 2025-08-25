@@ -354,15 +354,16 @@ export const EXERCISE_TEMPLATES = {
 };
   export const INITIAL_CIRCLES = [
     { id: 1, value: "8", address: "z", next: "a" },
-    { id: 2, value: "1", address: "a", next: "f" },
-    { id: 3, value: "6", address: "f", next: "g" },
-    { id: 4, value: "7", address: "g", next: "b" },
-    { id: 5, value: "2", address: "b", next: "j" },
-    { id: 6, value: "10", address: "j", next: "c" },
-    { id: 7, value: "3", address: "c", next: "d" },
-    { id: 8, value: "4", address: "d", next: "h" },
-    { id: 9, value: "9", address: "h", next: "e" },
-    { id: 10, value: "5", address: "e", next: null }
+    { id: 2, value: "8", address: "z", next: "a" },
+    { id: 3, value: "1", address: "a", next: "f" },
+    { id: 4, value: "6", address: "f", next: "g" },
+    { id: 5, value: "7", address: "g", next: "b" },
+    { id: 6, value: "2", address: "b", next: "j" },
+    { id: 7, value: "10", address: "j", next: "c" },
+    { id: 8, value: "3", address: "c", next: "d" },
+    { id: 9, value: "4", address: "d", next: "h" },
+    { id: 10, value: "9", address: "h", next: "e" },
+    { id: 11, value: "5", address: "e", next: null }
   ];
 
 // Exercise manager class
