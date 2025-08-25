@@ -30,30 +30,33 @@ function GalistGameDeletion() {
   const [originalSubmission, setOriginalSubmission] = useState(null);
 
   // --- Launch initial circles from INITIAL_CIRCLES one at a time ---
-  // Prevent double-launching
   const hasLaunchedRef = useRef(false);
   useEffect(() => {
-    if (circles.length === 0 && !hasLaunchedRef.current) {
+    if (!hasLaunchedRef.current) {
       hasLaunchedRef.current = true;
-      // Find the true head: node whose address is not referenced by any 'next' in INITIAL_CIRCLES
-      const referencedAddresses = INITIAL_CIRCLES.map(n => n.next).filter(Boolean);
-      const headNode = INITIAL_CIRCLES.find(n => !referencedAddresses.includes(n.address));
-      // Traverse the list using 'next' pointers to get the launch order
-      const launchOrder = [];
-      let current = headNode;
-      const addressToNode = Object.fromEntries(INITIAL_CIRCLES.map(n => [n.address, n]));
-      while (current) {
-        launchOrder.push(current);
-        current = current.next ? addressToNode[current.next] : null;
-      }
-      // Add any remaining nodes not in the main chain (disconnected/extra nodes)
-      const mainChainIds = new Set(launchOrder.map(n => n.id));
-      const restNodes = INITIAL_CIRCLES.filter(n => !mainChainIds.has(n.id));
-      const finalLaunchOrder = [...launchOrder, ...restNodes];
-      let idx = 0;
-      function launchNext() {
-        if (idx >= finalLaunchOrder.length) return;
-        const c = finalLaunchOrder[idx];
+
+      // Appear one at a time, always update state with a new array copy to avoid flicker
+      function launchNext(currentIdx, prevCircles) {
+        if (currentIdx >= INITIAL_CIRCLES.length) {
+          // After all circles are added, add all connections at once
+          const allConnections = [];
+          for (let i = 0; i < INITIAL_CIRCLES.length; i++) {
+            const c = INITIAL_CIRCLES[i];
+            if (c.next) {
+              const nextNode = INITIAL_CIRCLES.find(n => n.address === c.next);
+              if (nextNode) {
+                allConnections.push({
+                  id: `conn-${c.id}-${nextNode.id}`,
+                  from: c.id,
+                  to: nextNode.id,
+                });
+              }
+            }
+          }
+          setConnections(allConnections);
+          return;
+        }
+        const c = INITIAL_CIRCLES[currentIdx];
         const newCircle = {
           id: c.id,
           address: c.address,
@@ -63,27 +66,13 @@ function GalistGameDeletion() {
           velocityX: -8 - Math.random() * 5,
           velocityY: -5 - Math.random() * 3,
         };
-        setCircles(prev => [...prev, newCircle]);
-        // Add connection if this node has a next
-        if (c.next) {
-          const nextNode = INITIAL_CIRCLES.find(n => n.address === c.next);
-          if (nextNode) {
-            setConnections(prev => [
-              ...prev,
-              {
-                id: `conn-${c.id}-${nextNode.id}`,
-                from: c.id,
-                to: nextNode.id,
-              }
-            ]);
-          }
-        }
-        idx++;
-        setTimeout(launchNext, 400);
+        const nextCircles = [...prevCircles, newCircle];
+        setCircles(nextCircles);
+        setTimeout(() => launchNext(currentIdx + 1, nextCircles));
       }
-      launchNext();
+      launchNext(0, []);
     }
-  }, [circles.length]);
+  }, []);
 
   // Portal state management
   const [portalInfo, setPortalInfo] = useState({
@@ -1014,10 +1003,15 @@ function GalistGameDeletion() {
         });
         updatedConnections = [...updatedConnections, ...newConnections];
       } else if (isHead && outgoingConnections.length > 0) {
-        // next nodes become heads
+        // Remove all connections to and from the deleted head node.
+        // The next node will have no incoming connection and thus become the new head.
+        // No new connection is created.
       } else if (isTail && incomingConnections.length > 0) {
         // previous nodes become tails
       }
+
+      // Ensure no connection points to the new head (the node that was pointed to by the deleted head)
+      // This is already handled by the filter above, but this comment clarifies the intent.
 
       return optimizeConnectionsAfterDeletion(updatedConnections);
     });
@@ -1347,21 +1341,13 @@ function GalistGameDeletion() {
         </button>
       </div>
 
+      {/* {console.log('CIRCLES DEBUG:', circles)} */}
       {circles.map((circle) => {
-        // Only label as head the unique node with outgoing connections and no incoming connections
-        // that is also the start of a connected component (reachable by others)
+        // Debug: Always render id, value, address
+        const isHead = isHeadNode(circle.id);
         const hasOutgoing = connections.some(conn => conn.from === circle.id);
         const hasIncoming = connections.some(conn => conn.to === circle.id);
-        const isConnected = hasOutgoing || hasIncoming;
-        // Find all possible heads (connected, has outgoing, no incoming)
-        const possibleHeads = circles.filter(c => {
-          const out = connections.some(conn => conn.from === c.id);
-          const inc = connections.some(conn => conn.to === c.id);
-          return (out && !inc && (out || inc));
-        });
-        // Only one node should be labeled as head: the first in possibleHeads
-        const isHead = isConnected && hasOutgoing && !hasIncoming && possibleHeads.length > 0 && possibleHeads[0].id === circle.id;
-        const isTail = isConnected && hasIncoming && !hasOutgoing;
+        const isTail = hasIncoming && !hasOutgoing;
 
         return (
           <div
@@ -1380,10 +1366,11 @@ function GalistGameDeletion() {
             onMouseDown={(e) => handleMouseDown(e, circle)}
             onDoubleClick={() => handleDoubleClick(circle)}
           >
-            {(isHead || isTail) && (
-              <span className={styles.nodeTypeLabel}>
-                {isHead ? "Head" : "Tail"}
-              </span>
+            {isHead && (
+              <span className={styles.nodeTypeLabel}>Head</span>
+            )}
+            {isTail && (
+              <span className={styles.nodeTypeLabel}>Tail</span>
             )}
             <span className={styles.circleValue}>{circle.value}</span>
             <span className={styles.circleAddress}>{circle.address}</span>
