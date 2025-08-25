@@ -366,23 +366,20 @@ function GalistGameDeletion() {
       if (!isAnimating) return;
 
       setCircles((prevCircles) => {
-        // First pass: Handle special behaviors (suction, portal interactions) without collision detection
         const circlesWithSpecialBehavior = prevCircles.map((circle) => {
-          // Skip physics for dragged circle
           if (draggedCircle && circle.id === draggedCircle.id) {
             return circle;
           }
 
-          // Special behavior for sucking circles - target portal center
+          // Sucking effect (GalistGame logic)
           if (suckingCircles.includes(circle.id)) {
-            // Portal center calculation (using portal canvas width)
-            const portalCenterX = 10 + portalInfo.canvasWidth / 2; // Center of the portal canvas
-            const portalCenterY = window.innerHeight / 2; // Center of entrance vertically
+            const portalCenterX = 10 + portalInfo.canvasWidth / 2;
+            const portalCenterY = window.innerHeight / 2;
             const dx = portalCenterX - circle.x;
             const dy = portalCenterY - circle.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
-            // Check if circle has reached the portal entrance area
+            // Portal entrance area
             const portalTop = window.innerHeight / 2 - 50;
             const portalBottom = window.innerHeight / 2 + 50;
             const entranceTop = portalTop + 10;
@@ -394,31 +391,19 @@ function GalistGameDeletion() {
               circle.y >= entranceTop &&
               circle.y <= entranceBottom
             ) {
-              // Circle has reached the portal entrance - remove it and mark as sucked
               setTimeout(() => {
                 setCircles((prevCircles) => {
-                  const newCircles = prevCircles.filter(
-                    (c) => c.id !== circle.id
-                  );
-
-                  // Check if this was the last circle - if so, validate the submission
+                  const newCircles = prevCircles.filter((c) => c.id !== circle.id);
+                  // If last circle, validate
                   if (newCircles.length === 0 && currentExercise) {
-                    // Ensure exercise is loaded
                     if (!exerciseManagerRef.current.currentExercise) {
                       exerciseManagerRef.current.loadExercise("basic");
                     }
-
-                    // Get the order in which circles entered the portal (only for current submission)
-                    // Add this circle to the current entry order
                     const finalEntryOrder = [...currentEntryOrder, circle.id];
-
-                    // Use the original submission data captured when suction started
                     const submissionData = originalSubmission || {
-                      circles: [...prevCircles], // Fallback to current circles
-                      connections: [...connections], // Fallback to current connections
+                      circles: [...prevCircles],
+                      connections: [...connections],
                     };
-
-                    // Validate the submission
                     setTimeout(() => {
                       try {
                         const result =
@@ -427,61 +412,41 @@ function GalistGameDeletion() {
                             submissionData.connections,
                             finalEntryOrder
                           );
-
                         setValidationResult(result);
                         setShowValidationResult(true);
                       } catch (error) {
-                        if (
-                          error.message.includes("No exercise loaded") ||
-                          error.message.includes("No submission data") ||
-                          error.message.includes("Exercise template") ||
-                          error.message.includes("Critical")
-                        ) {
-                          setValidationResult({
-                            isCorrect: false,
-                            message: "System Error",
-                            details: error.message,
-                            score: 0,
-                            totalPoints: 100,
-                          });
-                          setShowValidationResult(true);
-                        }
+                        setValidationResult({
+                          isCorrect: false,
+                          message: "System Error",
+                          details: error.message,
+                          score: 0,
+                          totalPoints: 100,
+                        });
+                        setShowValidationResult(true);
                       }
                     }, 500);
                   }
-
                   return newCircles;
                 });
-
-                // Mark this circle as sucked and add to entry order (only if not already added)
                 setSuckedCircles((prev) => {
-                  if (!prev.includes(circle.id)) {
-                    return [...prev, circle.id];
-                  }
+                  if (!prev.includes(circle.id)) return [...prev, circle.id];
                   return prev;
                 });
                 setCurrentEntryOrder((prev) => {
-                  if (!prev.includes(circle.id)) {
-                    return [...prev, circle.id];
-                  }
+                  if (!prev.includes(circle.id)) return [...prev, circle.id];
                   return prev;
                 });
-
-                setSuckingCircles((prev) =>
-                  prev.filter((id) => id !== circle.id)
-                );
+                setSuckingCircles((prev) => prev.filter((id) => id !== circle.id));
               }, 50);
-
               return circle;
             }
 
-            // Strong suction force toward portal entrance
+            // Suction force
             const baseForce = 2.0;
-            const headBoost = 1.5; // Extra boost when head node triggered the chain
+            const headBoost = 1.5;
             const suctionForce = baseForce + headBoost;
             const newVelocityX = (dx / distance) * suctionForce;
             const newVelocityY = (dy / distance) * suctionForce;
-
             return {
               ...circle,
               x: circle.x + newVelocityX,
@@ -491,7 +456,7 @@ function GalistGameDeletion() {
             };
           }
 
-          // Add gentle suction effect when portal is open
+          // Gentle suction if portal open
           if (portalInfo.isVisible && !suckingCircles.includes(circle.id)) {
             const portalCenter = {
               x: 10 + portalInfo.canvasWidth / 2,
@@ -500,19 +465,14 @@ function GalistGameDeletion() {
             const dx = portalCenter.x - circle.x;
             const dy = portalCenter.y - circle.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-
             if (distance > 80) {
-              // Only apply suction if not too close
               const suctionForce = 0.1;
-              // Apply suction to the circle's velocity
-              circle.velocityX =
-                (circle.velocityX || 0) + (dx / distance) * suctionForce;
-              circle.velocityY =
-                (circle.velocityY || 0) + (dy / distance) * suctionForce;
+              circle.velocityX = (circle.velocityX || 0) + (dx / distance) * suctionForce;
+              circle.velocityY = (circle.velocityY || 0) + (dy / distance) * suctionForce;
             }
           }
 
-          // Handle special portal suction logic for manual triggers
+          // Manual trigger for chain suction
           if (portalInfo.isVisible) {
             const portalRight = 10 + portalInfo.canvasWidth + 20;
             const portalTop = window.innerHeight / 2 - 50;
@@ -520,11 +480,8 @@ function GalistGameDeletion() {
             const entranceTop = portalTop + 10;
             const entranceBottom = portalBottom - 10;
             const circleRadius = 30;
-
             const newX = circle.x + (circle.velocityX || 0);
             const newY = circle.y + (circle.velocityY || 0);
-
-            // Check if circle is entering through the entrance
             if (
               newX - circleRadius <= portalRight &&
               newX - circleRadius >= portalRight - 20 &&
@@ -534,34 +491,24 @@ function GalistGameDeletion() {
             ) {
               const isHead = isHeadNode(circle.id);
               const hasAnyHeadNode = prevCircles.some((c) => isHeadNode(c.id));
-
               if (isHead || !hasAnyHeadNode) {
                 startChainSuction(circle.id);
               }
-
-              return circle; // Return unchanged for this frame
+              return circle;
             }
           }
-
           return circle;
         });
 
-        // Second pass: Apply collision detection and physics to ALL circles at once
+        // Second pass: Apply collision detection and physics
         const allCirclesForCollision = circlesWithSpecialBehavior;
         const draggedCircleData = draggedCircle
-          ? allCirclesForCollision.find(
-              (circle) => circle.id === draggedCircle.id
-            )
+          ? allCirclesForCollision.find((circle) => circle.id === draggedCircle.id)
           : null;
-
         const updatedAllCircles =
           allCirclesForCollision.length > 0
-            ? collisionDetection.updatePhysics(
-                allCirclesForCollision,
-                suckingCircles
-              )
+            ? collisionDetection.updatePhysics(allCirclesForCollision, suckingCircles)
             : [];
-
         let finalCircles = updatedAllCircles;
         if (draggedCircleData) {
           finalCircles = updatedAllCircles.map((circle) => {
@@ -575,15 +522,11 @@ function GalistGameDeletion() {
             return circle;
           });
         }
-
         return finalCircles;
       });
-
       animationRef.current = requestAnimationFrame(gameLoop);
     };
-
     animationRef.current = requestAnimationFrame(gameLoop);
-
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -604,64 +547,64 @@ function GalistGameDeletion() {
   ]);
 
   // Handle connection removal when circles are sucked
-  useEffect(() => {
-    if (suckedCircles.length > 0) {
-      const timer = setTimeout(() => {
-        setConnections((prevConnections) =>
-          prevConnections.filter((connection) => {
-            const fromSucked = suckedCircles.includes(connection.from);
-            const toSucked = suckedCircles.includes(connection.to);
-            return !(fromSucked && toSucked);
-          })
-        );
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [suckedCircles]);
+    useEffect(() => {
+      if (suckedCircles.length > 0) {
+        const timer = setTimeout(() => {
+          setConnections((prevConnections) =>
+            prevConnections.filter((connection) => {
+              const fromSucked = suckedCircles.includes(connection.from);
+              const toSucked = suckedCircles.includes(connection.to);
+              return !(fromSucked && toSucked);
+            })
+          );
+        }, 500);
+  
+        return () => clearTimeout(timer);
+      }
+    }, [suckedCircles]);
 
   // Auto-suction effect when portal opens - prioritize head nodes
-  useEffect(() => {
-    if (portalInfo.isVisible && circles.length > 0) {
-      const headNodes = circles.filter((circle) => isHeadNode(circle.id));
-
-      if (headNodes.length > 0) {
-        headNodes.forEach((headNode, index) => {
-          setTimeout(() => {
-            startChainSuction(headNode.id);
-          }, index * 1000);
-        });
-      } else {
-        const isolatedNodes = circles.filter(
-          (circle) =>
-            !connections.some(
-              (conn) => conn.from === circle.id || conn.to === circle.id
-            )
-        );
-
-        if (isolatedNodes.length > 0) {
-          isolatedNodes.forEach((node, index) => {
+   useEffect(() => {
+      if (portalInfo.isVisible && circles.length > 0) {
+        const headNodes = circles.filter((circle) => isHeadNode(circle.id));
+  
+        if (headNodes.length > 0) {
+          headNodes.forEach((headNode, index) => {
             setTimeout(() => {
-              setSuckingCircles((prev) => {
-                if (!prev.includes(node.id)) {
-                  return [...prev, node.id];
-                }
-                return prev;
-              });
-            }, index * 200);
+              startChainSuction(headNode.id);
+            }, index * 1000);
           });
+        } else {
+          const isolatedNodes = circles.filter(
+            (circle) =>
+              !connections.some(
+                (conn) => conn.from === circle.id || conn.to === circle.id
+              )
+          );
+  
+          if (isolatedNodes.length > 0) {
+            isolatedNodes.forEach((node, index) => {
+              setTimeout(() => {
+                setSuckingCircles((prev) => {
+                  if (!prev.includes(node.id)) {
+                    return [...prev, node.id];
+                  }
+                  return prev;
+                });
+              }, index * 200);
+            });
+          }
         }
+      } else if (!portalInfo.isVisible) {
+        setSuckingCircles([]);
       }
-    } else if (!portalInfo.isVisible) {
-      setSuckingCircles([]);
-    }
-  }, [
-    portalInfo.isVisible,
-    circles,
-    connections,
-    isHeadNode,
-    startChainSuction,
-  ]);
+    }, [
+      portalInfo.isVisible,
+      circles,
+      connections,
+      isHeadNode,
+      startChainSuction,
+    ]);
 
   // Mouse event handlers for dragging
   const handleMouseDown = (e, circle) => {
@@ -1393,17 +1336,30 @@ function GalistGameDeletion() {
 
       <svg className={styles.connectionLines}>
         {connections.map((connection) => {
+          // Only remove the line if BOTH nodes have been sucked
+          const fromSucked = suckedCircles.includes(connection.from);
+          const toSucked = suckedCircles.includes(connection.to);
+          if (fromSucked && toSucked) return null;
+
+          // Only anchor to portal entrance if a node has been sucked; otherwise, skip the line if either node is missing (e.g., during launch)
           const fromCircle = circles.find((c) => c.id === connection.from);
           const toCircle = circles.find((c) => c.id === connection.to);
-          // Only render if both ends exist
-          if (!fromCircle || !toCircle) return null;
+          const entranceX = 10 + portalInfo.canvasWidth / 2;
+          const entranceY = window.innerHeight / 2;
+          // If neither node is present and neither is sucked, don't render the line (prevents portal-anchored lines during launch)
+          if (!fromCircle && !fromSucked) return null;
+          if (!toCircle && !toSucked) return null;
+          const fromX = fromCircle ? fromCircle.x : entranceX;
+          const fromY = fromCircle ? fromCircle.y : entranceY;
+          const toX = toCircle ? toCircle.x : entranceX;
+          const toY = toCircle ? toCircle.y : entranceY;
           return (
             <g key={connection.id}>
               <line
-                x1={fromCircle.x}
-                y1={fromCircle.y}
-                x2={toCircle.x}
-                y2={toCircle.y}
+                x1={fromX}
+                y1={fromY}
+                x2={toX}
+                y2={toY}
                 className={styles.animatedLine}
                 markerEnd="url(#arrowhead)"
               />
