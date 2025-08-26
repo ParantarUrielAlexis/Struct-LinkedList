@@ -1,3 +1,20 @@
+/* Exercise Progress Indicator (top right) */
+.exerciseProgressIndicator {
+  position: absolute;
+  top: 10px;
+  right: 30px;
+  font-size: 2rem;
+  color: #fff;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0);
+  border-radius: 10px;
+  padding: 6px 22px 6px 18px;
+  z-index: 20;
+  border: 2px solid #ffffff00;
+  letter-spacing: 2px;
+  min-width: 60px;
+  text-align: right;
+}
 /* Expected Results Bar Styles */
 .expectedBarWrapper {
   display: flex;

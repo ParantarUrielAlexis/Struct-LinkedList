@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+
 import styles from "./GalistGameDeletion.module.css";
 import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO, INITIAL_CIRCLES_THREE} from "./DeletionExercise";
 import { collisionDetection } from "./../../../CollisionDetection";
@@ -29,6 +30,11 @@ function GalistGameDeletion() {
   const [suckedCircles, setSuckedCircles] = useState([]);
   const [currentEntryOrder, setCurrentEntryOrder] = useState([]);
   const [originalSubmission, setOriginalSubmission] = useState(null);
+
+    // Exercise progress indicator logic
+  const EXERCISE_KEYS = ["exercise_one", "exercise_two", "exercise_tree"];
+  const currentExerciseNumber = EXERCISE_KEYS.indexOf(exerciseKey) + 1;
+  const totalExercises = EXERCISE_KEYS.length;
 
   // --- Launch initial circles from the correct INITIAL_CIRCLES array ---
   // Only launch initial circles once per exerciseKey, and always clear state synchronously before launching
@@ -1251,6 +1257,11 @@ function GalistGameDeletion() {
       >
         i
       </button>
+
+      {/* Exercise progress indicator (top right) */}
+      <div className={styles.exerciseProgressIndicator}>
+        {currentExerciseNumber}/{totalExercises}
+      </div>
        {currentExercise && currentExercise.expectedStructure && (
         <div className={styles.expectedBarWrapper}>
           <table className={styles.expectedBarTable}>
