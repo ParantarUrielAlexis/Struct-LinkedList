@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./GalistGameDeletion.module.css";
-import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO } from "./DeletionExercise";
+import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO, INITIAL_CIRCLES_THREE} from "./DeletionExercise";
 import { collisionDetection } from "./../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
 
@@ -54,7 +54,16 @@ function GalistGameDeletion() {
     setValidationResult(null);
     hasLaunchedRef.current = true;
 
-    const initialCircles = exerciseKey === "exercise_one" ? INITIAL_CIRCLES : INITIAL_CIRCLES_TWO;
+    let initialCircles;
+    if (exerciseKey === "exercise_one") {
+      initialCircles = INITIAL_CIRCLES;
+    } else if (exerciseKey === "exercise_two") {
+      initialCircles = INITIAL_CIRCLES_TWO;
+    } else if (exerciseKey === "exercise_tree") {
+      initialCircles = INITIAL_CIRCLES_THREE;
+    } else {
+      initialCircles = [];
+    }
     // Launch after a short delay to ensure state is cleared
     launchTimeoutRef.current = setTimeout(() => {
       // If a new launch was triggered, abort this one
@@ -119,7 +128,6 @@ function GalistGameDeletion() {
         launchTimeoutRef.current = null;
       }
     };
-    // eslint-disable-next-line
   }, [exerciseKey, launchInitialCircles]);
 
   // Use a unique key on the main container to force React to fully reset state on exerciseKey change
@@ -269,18 +277,7 @@ function GalistGameDeletion() {
   const isPortalButtonEnabled =
     isPortalOpen || (hasHeadNode() && hasTailNode());
 
-  // Exercise management functions
-  const resetWorkspace = useCallback(() => {
-    setCircles([]);
-    setConnections([]);
-    setSuckingCircles([]);
-    setSuckedCircles([]);
-    setCurrentEntryOrder([]);
-    setOriginalSubmission(null);
-    setShowValidationResult(false);
-    setValidationResult(null);
-    exerciseManagerRef.current.reset();
-  }, []);
+  
 
   const loadExercise = useCallback((key = "exercise_one") => {
     // Always clear circles/connections and reset launch state before loading new exercise
@@ -1616,11 +1613,14 @@ function GalistGameDeletion() {
                   // If perfected and on exercise_one, go to exercise_two
                   if (validationResult && validationResult.isCorrect && exerciseKey === "exercise_one") {
                     loadExercise("exercise_two");
+                  } else if (validationResult && validationResult.isCorrect && exerciseKey === "exercise_two") {
+                    loadExercise("exercise_tree");
                   }
                 }}
                 className={styles.continueButton}
               >
-                {validationResult && validationResult.isCorrect && exerciseKey === "exercise_one" ? "NEXT EXERCISE" : "CONTINUE"}
+                {validationResult && validationResult.isCorrect && exerciseKey === "exercise_one" ? "NEXT EXERCISE" :
+                 validationResult && validationResult.isCorrect && exerciseKey === "exercise_two" ? "NEXT EXERCISE" : "CONTINUE"}
               </button>
             </div>
           </div>
