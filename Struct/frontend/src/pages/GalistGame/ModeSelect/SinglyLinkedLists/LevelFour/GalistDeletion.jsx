@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./GalistGameDeletion.module.css";
-import { ExerciseManager, INITIAL_CIRCLES} from "./DeletionExercise";
+import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO } from "./DeletionExercise";
 import { collisionDetection } from "./../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
 
 function GalistGameDeletion() {
+  // Track which exercise is active
+  const [exerciseKey, setExerciseKey] = useState("exercise_one");
   // Launch initial circles from INITIAL_CIRCLES one at a time, using the same launch logic as the manual launch button
   // --- Move all useState declarations to the top ---
   const [address, setAddress] = useState("");
@@ -28,29 +30,53 @@ function GalistGameDeletion() {
   const [currentEntryOrder, setCurrentEntryOrder] = useState([]);
   const [originalSubmission, setOriginalSubmission] = useState(null);
 
-  // --- Launch initial circles from INITIAL_CIRCLES one at a time ---
-  // Prevent double-launching
+  // --- Launch initial circles from the correct INITIAL_CIRCLES array ---
+  // Only launch initial circles once per exerciseKey, and always clear state synchronously before launching
+  // Prevent duplicate launches by using a launch token and clearing timeouts
+  const launchTimeoutRef = useRef(null);
+  const launchTokenRef = useRef(0);
   const hasLaunchedRef = useRef(false);
-  useEffect(() => {
-    if (circles.length === 1 && !hasLaunchedRef.current) {
-      hasLaunchedRef.current = true;
-      // Find the true head: node whose address is not referenced by any 'next' in INITIAL_CIRCLES
-      const referencedAddresses = INITIAL_CIRCLES.map(n => n.next).filter(Boolean);
-      const headNode = INITIAL_CIRCLES.find(n => !referencedAddresses.includes(n.id));
+  const launchInitialCircles = useCallback(() => {
+    // Invalidate any previous launches
+    launchTokenRef.current += 1;
+    const myToken = launchTokenRef.current;
+    if (launchTimeoutRef.current) {
+      clearTimeout(launchTimeoutRef.current);
+      launchTimeoutRef.current = null;
+    }
+    setCircles([]);
+    setConnections([]);
+    setSuckingCircles([]);
+    setSuckedCircles([]);
+    setCurrentEntryOrder([]);
+    setOriginalSubmission(null);
+    setShowValidationResult(false);
+    setValidationResult(null);
+    hasLaunchedRef.current = true;
+
+    const initialCircles = exerciseKey === "exercise_one" ? INITIAL_CIRCLES : INITIAL_CIRCLES_TWO;
+    // Launch after a short delay to ensure state is cleared
+    launchTimeoutRef.current = setTimeout(() => {
+      // If a new launch was triggered, abort this one
+      if (launchTokenRef.current !== myToken) return;
+      // Find the true head: node whose address is not referenced by any 'next' in initialCircles
+      const referencedAddresses = initialCircles.map(n => n.next).filter(Boolean);
+      const headNode = initialCircles.find(n => !referencedAddresses.includes(n.id));
       // Traverse the list using 'next' pointers to get the launch order
       const launchOrder = [];
       let current = headNode;
-      const addressToNode = Object.fromEntries(INITIAL_CIRCLES.map(n => [n.id, n]));
+      const addressToNode = Object.fromEntries(initialCircles.map(n => [n.id, n]));
       while (current) {
         launchOrder.push(current);
         current = current.next ? addressToNode[current.next] : null;
       }
       // Add any remaining nodes not in the main chain (disconnected/extra nodes)
       const mainChainIds = new Set(launchOrder.map(n => n.id));
-      const restNodes = INITIAL_CIRCLES.filter(n => !mainChainIds.has(n.id));
+      const restNodes = initialCircles.filter(n => !mainChainIds.has(n.id));
       const finalLaunchOrder = [...launchOrder, ...restNodes];
       let idx = 0;
       function launchNext() {
+        if (launchTokenRef.current !== myToken) return;
         if (idx >= finalLaunchOrder.length) return;
         const c = finalLaunchOrder[idx];
         const newCircle = {
@@ -65,7 +91,7 @@ function GalistGameDeletion() {
         setCircles(prev => [...prev, newCircle]);
         // Add connection if this node has a next
         if (c.next) {
-          const nextNode = INITIAL_CIRCLES.find(n => n.address === c.next);
+          const nextNode = initialCircles.find(n => n.address === c.next);
           if (nextNode) {
             setConnections(prev => [
               ...prev,
@@ -78,12 +104,25 @@ function GalistGameDeletion() {
           }
         }
         idx++;
-        setTimeout(launchNext, 200);
+        launchTimeoutRef.current = setTimeout(launchNext, 200);
       }
       launchNext();
-    }
-  }, [circles.length]);
+    }, 50);
+  }, [exerciseKey]);
 
+  useEffect(() => {
+    hasLaunchedRef.current = false;
+    launchInitialCircles();
+    return () => {
+      if (launchTimeoutRef.current) {
+        clearTimeout(launchTimeoutRef.current);
+        launchTimeoutRef.current = null;
+      }
+    };
+    // eslint-disable-next-line
+  }, [exerciseKey, launchInitialCircles]);
+
+  // Use a unique key on the main container to force React to fully reset state on exerciseKey change
   // Portal state management
   const [portalInfo, setPortalInfo] = useState({
     isVisible: false,
@@ -243,11 +282,22 @@ function GalistGameDeletion() {
     exerciseManagerRef.current.reset();
   }, []);
 
-  const loadExercise = useCallback(() => {
-    const exercise = exerciseManagerRef.current.loadExercise("exercise_one");
+  const loadExercise = useCallback((key = "exercise_one") => {
+    // Always clear circles/connections and reset launch state before loading new exercise
+    setCircles([]);
+    setConnections([]);
+    setSuckingCircles([]);
+    setSuckedCircles([]);
+    setCurrentEntryOrder([]);
+    setOriginalSubmission(null);
+    setShowValidationResult(false);
+    setValidationResult(null);
+    hasLaunchedRef.current = false;
+    // Now load the new exercise
+    const exercise = exerciseManagerRef.current.loadExercise(key);
     setCurrentExercise(exercise);
-    resetWorkspace();
-  }, [resetWorkspace]);
+    setExerciseKey(key);
+  }, []);
 
   const startExercise = useCallback(() => {
     setShowInstructionPopup(false);
@@ -259,10 +309,9 @@ function GalistGameDeletion() {
   // Initialize exercise on component mount
   useEffect(() => {
     if (!currentExercise) {
-      const exercise = exerciseManagerRef.current.loadExercise("exercise_one");
-      setCurrentExercise(exercise);
+      loadExercise("exercise_one");
     }
-  }, [currentExercise]);
+  }, [currentExercise, loadExercise]);
 
   // Initialize with basic exercise when instruction popup is closed
   useEffect(() => {
@@ -1559,10 +1608,19 @@ function GalistGameDeletion() {
 
             <div className={styles.validationButtons}>
               <button
-                onClick={() => setShowValidationResult(false)}
+                onClick={() => {
+                  setShowValidationResult(false);
+                  // Always close the portal after submitting/validation
+                  setIsPortalOpen(false);
+                  setPortalInfo((prev) => ({ ...prev, isVisible: false }));
+                  // If perfected and on exercise_one, go to exercise_two
+                  if (validationResult && validationResult.isCorrect && exerciseKey === "exercise_one") {
+                    loadExercise("exercise_two");
+                  }
+                }}
                 className={styles.continueButton}
               >
-                CONTINUE
+                {validationResult && validationResult.isCorrect && exerciseKey === "exercise_one" ? "NEXT EXERCISE" : "CONTINUE"}
               </button>
             </div>
           </div>
