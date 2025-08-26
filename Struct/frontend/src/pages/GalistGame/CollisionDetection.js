@@ -32,30 +32,39 @@ export class CollisionDetection {
       let newY = circle.y + newVelocityY;
 
       // Apply collision detections
+      // 1. Expected Results Bar collision (top bar)
+      const expectedBarCollision = this.checkExpectedBarCollision(newX, newY, newVelocityX, newVelocityY);
+      newX = expectedBarCollision.x;
+      newY = expectedBarCollision.y;
+      newVelocityX = expectedBarCollision.velocityX;
+      newVelocityY = expectedBarCollision.velocityY;
+
+      // 2. Right square collision
       const rightSquareCollision = this.checkRightSquareCollision(newX, newY, circle, newVelocityX, newVelocityY);
       newX = rightSquareCollision.x;
       newY = rightSquareCollision.y;
       newVelocityX = rightSquareCollision.velocityX;
       newVelocityY = rightSquareCollision.velocityY;
 
+      // 3. Controls collision
       const controlsCollision = this.checkControlsCollision(newX, newY, circle, newVelocityX, newVelocityY);
       newX = controlsCollision.x;
       newY = controlsCollision.y;
       newVelocityX = controlsCollision.velocityX;
       newVelocityY = controlsCollision.velocityY;
 
-      // Circle-to-circle collisions
+      // 4. Circle-to-circle collisions
       const circleCollision = this.checkCircleCollisions(newX, newY, newVelocityX, newVelocityY, circle, circleArray, suckingCircles);
       newX = circleCollision.x;
       newY = circleCollision.y;
       newVelocityX = circleCollision.velocityX;
       newVelocityY = circleCollision.velocityY;
 
-      // Apply air resistance
+      // 5. Air resistance
       newVelocityX *= this.airResistance;
       newVelocityY *= this.airResistance;
 
-      // Wall bouncing
+      // 6. Wall bouncing
       const wallCollision = this.checkWallCollisions(newX, newY, newVelocityX, newVelocityY);
       newX = wallCollision.x;
       newY = wallCollision.y;
@@ -77,6 +86,32 @@ export class CollisionDetection {
     
     // Return single object if input was single object, array if input was array
     return isArray ? updatedCircles : updatedCircles[0];
+  }
+
+  /**
+   * Check collision with the expected results bar (top bar)
+   * The bar is at the top, with a height of about 60px (including padding/margin)
+   */
+  checkExpectedBarCollision(x, y, velocityX, velocityY) {
+    // These values should match the .expectedBarWrapper CSS and bar height
+    const barTop = 0;
+    const barHeight = 60; // px, adjust if your bar is taller/shorter
+    const barBottom = barTop + barHeight;
+
+    let newX = x;
+    let newY = y;
+    let newVelocityX = velocityX;
+    let newVelocityY = velocityY;
+
+    // If the circle's top edge is above the bar's bottom, bounce it down
+    if (newY - this.circleRadius <= barBottom) {
+      if (velocityY < 0) {
+        newVelocityY = -newVelocityY * this.wallBounceEnergyLoss;
+        newY = barBottom + this.circleRadius;
+      }
+    }
+
+    return { x: newX, y: newY, velocityX: newVelocityX, velocityY: newVelocityY };
   }
 
   /**

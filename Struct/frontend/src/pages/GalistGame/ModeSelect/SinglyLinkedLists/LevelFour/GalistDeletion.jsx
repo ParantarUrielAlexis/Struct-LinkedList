@@ -1262,7 +1262,9 @@ function GalistGameDeletion() {
       <div className={styles.exerciseProgressIndicator}>
         {currentExerciseNumber}/{totalExercises}
       </div>
-       {currentExercise && currentExercise.expectedStructure && (
+
+      {/* Expected results bar */}
+      {currentExercise && currentExercise.expectedStructure && (
         <div className={styles.expectedBarWrapper}>
           <table className={styles.expectedBarTable}>
             <tbody>
