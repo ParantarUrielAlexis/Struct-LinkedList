@@ -1666,11 +1666,13 @@ function GalistGameDeletion() {
                 value={connectToAddress}
                 onChange={(e) => setConnectToAddress(e.target.value)}
                 className={styles.popupInput}
+                disabled={true}
                 autoFocus
               />
               <div className={styles.popupButtons}>
                 <button
                   onClick={handleConnect}
+                  disabled={true}
                   className={`${styles.popupButton} ${styles.connectBtn}`}
                 >
                   CONNECT
