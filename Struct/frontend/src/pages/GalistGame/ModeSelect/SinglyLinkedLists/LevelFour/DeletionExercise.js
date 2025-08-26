@@ -339,7 +339,7 @@ export class LinkedListExercise {
 
 // Predefined exercise templates
 export const EXERCISE_TEMPLATES = {
-  basic: {
+  exercise_one: {
     sequence: [1, 2, 3, 4, 5],
     addresses: {
       1: "a",
@@ -347,6 +347,19 @@ export const EXERCISE_TEMPLATES = {
       3: "c",
       4: "d",
       5: "e"
+    },
+    title: "Fix the Linked Lists",
+    description: "Delete some unnecessary Nodes to achieve the desired linked list structure"
+  },
+  exercise_two: {
+    sequence: [10, 4, 2, 17, 9, 5],
+    addresses: {
+      10: "z",
+      4: "y",
+      2: "x",
+      17: "w",
+      9: "v",
+      5: "u",
     },
     title: "Fix the Linked Lists",
     description: "Delete some unnecessary Nodes to achieve the desired linked list structure"
@@ -365,6 +378,27 @@ export const EXERCISE_TEMPLATES = {
     { id: 10, value: "9", address: "h", next: "e" },
     { id: 11, value: "5", address: "e", next: null }
   ];
+  export const INITIAL_CIRCLES_TWO = [
+    { id: 1, value: "19", address: "a", next: "s" },
+    { id: 2, value: "19", address: "a", next: "s" },
+    { id: 3, value: "18", address: "s", next: "d" },
+    { id: 4, value: "10", address: "d", next: "z" },
+    { id: 5, value: "10", address: "z", next: "b" },
+    { id: 6, value: "11", address: "b", next: "y" },
+    { id: 7, value: "4", address: "y", next: "p" },
+    { id: 8, value: "17", address: "p", next: "t" },
+    { id: 9, value: "25", address: "t", next: "x" },
+    { id: 10, value: "2", address: "x", next: "f" },
+    { id: 11, value: "40", address: "f", next: "w" },
+    { id: 12, value: "17", address: "w", next: "v" },
+    { id: 13, value: "9", address: "v", next: "g" },
+    { id: 14, value: "41", address: "g", next: "h" },
+    { id: 15, value: "81", address: "h", next: "u" },
+    { id: 16, value: "5", address: "u", next: "i" },
+    { id: 17, value: "71", address: "i", next: "m" },
+    { id: 18, value: "87", address: "m", next: null }
+  ];
+  
 
 // Exercise manager class
 export class ExerciseManager {
@@ -432,7 +466,7 @@ export class ExerciseManager {
       if (!this.currentExercise) {
         console.warn('No exercise loaded, attempting to load basic exercise...');
         try {
-          this.loadExercise('basic');
+          this.loadExercise('exercise_one');
         } catch (loadError) {
           console.error('Failed to load default exercise:', loadError);
           // Return a gentle error instead of throwing

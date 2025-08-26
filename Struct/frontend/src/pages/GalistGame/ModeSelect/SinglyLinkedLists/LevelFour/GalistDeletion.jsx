@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./GalistGameDeletion.module.css";
-import { ExerciseManager } from "../../../LinkedListExercise";
+import { ExerciseManager, INITIAL_CIRCLES} from "./DeletionExercise";
 import { collisionDetection } from "./../../../CollisionDetection";
-import { INITIAL_CIRCLES } from "./DeletionExercise";
 import PortalComponent from "../../../PortalComponent";
 
 function GalistGameDeletion() {
@@ -33,7 +32,7 @@ function GalistGameDeletion() {
   // Prevent double-launching
   const hasLaunchedRef = useRef(false);
   useEffect(() => {
-    if (circles.length === 0 && !hasLaunchedRef.current) {
+    if (circles.length === 1 && !hasLaunchedRef.current) {
       hasLaunchedRef.current = true;
       // Find the true head: node whose address is not referenced by any 'next' in INITIAL_CIRCLES
       const referencedAddresses = INITIAL_CIRCLES.map(n => n.next).filter(Boolean);
@@ -245,7 +244,7 @@ function GalistGameDeletion() {
   }, []);
 
   const loadExercise = useCallback(() => {
-    const exercise = exerciseManagerRef.current.loadExercise("basic");
+    const exercise = exerciseManagerRef.current.loadExercise("exercise_one");
     setCurrentExercise(exercise);
     resetWorkspace();
   }, [resetWorkspace]);
@@ -260,7 +259,7 @@ function GalistGameDeletion() {
   // Initialize exercise on component mount
   useEffect(() => {
     if (!currentExercise) {
-      const exercise = exerciseManagerRef.current.loadExercise("basic");
+      const exercise = exerciseManagerRef.current.loadExercise("exercise_one");
       setCurrentExercise(exercise);
     }
   }, [currentExercise]);
@@ -397,7 +396,7 @@ function GalistGameDeletion() {
                   // If last circle, validate
                   if (newCircles.length === 0 && currentExercise) {
                     if (!exerciseManagerRef.current.currentExercise) {
-                      exerciseManagerRef.current.loadExercise("basic");
+                      exerciseManagerRef.current.loadExercise("exercise_one");
                     }
                     const finalEntryOrder = [...currentEntryOrder, circle.id];
                     const submissionData = originalSubmission || {
@@ -1184,6 +1183,7 @@ function GalistGameDeletion() {
   };
 
   return (
+    
     <div className={styles.app}>
       <video
         className={styles.videoBackground}
@@ -1205,10 +1205,36 @@ function GalistGameDeletion() {
       >
         i
       </button>
-
+       {currentExercise && currentExercise.expectedStructure && (
+        <div className={styles.expectedBarWrapper}>
+          <table className={styles.expectedBarTable}>
+            <tbody>
+              <tr className={styles.expectedBarRow}>
+                {currentExercise.expectedStructure.map((node, idx) => (
+                  <React.Fragment key={node.address}>
+                    <td className={styles.expectedBarCell}>
+                      <div className={styles.expectedBarCircle}>
+                        <div className={styles.expectedBarValue}>{node.value}</div>
+                        <div className={styles.expectedBarAddress}>{node.address}</div>
+                      </div>
+                    </td>
+                    {idx < currentExercise.expectedStructure.length - 1 && (
+                      <td className={styles.expectedBarArrowCell}>
+                        <span className={styles.expectedBarArrow}>→</span>
+                      </td>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+      
       {showInstructionPopup &&
         currentExercise &&
         currentExercise.expectedStructure && (
+          
           <div className={styles.instructionPopup}>
             <div className={styles.instructionContent}>
               <h1>{currentExercise.title}</h1>
@@ -1230,8 +1256,9 @@ function GalistGameDeletion() {
               </button>
             </div>
           </div>
+          
         )}
-
+     
       <PortalComponent
         onPortalStateChange={handlePortalStateChange}
         isOpen={isPortalOpen}
@@ -1240,7 +1267,7 @@ function GalistGameDeletion() {
         className={styles.rightSquare}
         style={{ outlineOffset: "5px" }}
       />
-
+      
       <div className={styles.controls}>
         <input
           type="text"
@@ -1289,7 +1316,7 @@ function GalistGameDeletion() {
           {isPortalOpen ? "CLOSE PORTAL" : "OPEN PORTAL"}
         </button>
       </div>
-
+      
       {circles.map((circle) => {
         // Only label as head the unique node with outgoing connections and no incoming connections
         // that is also the start of a connected component (reachable by others)
@@ -1307,6 +1334,7 @@ function GalistGameDeletion() {
         const isTail = isConnected && hasIncoming && !hasOutgoing;
 
         return (
+          
           <div
             key={circle.id}
             className={`${styles.animatedCircle} ${
@@ -1333,7 +1361,7 @@ function GalistGameDeletion() {
           </div>
         );
       })}
-
+      
       <svg className={styles.connectionLines}>
         {connections.map((connection) => {
           // Only remove the line if BOTH nodes have been sucked
@@ -1540,7 +1568,7 @@ function GalistGameDeletion() {
           </div>
         </div>
       )}
-
+      
       {selectedCircle && (
         <div className={styles.popupOverlay} onClick={closePopup}>
           <div
