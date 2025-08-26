@@ -1241,8 +1241,8 @@ function GalistGameDeletion() {
         muted
         playsInline
         preload="auto"
-        onError={(e) => console.error("Video error:", e)}
-        onLoadedData={() => console.log("Video loaded successfully")}
+        // onError={(e) => console.error("Video error:", e)}
+        // onLoadedData={() => console.log("Video loaded successfully")}
       >
         <source src="./video/earth.mp4" type="video/mp4" />
         Your browser does not support the video tag.

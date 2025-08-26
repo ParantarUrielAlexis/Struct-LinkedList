@@ -363,6 +363,20 @@ export const EXERCISE_TEMPLATES = {
     },
     title: "Fix the Linked Lists",
     description: "Delete some unnecessary Nodes to achieve the desired linked list structure"
+  },
+  exercise_tree: {
+    sequence: [66, 65, 64, 67, 76, 77, 78],
+    addresses: {
+      66: "l",
+      65: "m",
+      64: "n",
+      67: "o",
+      76: "p",
+      77: "q",
+      78: "r"
+    },
+    title: "Fix the Linked Lists",
+    description: "Delete some unnecessary Nodes to achieve the desired linked list structure"
   }
 };
   export const INITIAL_CIRCLES = [
@@ -379,23 +393,47 @@ export const EXERCISE_TEMPLATES = {
   ];
   export const INITIAL_CIRCLES_TWO = [
     { id: 1, value: "19", address: "a", next: "s" },
-    { id: 2, value: "19", address: "a", next: "s" },
-    { id: 3, value: "18", address: "s", next: "d" },
-    { id: 4, value: "10", address: "d", next: "z" },
-    { id: 5, value: "10", address: "z", next: "b" },
-    { id: 6, value: "11", address: "b", next: "y" },
-    { id: 7, value: "4", address: "y", next: "p" },
-    { id: 8, value: "17", address: "p", next: "t" },
-    { id: 9, value: "25", address: "t", next: "x" },
-    { id: 10, value: "2", address: "x", next: "f" },
-    { id: 11, value: "40", address: "f", next: "w" },
-    { id: 12, value: "17", address: "w", next: "v" },
-    { id: 13, value: "9", address: "v", next: "g" },
-    { id: 14, value: "41", address: "g", next: "h" },
-    { id: 15, value: "81", address: "h", next: "u" },
-    { id: 16, value: "5", address: "u", next: "i" },
-    { id: 17, value: "71", address: "i", next: "m" },
-    { id: 18, value: "87", address: "m", next: null }
+    { id: 2, value: "18", address: "s", next: "d" },
+    { id: 3, value: "10", address: "d", next: "z" },
+    { id: 4, value: "10", address: "z", next: "b" },
+    { id: 5, value: "11", address: "b", next: "y" },
+    { id: 6, value: "4", address: "y", next: "p" },
+    { id: 7, value: "17", address: "p", next: "t" },
+    { id: 8, value: "25", address: "t", next: "x" },
+    { id: 9, value: "2", address: "x", next: "f" },
+    { id: 10, value: "40", address: "f", next: "w" },
+    { id: 11, value: "17", address: "w", next: "v" },
+    { id: 12, value: "9", address: "v", next: "g" },
+    { id: 13, value: "41", address: "g", next: "h" },
+    { id: 14, value: "81", address: "h", next: "u" },
+    { id: 15, value: "5", address: "u", next: "i" },
+    { id: 16, value: "71", address: "i", next: "m" },
+    { id: 17, value: "87", address: "m", next: null }
+  ];
+  export const INITIAL_CIRCLES_THREE = [
+    { id: 1, value: "62", address: "t", next: "a" },
+    { id: 2, value: "66", address: "a", next: "b" },
+    { id: 3, value: "67", address: "b", next: "l" },
+    { id: 4, value: "66", address: "l", next: "d" },
+    { id: 5, value: "65", address: "d", next: "e" },
+    { id: 6, value: "65", address: "e", next: "m" },
+    { id: 7, value: "65", address: "m", next: "f" },
+    { id: 8, value: "72", address: "f", next: "g" },
+    { id: 9, value: "77", address: "g", next: "h" },
+    { id: 10, value: "64", address: "h", next: "n" },
+    { id: 11, value: "64", address: "n", next: "i" },
+    { id: 12, value: "77", address: "i", next: "j" },
+    { id: 13, value: "61", address: "j", next: "o" },
+    { id: 14, value: "67", address: "o", next: "k" },
+    { id: 15, value: "68", address: "k", next: "z" },
+    { id: 16, value: "76", address: "z", next: "p" },
+    { id: 17, value: "76", address: "p", next: "q" },
+    { id: 18, value: "77", address: "q", next: "y" },
+    { id: 19, value: "80", address: "y", next: "x" },
+    { id: 20, value: "81", address: "x", next: "r" },
+    { id: 21, value: "78", address: "r", next: "w" },
+    { id: 22, value: "78", address: "w", next: "v" },
+    { id: 23, value: "78", address: "v", next: null }
   ];
   
 
