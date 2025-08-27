@@ -16,41 +16,74 @@ export class NodeOrderExercise {
   }
 
   // Validate only the order of values entered into the portal
-validateSubmission(circles, _connections, entryOrder = null) {
-  const result = {
-    isCorrect: false,
-    message: '',
-    details: '',
-    score: 0,
-    totalPoints: 100,
-    userCircles: [] // Add this to store user's entered circles
-  };
+  validateSubmission(circles, _connections, entryOrder = null) {
+    const result = {
+      isCorrect: false,
+      message: '',
+      details: '',
+      score: 0,
+      totalPoints: 100,
+      userCircles: [], // Add this to store user's entered circles
+      perNodeCorrectness: [] // New: array of booleans for each node
+    };
 
-  if (!circles || !entryOrder || entryOrder.length !== this.sequence.length) {
-    result.message = 'Please enter all nodes into the portal in order.';
-    result.details = `Expected ${this.sequence.length} nodes, but got ${entryOrder ? entryOrder.length : 0}.`;
+    if (!circles || !entryOrder || entryOrder.length !== this.sequence.length) {
+      result.message = 'Please enter all nodes into the portal in order.';
+      result.details = `Expected ${this.sequence.length} nodes, but got ${entryOrder ? entryOrder.length : 0}.`;
+      return result;
+    }
+
+
+    // Map entryOrder (ids) to values, ensure correct mapping for partial scoring
+    let enteredValues = [];
+    if (Array.isArray(entryOrder) && entryOrder.length === this.sequence.length) {
+      for (let i = 0; i < entryOrder.length; i++) {
+        const id = entryOrder[i];
+        const circle = circles.find(c => c.id === id);
+        // Only push a number, never undefined or NaN
+        enteredValues.push(circle && !isNaN(Number(circle.value)) ? Number(circle.value) : null);
+      }
+    }
+
+    // Also store the circle objects for display
+    result.userCircles = [];
+    if (Array.isArray(entryOrder)) {
+      for (let i = 0; i < entryOrder.length; i++) {
+        const id = entryOrder[i];
+        const circle = circles.find(c => c.id === id);
+        if (circle) result.userCircles.push(circle);
+      }
+    }
+
+    // Per-node correctness
+    let correctCount = 0;
+    for (let i = 0; i < this.sequence.length; i++) {
+      if (enteredValues[i] === this.sequence[i]) {
+        result.perNodeCorrectness[i] = true;
+        correctCount++;
+      } else {
+        result.perNodeCorrectness[i] = false;
+      }
+    }
+
+    // Scoring: full correct = 100, else partial points
+    if (
+      correctCount === this.sequence.length &&
+      enteredValues.length === this.sequence.length &&
+      enteredValues.every((v, i) => v === this.sequence[i])
+    ) {
+      result.isCorrect = true;
+      result.score = 100;
+      result.message = '🌟 PERFECT! All nodes entered the portal in the correct order!';
+      result.details = `✅ Correct order: [${this.sequence.join(' → ')}]`;
+    } else {
+      // Partial score: equally weighted per node
+      result.score = Math.round((correctCount / this.sequence.length) * 100);
+      result.message = '❌ Incorrect order!';
+      result.details = `Expected: [${this.sequence.join(', ')}], got: [${enteredValues.join(', ')}]`;
+    }
     return result;
   }
-
-  // Map entryOrder (ids) to values
-  const idToValue = Object.fromEntries(circles.map(c => [c.id, parseInt(c.value)]));
-  const enteredValues = entryOrder.map(id => idToValue[id]);
-  
-  // Also store the circle objects for display
-  const idToCircle = Object.fromEntries(circles.map(c => [c.id, c]));
-  result.userCircles = entryOrder.map(id => idToCircle[id]).filter(Boolean);
-
-  if (this.arraysEqual(enteredValues, this.sequence)) {
-    result.isCorrect = true;
-    result.score = 100;
-    result.message = '🌟 PERFECT! All nodes entered the portal in the correct order!';
-    result.details = `✅ Correct order: [${this.sequence.join(' → ')}]`;
-  } else {
-    result.message = '❌ Incorrect order!';
-    result.details = `Expected: [${this.sequence.join(', ')}], got: [${enteredValues.join(', ')}]`;
-  }
-  return result;
-}
 
   arraysEqual(arr1, arr2) {
     return arr1.length === arr2.length && arr1.every((val, i) => val === arr2[i]);
