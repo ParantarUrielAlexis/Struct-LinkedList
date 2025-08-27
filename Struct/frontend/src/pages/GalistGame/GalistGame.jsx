@@ -1317,7 +1317,7 @@ function GalistGame() {
                 onMouseEnter={handleLunchHoverStart}
                 onMouseLeave={handleLunchHoverEnd}
               >
-                LUNCH
+                LAUNCH
               </button>
             </div>
             <button
