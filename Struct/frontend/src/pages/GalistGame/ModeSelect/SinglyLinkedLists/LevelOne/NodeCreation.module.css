@@ -409,7 +409,7 @@
   font-size: 14px;
   width: 300px;
   cursor: pointer;
-  height: 50px;
+  height: 55px;
   transition: background-color 0.2s;
   border-radius: 8px;
   border: none;
@@ -487,15 +487,9 @@
   background-color: #8c8c8c;
 }
 
-.portalButtonDisabled {
-  background-color: #333333;
-  color: #666666;
+.portalButton:disabled{
+  background-color: #282828;
   cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.portalButtonDisabled:hover {
-  background-color: #333333;
 }
 
 /* Open state overrides disabled state */
@@ -666,6 +660,7 @@
 .popupInput:disabled{
   background-color: #121212;
   color: #7c6c6c00;
+  cursor: not-allowed;
 }
 
 .popupInput::placeholder {
@@ -701,6 +696,7 @@
 .connectBtn:disabled{
   background-color: #2c2c2c;
   color: #414040;
+  cursor: not-allowed;
 }
 
 

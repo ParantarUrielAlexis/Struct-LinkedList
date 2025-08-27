@@ -7,7 +7,7 @@ import { ExerciseManager } from "./NodeCreationExercise";
 import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
 
-function GalistGameDeletion() {
+function GalistNodeCreation() {
   // --- Add refs to reliably track entry order and sucked circles ---
   const entryOrderRef = useRef([]);
   const suckedCirclesRef = useRef([]); // Will store the actual circle objects in order
@@ -16,7 +16,7 @@ function GalistGameDeletion() {
   const [address, setAddress] = useState("");
   const [value, setValue] = useState("");
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  const [showInsertButton, setShowInsertButton] = useState(false);
+  // const [showInsertButton, setShowInsertButton] = useState(false);
   const [showInsertModal, setShowInsertModal] = useState(false);
   const [showIndexModal, setShowIndexModal] = useState(false);
   const [insertIndex, setInsertIndex] = useState("");
@@ -66,7 +66,7 @@ function GalistGameDeletion() {
   const [validationResult, setValidationResult] = useState(null);
   const [showInstructionPopup, setShowInstructionPopup] = useState(false);
 
-  // Game menu actions
+  
   // const startGame = useCallback(() => {
   //   const next = { screen: "mode", mode: null };
   //   window.history.pushState(next, "");
@@ -121,7 +121,7 @@ function GalistGameDeletion() {
         setAddress("");
         setValue("");
         setShowDuplicateModal(false);
-        setShowInsertButton(false);
+        // setShowInsertButton(false);
         setShowInsertModal(false);
         setShowIndexModal(false);
         setInsertIndex("");
@@ -211,6 +211,7 @@ function GalistGameDeletion() {
       if (!isAnimating) return;
 
       setCircles((prevCircles) => {
+
         const circlesWithSpecialBehavior = prevCircles.map((circle) => {
           if (draggedCircle && circle.id === draggedCircle.id) {
             return circle;
@@ -222,7 +223,6 @@ function GalistGameDeletion() {
             const portalCenterY = window.innerHeight / 2;
             const dx = portalCenterX - circle.x;
             const dy = portalCenterY - circle.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
 
             // Portal entrance area
             const portalTop = window.innerHeight / 2 - 50;
@@ -236,14 +236,7 @@ function GalistGameDeletion() {
               circle.y >= entranceTop &&
               circle.y <= entranceBottom
             ) {
-              console.log(
-                "Circle entering portal:",
-                circle.id,
-                "with value:",
-                circle.value
-              );
               setTimeout(() => {
-                // Always update suckedCircles and entry order first
                 setSuckedCircles((prev) => {
                   let updated = prev;
                   if (!prev.includes(circle.id)) updated = [...prev, circle.id];
@@ -251,18 +244,15 @@ function GalistGameDeletion() {
                 });
                 setCurrentEntryOrder((prev) => {
                   let updated = prev;
-                  // Prevent duplicate addresses in the entry order
                   const addressAlreadyEntered = (
                     suckedCirclesRef.current || []
                   ).some((c) => c.address === circle.address);
                   if (!prev.includes(circle.id) && !addressAlreadyEntered) {
                     updated = [...prev, circle.id];
-                    // Only add to suckedCirclesRef if address is unique
                     suckedCirclesRef.current = [
                       ...(suckedCirclesRef.current || []),
                       { ...circle },
                     ];
-                    console.log("Adding to entry order:", circle.id);
                   }
                   entryOrderRef.current = updated;
                   return updated;
@@ -272,22 +262,17 @@ function GalistGameDeletion() {
                 );
 
                 setTimeout(() => {
-                  // Only validate when all expected nodes have entered the portal
                   const expectedCount =
                     currentExercise?.expectedStructure?.length || 0;
-                  // Use refs to get the latest values
                   const suckedIds = entryOrderRef.current;
-                  // Use only unique addresses for validation trigger
                   const suckedCirclesForValidation =
                     suckedCirclesRef.current || [];
-                  // Build unique, in-order arrays for validation
                   const uniqueCircles = [];
                   const uniqueIds = [];
                   const seenAddresses = new Set();
                   for (let i = 0; i < suckedCirclesForValidation.length; i++) {
                     const c = suckedCirclesForValidation[i];
                     if (c && !seenAddresses.has(c.address)) {
-                      // Ensure value is a number for validation
                       uniqueCircles.push({ ...c, value: Number(c.value) });
                       uniqueIds.push(suckedIds[i]);
                       seenAddresses.add(c.address);
@@ -296,7 +281,6 @@ function GalistGameDeletion() {
                   if (uniqueCircles.length === expectedCount) {
                     if (currentExercise) {
                       try {
-                        // Pass only the sucked-in circles (in order) and their IDs for validation
                         const result =
                           exerciseManagerRef.current.validateSubmission(
                             uniqueCircles,
@@ -315,12 +299,10 @@ function GalistGameDeletion() {
                         setShowValidationResult(true);
                       }
                     }
-                    // Remove the last circle from the screen, but DO NOT clear suckedCirclesRef or entryOrderRef here
                     setCircles((prevCircles) =>
                       prevCircles.filter((c) => c.id !== circle.id)
                     );
                   } else {
-                    // Remove the circle from the screen but do not validate yet
                     setCircles((prevCircles) =>
                       prevCircles.filter((c) => c.id !== circle.id)
                     );
@@ -330,12 +312,21 @@ function GalistGameDeletion() {
               return circle;
             }
 
-            // Suction force
-            const baseForce = 2.0;
-            const headBoost = 1.5;
-            const suctionForce = baseForce + headBoost;
-            const newVelocityX = (dx / distance) * suctionForce;
-            const newVelocityY = (dy / distance) * suctionForce;
+            // CONSTANT suction speed for all circles (true constant speed, not force)
+            const suctionSpeed = 1.0; // Lower for slower suction, higher for faster
+            const norm = Math.sqrt(dx * dx + dy * dy) || 1;
+            // If already at the portal, don't move
+            if (norm < suctionSpeed) {
+              return {
+                ...circle,
+                x: circle.x + dx,
+                y: circle.y + dy,
+                velocityX: dx,
+                velocityY: dy,
+              };
+            }
+            const newVelocityX = (dx / norm) * suctionSpeed;
+            const newVelocityY = (dy / norm) * suctionSpeed;
             return {
               ...circle,
               x: circle.x + newVelocityX,
@@ -345,23 +336,7 @@ function GalistGameDeletion() {
             };
           }
 
-          // Gentle suction if portal open
-          if (portalInfo.isVisible && !suckingCircles.includes(circle.id)) {
-            const portalCenter = {
-              x: 10 + portalInfo.canvasWidth / 2,
-              y: window.innerHeight / 2,
-            };
-            const dx = portalCenter.x - circle.x;
-            const dy = portalCenter.y - circle.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance > 80) {
-              const suctionForce = 0.1;
-              circle.velocityX =
-                (circle.velocityX || 0) + (dx / distance) * suctionForce;
-              circle.velocityY =
-                (circle.velocityY || 0) + (dy / distance) * suctionForce;
-            }
-          }
+          // Removed gentle suction when portal is open. Only circles in suckingCircles are affected.
 
           // Manual trigger for chain suction
           if (portalInfo.isVisible) {
@@ -531,7 +506,7 @@ function GalistGameDeletion() {
       clearTimeout(hoverTimer);
     }
     const timer = setTimeout(() => {
-      setShowInsertButton(true);
+      // setShowInsertButton(true);
     }, 2000);
     setHoverTimer(timer);
   };
@@ -543,34 +518,12 @@ function GalistGameDeletion() {
     }
 
     const hideTimer = setTimeout(() => {
-      setShowInsertButton(false);
+      // setShowInsertButton(false);
     }, 100);
     setHoverTimer(hideTimer);
   };
 
-  const handleInsertHover = () => {
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      setHoverTimer(null);
-    }
-  };
-
-  const handleInsertLeave = () => {
-    setShowInsertButton(false);
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      setHoverTimer(null);
-    }
-  };
-
-  const handleInsert = () => {
-    setShowInsertButton(false);
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      setHoverTimer(null);
-    }
-    setShowInsertModal(true);
-  };
+ 
 
   const closeInsertModal = () => {
     setShowInsertModal(false);
@@ -663,21 +616,6 @@ function GalistGameDeletion() {
     setValue("");
   };
 
-  // const getChainOrderForHead = useCallback(
-  //   (headId) => {
-  //     const order = [];
-  //     let currentId = headId;
-  //     const visited = new Set();
-  //     while (currentId && !visited.has(currentId)) {
-  //       visited.add(currentId);
-  //       order.push(currentId);
-  //       const next = connections.find((c) => c.from === currentId);
-  //       currentId = next ? next.to : null;
-  //     }
-  //     return order;
-  //   },
-  //   [connections]
-  // );
 
   const handleSpecificInsertion = (index) => {
     const targetIndex = parseInt(index);
@@ -702,26 +640,12 @@ function GalistGameDeletion() {
     setInsertIndex("");
   };
 
-  // const optimizeConnectionsAfterDeletion = (connections) => {
-  //   const connectionMap = new Map();
-  //   connections.forEach((conn) => {
-  //     const key = `${conn.from}-${conn.to}`;
-  //     if (!connectionMap.has(key)) {
-  //       connectionMap.set(key, conn);
-  //     }
-  //   });
-  //   return Array.from(connectionMap.values());
-  // };
+ 
 
   const handleDeleteCircle = () => {
     if (!selectedCircle) return;
     const nodeToDelete = selectedCircle.id;
-    // const incomingConnections = connections.filter(
-    //   (conn) => conn.to === nodeToDelete
-    // );
-    // const outgoingConnections = connections.filter(
-    //   (conn) => conn.from === nodeToDelete
-    // );
+    
     setCircles((prevCircles) =>
       prevCircles.filter((circle) => circle.id !== nodeToDelete)
     );
@@ -1056,23 +980,14 @@ function GalistGameDeletion() {
           className={styles.inputField}
         />
         <div className={styles.buttonContainer}>
-          {showInsertButton && (
-            <button
-              onClick={handleInsert}
-              className={styles.insertButton}
-              onMouseEnter={handleInsertHover}
-              onMouseLeave={handleInsertLeave}
-            >
-              INSERT
-            </button>
-          )}
+          
           <button
             onClick={launchCircle}
             className={styles.launchButton}
             onMouseEnter={handleLunchHoverStart}
             onMouseLeave={handleLunchHoverEnd}
           >
-            LUNCH
+            LAUNCH
           </button>
         </div>
         <button
@@ -1080,6 +995,7 @@ function GalistGameDeletion() {
           className={`${styles.portalButton} ${
             isPortalOpen ? styles.portalButtonOpen : ""
           }`}
+          disabled={circles.length === 0}
         >
           {isPortalOpen ? "CLOSE PORTAL" : "OPEN PORTAL"}
         </button>
@@ -1168,7 +1084,7 @@ function GalistGameDeletion() {
             </div>
 
             {/* Debug: Show raw validationResult object */}
-            <div
+            {/* <div
               style={{
                 color: "#aaa",
                 fontSize: "12px",
@@ -1189,7 +1105,7 @@ function GalistGameDeletion() {
               >
                 {JSON.stringify(validationResult, null, 2)}
               </pre>
-            </div>
+            </div> */}
 
             <div className={styles.expectedResultsSection}>
               <div className={styles.expectedLabel}>
@@ -1364,6 +1280,7 @@ function GalistGameDeletion() {
                 <button
                   onClick={handleConnect}
                   className={`${styles.popupButton} ${styles.connectBtn}`}
+                  disabled={true}
                 >
                   CONNECT
                 </button>
@@ -1479,4 +1396,4 @@ function GalistGameDeletion() {
   );
 }
 
-export default GalistGameDeletion;
+export default GalistNodeCreation;
