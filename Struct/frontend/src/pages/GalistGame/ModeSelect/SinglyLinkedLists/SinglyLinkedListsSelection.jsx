@@ -21,7 +21,10 @@ function SinglyLinkedListsSelection({ onSelect }) {
   const handleLevelSelect = (lvl) => {
     if (lvl.level === 4) {
       navigate("/galist-game-deletion");
-    } else {
+    } else if(lvl.level ===1 ) {
+      navigate("/galist-game-node-creation");
+    }
+    else {
       if (onSelect) onSelect(lvl.level);
       // You can add navigation for other levels here if needed
     }

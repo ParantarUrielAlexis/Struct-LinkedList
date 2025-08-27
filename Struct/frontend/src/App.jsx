@@ -18,6 +18,7 @@ import Store from "./pages/Store/Store";
 import GameShowcase from "./pages/GameShowcase";
 import GalistGame from "./pages/GalistGame/GalistGame";
 import GalistGameDeletion from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelFour/GalistDeletion";
+import GalistGameNodeCreation from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelOne/NodeCreation";
 
 import TeacherDashboard from "./pages/TeacherDashboard";
 
@@ -42,7 +43,8 @@ const AppLayout = () => {
     "/sortshiftinsertion",
     "/snake-game",
     "/galist-game",
-    "/galist-game-deletion"
+    "/galist-game-deletion",
+    "/galist-game-node-creation"
   ];
 
   // Check if the current route is in the header-only routes
@@ -119,6 +121,16 @@ const AppLayout = () => {
                 <ProtectedRoute>
                   <ClassRequiredWrapper>
                     <GalistGameDeletion />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+             <Route
+              path="/galist-game-node-creation"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <GalistGameNodeCreation />
                   </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
