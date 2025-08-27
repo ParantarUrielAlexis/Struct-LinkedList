@@ -1,4 +1,3 @@
-
 // NodeOrderExercise.js - Only validates the order of node values entered into the portal
 
 export class NodeOrderExercise {
@@ -9,51 +8,62 @@ export class NodeOrderExercise {
     this.description = exerciseData.description;
     this.key = exerciseData.key || null;
     // Build expectedStructure for frontend display
-    this.expectedStructure = this.sequence.map(value => ({
+    this.expectedStructure = this.sequence.map((value) => ({
       value,
-      address: this.addresses ? this.addresses[value] : ''
+      address: this.addresses ? this.addresses[value] : "",
     }));
   }
 
   // Validate only the order of values entered into the portal
+  // Accept either:
+  // 1) circles: array already in the user's entry order (preferred), or
+  // 2) circles + entryOrder: IDs indicating the order
   validateSubmission(circles, _connections, entryOrder = null) {
     const result = {
       isCorrect: false,
-      message: '',
-      details: '',
+      message: "",
+      details: "",
       score: 0,
       totalPoints: 100,
       userCircles: [], // Add this to store user's entered circles
-      perNodeCorrectness: [] // New: array of booleans for each node
+      perNodeCorrectness: [], // New: array of booleans for each node
     };
 
-    if (!circles || !entryOrder || entryOrder.length !== this.sequence.length) {
-      result.message = 'Please enter all nodes into the portal in order.';
-      result.details = `Expected ${this.sequence.length} nodes, but got ${entryOrder ? entryOrder.length : 0}.`;
+    // Determine the entered circles in order
+    let enteredCircles = [];
+    // Preferred: if circles is already in the user's order and length matches expected
+    if (Array.isArray(circles) && circles.length === this.sequence.length) {
+      enteredCircles = circles.slice();
+    } else if (
+      Array.isArray(circles) &&
+      Array.isArray(entryOrder) &&
+      entryOrder.length === this.sequence.length
+    ) {
+      // Fallback: map by IDs
+      for (let i = 0; i < entryOrder.length; i++) {
+        const id = entryOrder[i];
+        const circle = circles.find((c) => c && c.id === id);
+        if (circle) enteredCircles.push(circle);
+      }
+    }
+
+    if (
+      !Array.isArray(enteredCircles) ||
+      enteredCircles.length !== this.sequence.length
+    ) {
+      result.message = "Please enter all nodes into the portal in order.";
+      result.details = `Expected ${this.sequence.length} nodes, but got ${
+        Array.isArray(enteredCircles) ? enteredCircles.length : 0
+      }.`;
       return result;
     }
 
-
-    // Map entryOrder (ids) to values, ensure correct mapping for partial scoring
-    let enteredValues = [];
-    if (Array.isArray(entryOrder) && entryOrder.length === this.sequence.length) {
-      for (let i = 0; i < entryOrder.length; i++) {
-        const id = entryOrder[i];
-        const circle = circles.find(c => c.id === id);
-        // Only push a number, never undefined or NaN
-        enteredValues.push(circle && !isNaN(Number(circle.value)) ? Number(circle.value) : null);
-      }
-    }
-
-    // Also store the circle objects for display
-    result.userCircles = [];
-    if (Array.isArray(entryOrder)) {
-      for (let i = 0; i < entryOrder.length; i++) {
-        const id = entryOrder[i];
-        const circle = circles.find(c => c.id === id);
-        if (circle) result.userCircles.push(circle);
-      }
-    }
+    // Values from entered circles
+    const enteredValues = enteredCircles.map((c) =>
+      c && !isNaN(Number(c.value)) ? Number(c.value) : null
+    );
+    // Also expose for UI
+    result.userCircles = enteredCircles.slice();
 
     // Per-node correctness
     let correctCount = 0;
@@ -74,19 +84,24 @@ export class NodeOrderExercise {
     ) {
       result.isCorrect = true;
       result.score = 100;
-      result.message = '🌟 PERFECT! All nodes entered the portal in the correct order!';
-      result.details = `✅ Correct order: [${this.sequence.join(' → ')}]`;
+      result.message =
+        "🌟 PERFECT! All nodes entered the portal in the correct order!";
+      result.details = `✅ Correct order: [${this.sequence.join(" → ")}]`;
     } else {
       // Partial score: equally weighted per node
       result.score = Math.round((correctCount / this.sequence.length) * 100);
-      result.message = '❌ Incorrect order!';
-      result.details = `Expected: [${this.sequence.join(', ')}], got: [${enteredValues.join(', ')}]`;
+      result.message = "❌ Incorrect order!";
+      result.details = `Expected: [${this.sequence.join(
+        ", "
+      )}], got: [${enteredValues.join(", ")}]`;
     }
     return result;
   }
 
   arraysEqual(arr1, arr2) {
-    return arr1.length === arr2.length && arr1.every((val, i) => val === arr2[i]);
+    return (
+      arr1.length === arr2.length && arr1.every((val, i) => val === arr2[i])
+    );
   }
 }
 
@@ -99,10 +114,10 @@ export const EXERCISE_TEMPLATES = {
       2: "b",
       3: "c",
       4: "d",
-      5: "e"
+      5: "e",
     },
     title: "Node Creation Order",
-    description: "Enter the nodes into the portal in the correct order."
+    description: "Enter the nodes into the portal in the correct order.",
   },
   exercise_two: {
     sequence: [10, 4, 2, 17, 9, 5],
@@ -112,10 +127,10 @@ export const EXERCISE_TEMPLATES = {
       2: "x",
       17: "w",
       9: "v",
-      5: "u"
+      5: "u",
     },
     title: "Node Creation Order",
-    description: "Enter the nodes into the portal in the correct order."
+    description: "Enter the nodes into the portal in the correct order.",
   },
   exercise_tree: {
     sequence: [66, 65, 64, 67, 76, 77, 78],
@@ -126,11 +141,11 @@ export const EXERCISE_TEMPLATES = {
       67: "o",
       76: "p",
       77: "q",
-      78: "r"
+      78: "r",
     },
     title: "Node Creation Order",
-    description: "Enter the nodes into the portal in the correct order."
-  }
+    description: "Enter the nodes into the portal in the correct order.",
+  },
 };
 
 // Exercise manager class
@@ -157,10 +172,10 @@ export class ExerciseManager {
   // Submit answer for validation (store for later)
   submitAnswer(circles) {
     if (!this.currentExercise) {
-      throw new Error('No exercise loaded');
+      throw new Error("No exercise loaded");
     }
     this.submissionData = {
-      circles: JSON.parse(JSON.stringify(circles))
+      circles: JSON.parse(JSON.stringify(circles)),
     };
     this.isWaitingForValidation = true;
     return true;
@@ -171,18 +186,14 @@ export class ExerciseManager {
     if (!this.currentExercise) {
       return {
         isCorrect: false,
-        message: 'System not ready',
-        details: 'Please try again in a moment.',
+        message: "System not ready",
+        details: "Please try again in a moment.",
         score: 0,
-        totalPoints: 100
+        totalPoints: 100,
       };
     }
     // Use provided circles and entryOrder
-    return this.currentExercise.validateSubmission(
-      circles,
-      [],
-      entryOrder
-    );
+    return this.currentExercise.validateSubmission(circles, [], entryOrder);
   }
 
   getCurrentExercise() {

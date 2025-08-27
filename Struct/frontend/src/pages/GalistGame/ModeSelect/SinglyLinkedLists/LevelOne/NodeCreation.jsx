@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
 import styles from "./NodeCreation.module.css";
-import { ExerciseManager} from "./NodeCreationExercise";
+import { ExerciseManager } from "./NodeCreationExercise";
 import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
 
@@ -34,7 +34,7 @@ function GalistGameDeletion() {
   const [currentEntryOrder, setCurrentEntryOrder] = useState([]);
   const [originalSubmission, setOriginalSubmission] = useState(null);
 
-    // Exercise progress indicator logic
+  // Exercise progress indicator logic
   const EXERCISE_KEYS = ["exercise_one", "exercise_two", "exercise_tree"];
   const currentExerciseNumber = EXERCISE_KEYS.indexOf(exerciseKey) + 1;
   const totalExercises = EXERCISE_KEYS.length;
@@ -158,8 +158,6 @@ function GalistGameDeletion() {
 
   // No head/tail logic needed for node creation level
 
-  
-
   const loadExercise = useCallback((key = "exercise_one") => {
     // Always clear circles/connections and reset launch state before loading new exercise
     setCircles([]);
@@ -167,6 +165,9 @@ function GalistGameDeletion() {
     setSuckingCircles([]);
     setSuckedCircles([]);
     setCurrentEntryOrder([]);
+    // Clear persistent refs to avoid stale data between runs
+    if (entryOrderRef) entryOrderRef.current = [];
+    if (suckedCirclesRef) suckedCirclesRef.current = [];
     setOriginalSubmission(null);
     setShowValidationResult(false);
     setValidationResult(null);
@@ -235,7 +236,12 @@ function GalistGameDeletion() {
               circle.y >= entranceTop &&
               circle.y <= entranceBottom
             ) {
-              console.log('Circle entering portal:', circle.id, 'with value:', circle.value);
+              console.log(
+                "Circle entering portal:",
+                circle.id,
+                "with value:",
+                circle.value
+              );
               setTimeout(() => {
                 // Always update suckedCircles and entry order first
                 setSuckedCircles((prev) => {
@@ -246,25 +252,34 @@ function GalistGameDeletion() {
                 setCurrentEntryOrder((prev) => {
                   let updated = prev;
                   // Prevent duplicate addresses in the entry order
-                  const addressAlreadyEntered = (suckedCirclesRef.current || []).some(c => c.address === circle.address);
+                  const addressAlreadyEntered = (
+                    suckedCirclesRef.current || []
+                  ).some((c) => c.address === circle.address);
                   if (!prev.includes(circle.id) && !addressAlreadyEntered) {
                     updated = [...prev, circle.id];
                     // Only add to suckedCirclesRef if address is unique
-                    suckedCirclesRef.current = [...(suckedCirclesRef.current || []), { ...circle }];
-                    console.log('Adding to entry order:', circle.id);
+                    suckedCirclesRef.current = [
+                      ...(suckedCirclesRef.current || []),
+                      { ...circle },
+                    ];
+                    console.log("Adding to entry order:", circle.id);
                   }
                   entryOrderRef.current = updated;
                   return updated;
                 });
-                setSuckingCircles((prev) => prev.filter((id) => id !== circle.id));
+                setSuckingCircles((prev) =>
+                  prev.filter((id) => id !== circle.id)
+                );
 
                 setTimeout(() => {
                   // Only validate when all expected nodes have entered the portal
-                  const expectedCount = currentExercise?.expectedStructure?.length || 0;
+                  const expectedCount =
+                    currentExercise?.expectedStructure?.length || 0;
                   // Use refs to get the latest values
                   const suckedIds = entryOrderRef.current;
                   // Use only unique addresses for validation trigger
-                  const suckedCirclesForValidation = suckedCirclesRef.current || [];
+                  const suckedCirclesForValidation =
+                    suckedCirclesRef.current || [];
                   // Build unique, in-order arrays for validation
                   const uniqueCircles = [];
                   const uniqueIds = [];
@@ -285,7 +300,6 @@ function GalistGameDeletion() {
                         const result =
                           exerciseManagerRef.current.validateSubmission(
                             uniqueCircles,
-                            [],
                             uniqueIds
                           );
                         setValidationResult(result);
@@ -302,10 +316,14 @@ function GalistGameDeletion() {
                       }
                     }
                     // Remove the last circle from the screen, but DO NOT clear suckedCirclesRef or entryOrderRef here
-                    setCircles((prevCircles) => prevCircles.filter((c) => c.id !== circle.id));
+                    setCircles((prevCircles) =>
+                      prevCircles.filter((c) => c.id !== circle.id)
+                    );
                   } else {
                     // Remove the circle from the screen but do not validate yet
-                    setCircles((prevCircles) => prevCircles.filter((c) => c.id !== circle.id));
+                    setCircles((prevCircles) =>
+                      prevCircles.filter((c) => c.id !== circle.id)
+                    );
                   }
                 }, 0);
               }, 50);
@@ -338,8 +356,10 @@ function GalistGameDeletion() {
             const distance = Math.sqrt(dx * dx + dy * dy);
             if (distance > 80) {
               const suctionForce = 0.1;
-              circle.velocityX = (circle.velocityX || 0) + (dx / distance) * suctionForce;
-              circle.velocityY = (circle.velocityY || 0) + (dy / distance) * suctionForce;
+              circle.velocityX =
+                (circle.velocityX || 0) + (dx / distance) * suctionForce;
+              circle.velocityY =
+                (circle.velocityY || 0) + (dy / distance) * suctionForce;
             }
           }
 
@@ -370,11 +390,16 @@ function GalistGameDeletion() {
         // Second pass: Apply collision detection and physics
         const allCirclesForCollision = circlesWithSpecialBehavior;
         const draggedCircleData = draggedCircle
-          ? allCirclesForCollision.find((circle) => circle.id === draggedCircle.id)
+          ? allCirclesForCollision.find(
+              (circle) => circle.id === draggedCircle.id
+            )
           : null;
         const updatedAllCircles =
           allCirclesForCollision.length > 0
-            ? collisionDetection.updatePhysics(allCirclesForCollision, suckingCircles)
+            ? collisionDetection.updatePhysics(
+                allCirclesForCollision,
+                suckingCircles
+              )
             : [];
         let finalCircles = updatedAllCircles;
         if (draggedCircleData) {
@@ -414,44 +439,40 @@ function GalistGameDeletion() {
   ]);
 
   // Handle connection removal when circles are sucked
-    useEffect(() => {
-      if (suckedCircles.length > 0) {
-        const timer = setTimeout(() => {
-          setConnections((prevConnections) =>
-            prevConnections.filter((connection) => {
-              const fromSucked = suckedCircles.includes(connection.from);
-              const toSucked = suckedCircles.includes(connection.to);
-              return !(fromSucked && toSucked);
-            })
-          );
-        }, 500);
-  
-        return () => clearTimeout(timer);
-      }
-    }, [suckedCircles]);
+  useEffect(() => {
+    if (suckedCircles.length > 0) {
+      const timer = setTimeout(() => {
+        setConnections((prevConnections) =>
+          prevConnections.filter((connection) => {
+            const fromSucked = suckedCircles.includes(connection.from);
+            const toSucked = suckedCircles.includes(connection.to);
+            return !(fromSucked && toSucked);
+          })
+        );
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [suckedCircles]);
 
   // Auto-suction effect when portal opens - prioritize head nodes
-   useEffect(() => {
-      if (portalInfo.isVisible && circles.length > 0) {
-        // For node creation, just suck in all circles (no head/tail logic)
-        circles.forEach((node, index) => {
-          setTimeout(() => {
-            setSuckingCircles((prev) => {
-              if (!prev.includes(node.id)) {
-                return [...prev, node.id];
-              }
-              return prev;
-            });
-          }, index * 200);
-        });
-      } else if (!portalInfo.isVisible) {
-        setSuckingCircles([]);
-      }
-    }, [
-      portalInfo.isVisible,
-      circles,
-      connections,
-    ]);
+  useEffect(() => {
+    if (portalInfo.isVisible && circles.length > 0) {
+      // For node creation, just suck in all circles (no head/tail logic)
+      circles.forEach((node, index) => {
+        setTimeout(() => {
+          setSuckingCircles((prev) => {
+            if (!prev.includes(node.id)) {
+              return [...prev, node.id];
+            }
+            return prev;
+          });
+        }, index * 200);
+      });
+    } else if (!portalInfo.isVisible) {
+      setSuckingCircles([]);
+    }
+  }, [portalInfo.isVisible, circles, connections]);
 
   // Mouse event handlers for dragging
   const handleMouseDown = (e, circle) => {
@@ -619,10 +640,10 @@ function GalistGameDeletion() {
       velocityY: -5 - Math.random() * 3,
     };
 
-  setCircles((prev) => [...prev, newHead]);
-  // Do not clear suckedCirclesRef or entryOrderRef here
-  setAddress("");
-  setValue("");
+    setCircles((prev) => [...prev, newHead]);
+    // Do not clear suckedCirclesRef or entryOrderRef here
+    setAddress("");
+    setValue("");
   };
 
   const handleTailInsertion = () => {
@@ -636,10 +657,10 @@ function GalistGameDeletion() {
       velocityY: -5 - Math.random() * 3,
     };
 
-  setCircles((prev) => [...prev, newTail]);
-  // Do not clear suckedCirclesRef or entryOrderRef here
-  setAddress("");
-  setValue("");
+    setCircles((prev) => [...prev, newTail]);
+    // Do not clear suckedCirclesRef or entryOrderRef here
+    setAddress("");
+    setValue("");
   };
 
   // const getChainOrderForHead = useCallback(
@@ -674,11 +695,11 @@ function GalistGameDeletion() {
       velocityY: -5 - Math.random() * 3,
     };
 
-  setCircles((prev) => [...prev, newNode]);
-  // Do not clear suckedCirclesRef or entryOrderRef here
-  setAddress("");
-  setValue("");
-  setInsertIndex("");
+    setCircles((prev) => [...prev, newNode]);
+    // Do not clear suckedCirclesRef or entryOrderRef here
+    setAddress("");
+    setValue("");
+    setInsertIndex("");
   };
 
   // const optimizeConnectionsAfterDeletion = (connections) => {
@@ -705,7 +726,9 @@ function GalistGameDeletion() {
       prevCircles.filter((circle) => circle.id !== nodeToDelete)
     );
     setConnections((prevConnections) =>
-      prevConnections.filter((conn) => conn.from !== nodeToDelete && conn.to !== nodeToDelete)
+      prevConnections.filter(
+        (conn) => conn.from !== nodeToDelete && conn.to !== nodeToDelete
+      )
     );
     closePopup();
   };
@@ -920,14 +943,13 @@ function GalistGameDeletion() {
       velocityY: -5 - Math.random() * 3,
     };
 
-  setCircles((prev) => [...prev, newCircle]);
-  // Do not clear suckedCirclesRef or entryOrderRef here
-  setAddress("");
-  setValue("");
+    setCircles((prev) => [...prev, newCircle]);
+    // Do not clear suckedCirclesRef or entryOrderRef here
+    setAddress("");
+    setValue("");
   };
 
   return (
-    
     <div className={styles.app}>
       <video
         className={styles.videoBackground}
@@ -957,7 +979,7 @@ function GalistGameDeletion() {
 
       {/* Expected results bar */}
       {currentExercise && currentExercise.expectedStructure && (
-    <div className={styles.expectedBarWrapper}>
+        <div className={styles.expectedBarWrapper}>
           <table className={styles.expectedBarTable}>
             <tbody>
               <tr className={styles.expectedBarRow}>
@@ -965,8 +987,12 @@ function GalistGameDeletion() {
                   <React.Fragment key={node.address}>
                     <td className={styles.expectedBarCell}>
                       <div className={styles.expectedBarCircle}>
-                        <div className={styles.expectedBarValue}>{node.value}</div>
-                        <div className={styles.expectedBarAddress}>{node.address}</div>
+                        <div className={styles.expectedBarValue}>
+                          {node.value}
+                        </div>
+                        <div className={styles.expectedBarAddress}>
+                          {node.address}
+                        </div>
                       </div>
                     </td>
                     {idx < currentExercise.expectedStructure.length - 1 && (
@@ -981,11 +1007,10 @@ function GalistGameDeletion() {
           </table>
         </div>
       )}
-      
+
       {showInstructionPopup &&
         currentExercise &&
         currentExercise.expectedStructure && (
-          
           <div className={styles.instructionPopup}>
             <div className={styles.instructionContent}>
               <h1>{currentExercise.title}</h1>
@@ -1007,18 +1032,14 @@ function GalistGameDeletion() {
               </button>
             </div>
           </div>
-          
         )}
-     
+
       <PortalComponent
         onPortalStateChange={handlePortalStateChange}
         isOpen={isPortalOpen}
       />
-      <div
-        className={styles.rightSquare}
-        style={{ outlineOffset: "5px" }}
-      />
-      
+      <div className={styles.rightSquare} style={{ outlineOffset: "5px" }} />
+
       <div className={styles.controls}>
         <input
           type="text"
@@ -1056,12 +1077,14 @@ function GalistGameDeletion() {
         </div>
         <button
           onClick={togglePortal}
-          className={`${styles.portalButton} ${isPortalOpen ? styles.portalButtonOpen : ""}`}
+          className={`${styles.portalButton} ${
+            isPortalOpen ? styles.portalButtonOpen : ""
+          }`}
         >
           {isPortalOpen ? "CLOSE PORTAL" : "OPEN PORTAL"}
         </button>
       </div>
-      
+
       {circles.map((circle) => (
         <div
           key={circle.id}
@@ -1083,7 +1106,7 @@ function GalistGameDeletion() {
           <span className={styles.circleAddress}>{circle.address}</span>
         </div>
       ))}
-      
+
       <svg className={styles.connectionLines}>
         {connections.map((connection) => {
           // Only remove the line if BOTH nodes have been sucked
@@ -1145,9 +1168,27 @@ function GalistGameDeletion() {
             </div>
 
             {/* Debug: Show raw validationResult object */}
-            <div style={{ color: '#aaa', fontSize: '12px', marginBottom: '10px', wordBreak: 'break-all' }}>
+            <div
+              style={{
+                color: "#aaa",
+                fontSize: "12px",
+                marginBottom: "10px",
+                wordBreak: "break-all",
+              }}
+            >
               <strong>Debug validationResult:</strong>
-              <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', background: '#222', color: '#eee', padding: '6px', borderRadius: '4px' }}>{JSON.stringify(validationResult, null, 2)}</pre>
+              <pre
+                style={{
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-all",
+                  background: "#222",
+                  color: "#eee",
+                  padding: "6px",
+                  borderRadius: "4px",
+                }}
+              >
+                {JSON.stringify(validationResult, null, 2)}
+              </pre>
             </div>
 
             <div className={styles.expectedResultsSection}>
@@ -1159,46 +1200,88 @@ function GalistGameDeletion() {
                 <table className={styles.validationTable}>
                   <tbody>
                     <tr className={styles.expectedRow}>
-                      {currentExercise.expectedStructure.map((expectedNode, index) => (
-                        <React.Fragment key={`expected-${expectedNode.value}`}>
-                          <td className={styles.expectedCell}>
-                            <div className={styles.expectedValue}>{expectedNode.value}</div>
-                            <div className={styles.expectedAddress}>{expectedNode.address}</div>
-                          </td>
-                          {index < currentExercise.expectedStructure.length - 1 && (
-                            <td className={styles.arrowCellEmpty}></td>
-                          )}
-                        </React.Fragment>
-                      ))}
+                      {currentExercise.expectedStructure.map(
+                        (expectedNode, index) => (
+                          <React.Fragment
+                            key={`expected-${expectedNode.value}`}
+                          >
+                            <td className={styles.expectedCell}>
+                              <div className={styles.expectedValue}>
+                                {expectedNode.value}
+                              </div>
+                              <div className={styles.expectedAddress}>
+                                {expectedNode.address}
+                              </div>
+                            </td>
+                            {index <
+                              currentExercise.expectedStructure.length - 1 && (
+                              <td className={styles.arrowCellEmpty}></td>
+                            )}
+                          </React.Fragment>
+                        )
+                      )}
                     </tr>
                     <tr className={styles.userRow}>
                       {(() => {
-                        // Always use the persistent suckedCirclesRef for the user row
-                        let userOrder = suckedCirclesRef.current || [];
-                        return currentExercise.expectedStructure.map((expectedNode, index) => {
-                          const userNode = userOrder[index];
-                          const isCorrect = userNode && parseInt(userNode.value) === parseInt(expectedNode.value);
-                          return (
-                            <React.Fragment key={`user-${expectedNode.value}`}>
-                              <td className={styles.userCell}>
-                                {userNode ? (
-                                  <div className={`${styles.userNode} ${isCorrect ? styles.userNodeCorrect : styles.userNodeIncorrect}`}>
-                                    <div className={styles.userNodeValue}>{userNode.value}</div>
-                                    <div className={styles.userNodeAddress}>{userNode.address}</div>
-                                  </div>
-                                ) : (
-                                  <div className={`${styles.userNode} ${styles.userNodeMissing}`}>
-                                    <div className={styles.userNodeValue}>?</div>
-                                    <div className={styles.userNodeAddress}>?</div>
-                                  </div>
+                        // Prefer validated userCircles to ensure UI matches scoring
+                        const validated =
+                          validationResult &&
+                          Array.isArray(validationResult.userCircles)
+                            ? validationResult.userCircles
+                            : null;
+                        let userOrder =
+                          validated && validated.length > 0
+                            ? validated
+                            : suckedCirclesRef.current || [];
+                        return currentExercise.expectedStructure.map(
+                          (expectedNode, index) => {
+                            const userNode = userOrder[index];
+                            const isCorrect =
+                              userNode &&
+                              parseInt(userNode.value) ===
+                                parseInt(expectedNode.value);
+                            return (
+                              <React.Fragment
+                                key={`user-${expectedNode.value}`}
+                              >
+                                <td className={styles.userCell}>
+                                  {userNode ? (
+                                    <div
+                                      className={`${styles.userNode} ${
+                                        isCorrect
+                                          ? styles.userNodeCorrect
+                                          : styles.userNodeIncorrect
+                                      }`}
+                                    >
+                                      <div className={styles.userNodeValue}>
+                                        {userNode.value}
+                                      </div>
+                                      <div className={styles.userNodeAddress}>
+                                        {userNode.address}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div
+                                      className={`${styles.userNode} ${styles.userNodeMissing}`}
+                                    >
+                                      <div className={styles.userNodeValue}>
+                                        ?
+                                      </div>
+                                      <div className={styles.userNodeAddress}>
+                                        ?
+                                      </div>
+                                    </div>
+                                  )}
+                                </td>
+                                {index <
+                                  currentExercise.expectedStructure.length -
+                                    1 && (
+                                  <td className={styles.arrowCell}>→</td>
                                 )}
-                              </td>
-                              {index < currentExercise.expectedStructure.length - 1 && (
-                                <td className={styles.arrowCell}>→</td>
-                              )}
-                            </React.Fragment>
-                          );
-                        });
+                              </React.Fragment>
+                            );
+                          }
+                        );
                       })()}
                     </tr>
                   </tbody>
@@ -1212,22 +1295,42 @@ function GalistGameDeletion() {
                   setShowValidationResult(false);
                   setIsPortalOpen(false);
                   setPortalInfo((prev) => ({ ...prev, isVisible: false }));
-                  if (validationResult && validationResult.isCorrect && exerciseKey === "exercise_one") {
+                  // Clear refs and local entry state for a clean retry/next
+                  if (entryOrderRef) entryOrderRef.current = [];
+                  if (suckedCirclesRef) suckedCirclesRef.current = [];
+                  setSuckedCircles([]);
+                  setCurrentEntryOrder([]);
+                  if (
+                    validationResult &&
+                    validationResult.isCorrect &&
+                    exerciseKey === "exercise_one"
+                  ) {
                     loadExercise("exercise_two");
-                  } else if (validationResult && validationResult.isCorrect && exerciseKey === "exercise_two") {
+                  } else if (
+                    validationResult &&
+                    validationResult.isCorrect &&
+                    exerciseKey === "exercise_two"
+                  ) {
                     loadExercise("exercise_tree");
                   }
                 }}
                 className={styles.continueButton}
               >
-                {validationResult && validationResult.isCorrect && exerciseKey === "exercise_one" ? "NEXT EXERCISE" :
-                validationResult && validationResult.isCorrect && exerciseKey === "exercise_two" ? "NEXT EXERCISE" : "CONTINUE"}
+                {validationResult &&
+                validationResult.isCorrect &&
+                exerciseKey === "exercise_one"
+                  ? "NEXT EXERCISE"
+                  : validationResult &&
+                    validationResult.isCorrect &&
+                    exerciseKey === "exercise_two"
+                  ? "NEXT EXERCISE"
+                  : "CONTINUE"}
               </button>
             </div>
           </div>
         </div>
       )}
-      
+
       {selectedCircle && (
         <div className={styles.popupOverlay} onClick={closePopup}>
           <div
