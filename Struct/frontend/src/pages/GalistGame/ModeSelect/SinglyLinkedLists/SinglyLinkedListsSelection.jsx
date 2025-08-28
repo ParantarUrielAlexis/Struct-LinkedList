@@ -23,8 +23,9 @@ function SinglyLinkedListsSelection({ onSelect }) {
       navigate("/galist-game-deletion");
     } else if(lvl.level ===1 ) {
       navigate("/galist-game-node-creation");
-    }
-    else {
+    } else if(lvl.level ===2 ) {
+      navigate("/galist-game-linking-node");
+    } else {
       if (onSelect) onSelect(lvl.level);
       // You can add navigation for other levels here if needed
     }
