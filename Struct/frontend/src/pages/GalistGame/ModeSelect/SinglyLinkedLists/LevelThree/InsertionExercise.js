@@ -340,100 +340,58 @@ export class LinkedListExercise {
 // Predefined exercise templates
 export const EXERCISE_TEMPLATES = {
   exercise_one: {
-    sequence: [1, 2, 3, 4, 5],
+    sequence: [4, 2, 1, 3, 10],
     addresses: {
-      1: "a",
-      2: "b",
-      3: "c",
-      4: "d",
-      5: "e"
+      4: "ab",
+      2: "cd",
+      1: "ef",
+      3: "gh",
+      10: "ij"
     },
-    title: "Fix the Linked Lists",
-    description: "Delete some unnecessary Nodes to achieve the desired linked list structure"
+    title: "Insert the following nodes",
+    description: "Insert the nodes into the linked list in the correct order"
   },
   exercise_two: {
-    sequence: [10, 4, 2, 17, 9, 5],
+    sequence: [11, 57, 24, 42, 81, 52],
     addresses: {
-      10: "z",
-      4: "y",
-      2: "x",
-      17: "w",
-      9: "v",
-      5: "u",
+      11: "z10",
+      57: "y15",
+      24: "x20",
+      42: "w25",
+      81: "v30",
+      52: "u35",
     },
-    title: "Fix the Linked Lists",
-    description: "Delete some unnecessary Nodes to achieve the desired linked list structure"
+    title: "Insert the following nodes",
+    description: "Insert the nodes into the linked list in the correct order"
   },
   exercise_tree: {
-    sequence: [66, 65, 64, 67, 76, 77, 78],
+    sequence: [91, 76, 23, 12, 41, 22, 34],
     addresses: {
-      66: "l",
-      65: "m",
-      64: "n",
-      67: "o",
-      76: "p",
-      77: "q",
-      78: "r"
+      91: "0x57",
+      76: "0x58",
+      23: "0x59",
+      12: "0x5a",
+      41: "0x5b",
+      22: "0x5c",
+      34: "0x5d"
     },
-    title: "Fix the Linked Lists",
-    description: "Delete some unnecessary Nodes to achieve the desired linked list structure"
+    title: "Insert the following nodes",
+    description: "Insert the nodes into the linked list in the correct order"
   }
 };
   export const INITIAL_CIRCLES = [
-    { id: 1, value: "8", address: "z", next: "a" },
-    { id: 2, value: "1", address: "a", next: "f" },
-    { id: 3, value: "6", address: "f", next: "g" },
-    { id: 4, value: "7", address: "g", next: "b" },
-    { id: 5, value: "2", address: "b", next: "j" },
-    { id: 6, value: "10", address: "j", next: "c" },
-    { id: 7, value: "3", address: "c", next: "d" },
-    { id: 8, value: "4", address: "d", next: "h" },
-    { id: 9, value: "9", address: "h", next: "e" },
-    { id: 10, value: "5", address: "e", next: null }
+    { id: 1, value: "1", address: "ef", next: "gh" },
+    { id: 2, value: "3", address: "gh", next: null },
   ];
   export const INITIAL_CIRCLES_TWO = [
-    { id: 1, value: "19", address: "a", next: "s" },
-    { id: 2, value: "18", address: "s", next: "d" },
-    { id: 3, value: "10", address: "d", next: "z" },
-    { id: 4, value: "10", address: "z", next: "b" },
-    { id: 5, value: "11", address: "b", next: "y" },
-    { id: 6, value: "4", address: "y", next: "p" },
-    { id: 7, value: "17", address: "p", next: "t" },
-    { id: 8, value: "25", address: "t", next: "x" },
-    { id: 9, value: "2", address: "x", next: "f" },
-    { id: 10, value: "40", address: "f", next: "w" },
-    { id: 11, value: "17", address: "w", next: "v" },
-    { id: 12, value: "9", address: "v", next: "g" },
-    { id: 13, value: "41", address: "g", next: "h" },
-    { id: 14, value: "81", address: "h", next: "u" },
-    { id: 15, value: "5", address: "u", next: "i" },
-    { id: 16, value: "71", address: "i", next: "m" },
-    { id: 17, value: "87", address: "m", next: null }
+    { id: 1, value: "11", address: "z10", next: "x20" },
+    { id: 2, value: "24", address: "x20", next: "v30" },
+    { id: 3, value: "81", address: "v30", next: null }
   ];
   export const INITIAL_CIRCLES_THREE = [
-    { id: 1, value: "62", address: "t", next: "a" },
-    { id: 2, value: "66", address: "a", next: "b" },
-    { id: 3, value: "67", address: "b", next: "l" },
-    { id: 4, value: "66", address: "l", next: "d" },
-    { id: 5, value: "65", address: "d", next: "e" },
-    { id: 6, value: "65", address: "e", next: "m" },
-    { id: 7, value: "65", address: "m", next: "f" },
-    { id: 8, value: "72", address: "f", next: "g" },
-    { id: 9, value: "77", address: "g", next: "h" },
-    { id: 10, value: "64", address: "h", next: "n" },
-    { id: 11, value: "64", address: "n", next: "i" },
-    { id: 12, value: "77", address: "i", next: "j" },
-    { id: 13, value: "61", address: "j", next: "o" },
-    { id: 14, value: "67", address: "o", next: "k" },
-    { id: 15, value: "68", address: "k", next: "z" },
-    { id: 16, value: "76", address: "z", next: "p" },
-    { id: 17, value: "76", address: "p", next: "q" },
-    { id: 18, value: "77", address: "q", next: "y" },
-    { id: 19, value: "80", address: "y", next: "x" },
-    { id: 20, value: "81", address: "x", next: "r" },
-    { id: 21, value: "78", address: "r", next: "w" },
-    { id: 22, value: "78", address: "w", next: "v" },
-    { id: 23, value: "78", address: "v", next: null }
+    { id: 1, value: "76", address: "0x58", next: "0x59" },
+    { id: 2, value: "23", address: "0x59", next: "0x5c" },
+    { id: 3, value: "22", address: "0x5c", next: null },
   ];
   
 

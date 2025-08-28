@@ -709,43 +709,6 @@ function GalistGameInsertionNode() {
     setShowDuplicateModal(false);
   };
 
-  const handleLunchHoverStart = () => {
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-    }
-    const timer = setTimeout(() => {
-      setShowInsertButton(true);
-    }, 2000);
-    setHoverTimer(timer);
-  };
-
-  const handleLunchHoverEnd = () => {
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      setHoverTimer(null);
-    }
-
-    const hideTimer = setTimeout(() => {
-      setShowInsertButton(false);
-    }, 100);
-    setHoverTimer(hideTimer);
-  };
-
-  const handleInsertHover = () => {
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      setHoverTimer(null);
-    }
-  };
-
-  const handleInsertLeave = () => {
-    setShowInsertButton(false);
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      setHoverTimer(null);
-    }
-  };
-
   const handleInsert = () => {
     setShowInsertButton(false);
     if (hoverTimer) {
@@ -1208,31 +1171,31 @@ function GalistGameInsertionNode() {
     };
   }, [draggedCircle, dragOffset, findConnectedCircles, circles]);
 
-  const launchCircle = () => {
-    if (!address.trim() || !value.trim()) return;
+  // const launchCircle = () => {
+  //   if (!address.trim() || !value.trim()) return;
 
-    const addressExists = circles.some(
-      (circle) => circle.address === address.trim()
-    );
-    if (addressExists) {
-      setShowDuplicateModal(true);
-      return;
-    }
+  //   const addressExists = circles.some(
+  //     (circle) => circle.address === address.trim()
+  //   );
+  //   if (addressExists) {
+  //     setShowDuplicateModal(true);
+  //     return;
+  //   }
 
-    const newCircle = {
-      id: Date.now(),
-      address: address.trim(),
-      value: value.trim(),
-      x: window.innerWidth - 10,
-      y: window.innerHeight - 55,
-      velocityX: -8 - Math.random() * 5,
-      velocityY: -5 - Math.random() * 3,
-    };
+  //   const newCircle = {
+  //     id: Date.now(),
+  //     address: address.trim(),
+  //     value: value.trim(),
+  //     x: window.innerWidth - 10,
+  //     y: window.innerHeight - 55,
+  //     velocityX: -8 - Math.random() * 5,
+  //     velocityY: -5 - Math.random() * 3,
+  //   };
 
-    setCircles((prev) => [...prev, newCircle]);
-    setAddress("");
-    setValue("");
-  };
+  //   setCircles((prev) => [...prev, newCircle]);
+  //   setAddress("");
+  //   setValue("");
+  // };
 
   return (
     
@@ -1334,7 +1297,6 @@ function GalistGameInsertionNode() {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           className={styles.inputField}
-          disabled={true}
         />
         <input
           type="text"
@@ -1342,27 +1304,21 @@ function GalistGameInsertionNode() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           className={styles.inputField}
-          disabled={true}
         />
         <div className={styles.buttonContainer}>
           {showInsertButton && (
             <button
               onClick={handleInsert}
               className={styles.insertButton}
-              onMouseEnter={handleInsertHover}
-              onMouseLeave={handleInsertLeave}
             >
               INSERT
             </button>
           )}
           <button
-            onClick={launchCircle}
+            onClick={handleInsert}
             className={styles.launchButton}
-            onMouseEnter={handleLunchHoverStart}
-            onMouseLeave={handleLunchHoverEnd}
-            disabled={true}
           >
-            LUNCH
+            INSERT
           </button>
         </div>
         <button

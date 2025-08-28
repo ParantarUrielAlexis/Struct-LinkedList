@@ -1034,3 +1034,201 @@
   color: #ccc;
   line-height: 1.4;
 }
+
+/* Insert Modal Styles */
+.insertModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.insertModalContent {
+  background-color: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 15px;
+  padding: 40px;
+  position: relative;
+  width: 80%;
+  height: 60%;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.insertModalCloseBtn{
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.insertModalCloseBtn:hover {
+  background: #ff6666;
+}
+
+.insertOptions{
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.insertOptionBtn {
+  margin-top: 45px;
+  background-color: #666666;
+  border: none;
+  border-radius: 15px;
+  padding: 40px 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: black;
+  font-family: Arial, sans-serif;
+  height: 300px;
+  flex: 1;
+}
+
+.insertOptionBtn:hover {
+  background-color: #777777;
+  transform: translateY(-2px);
+}
+
+.optionTitle {
+  font-size: 42px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.optionSubtitle {
+  font-size: 18px;
+  text-align: center;
+  color: #333;
+  line-height: 1.3;
+}
+
+/* Index Modal Styles */
+.indexModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.indexModalContent {
+  background-color: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 15px;
+  padding: 40px;
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  height: 25%;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.indexModalCloseBtn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 23px;
+  height: 23px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.indexModalCloseBtn:hover {
+  background: #ff6666;
+}
+
+.indexModalTitle{
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: left;
+  color: white;
+}
+
+.indexInputContainer {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.indexInput {
+  background-color: #333;
+  border: 1px solid #555;
+  border-radius: 5px;
+  padding: 15px 20px;
+  color: white;
+  font-size: 16px;
+  width: 330px;
+  outline: none;
+}
+
+.indexInput:focus {
+  border-color: #777;
+}
+
+.indexInput::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+.indexGoBtn{
+  background-color: #666;
+  border: none;
+  border-radius: 5px;
+  padding: 15px 30px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.indexGoBtn:hover {
+  background-color: #777;
+}
+
+.index-subtitle {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: 10px;
+}
