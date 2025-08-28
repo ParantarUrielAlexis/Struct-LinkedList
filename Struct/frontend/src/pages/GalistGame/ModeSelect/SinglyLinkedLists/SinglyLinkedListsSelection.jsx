@@ -25,6 +25,8 @@ function SinglyLinkedListsSelection({ onSelect }) {
       navigate("/galist-game-node-creation");
     } else if(lvl.level ===2 ) {
       navigate("/galist-game-linking-node");
+    }  else if(lvl.level ===3 ) {
+      navigate("/galist-game-insertion-node");
     } else {
       if (onSelect) onSelect(lvl.level);
       // You can add navigation for other levels here if needed

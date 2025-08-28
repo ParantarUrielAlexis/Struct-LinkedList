@@ -19,6 +19,7 @@ import GameShowcase from "./pages/GameShowcase";
 import GalistGame from "./pages/GalistGame/GalistGame";
 import GalistGameDeletion from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelFour/GalistDeletion";
 import GalistGameNodeCreation from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelOne/NodeCreation";
+import GalistGameInsertionNode from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelThree/InsertionNode";
 import GalistLinkingNode from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelTwo/LinkingNode";
 
 import TeacherDashboard from "./pages/TeacherDashboard";
@@ -46,6 +47,7 @@ const AppLayout = () => {
     "/galist-game",
     "/galist-game-node-creation",
     "/galist-game-linking-node",
+    "/galist-game-insertion-node",
     "/galist-game-deletion",
   ];
 
@@ -122,6 +124,16 @@ const AppLayout = () => {
                 <ProtectedRoute>
                   <ClassRequiredWrapper>
                     <GalistLinkingNode />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/galist-game-insertion-node"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <GalistGameInsertionNode />
                   </ClassRequiredWrapper>
                 </ProtectedRoute>
               }

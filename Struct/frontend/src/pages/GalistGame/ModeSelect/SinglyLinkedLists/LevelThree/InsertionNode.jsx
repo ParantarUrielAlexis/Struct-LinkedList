@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-import styles from "./LinkingNode.module.css";
-import { ExerciseManager } from "./LinkingNodeExercise";
+import styles from "./InsertionNode.module.css";
+import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO, INITIAL_CIRCLES_THREE} from "./InsertionExercise";
 import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
 
-function GalistGameLinkingNode() {
+function GalistGameInsertionNode() {
   // Track which exercise is active
   const [exerciseKey, setExerciseKey] = useState("exercise_one");
   // Launch initial circles from INITIAL_CIRCLES one at a time, using the same launch logic as the manual launch button
@@ -13,9 +13,11 @@ function GalistGameLinkingNode() {
   const [address, setAddress] = useState("");
   const [value, setValue] = useState("");
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  
-
-  
+  const [showInsertButton, setShowInsertButton] = useState(false);
+  const [showInsertModal, setShowInsertModal] = useState(false);
+  const [showIndexModal, setShowIndexModal] = useState(false);
+  const [insertIndex, setInsertIndex] = useState("");
+  const [hoverTimer, setHoverTimer] = useState(null);
   const [circles, setCircles] = useState([]);
   const [draggedCircle, setDraggedCircle] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -30,22 +32,109 @@ function GalistGameLinkingNode() {
   const [originalSubmission, setOriginalSubmission] = useState(null);
 
     // Exercise progress indicator logic
-  const EXERCISE_KEYS = ["exercise_one", "exercise_two", "exercise_three"];
+  const EXERCISE_KEYS = ["exercise_one", "exercise_two", "exercise_tree"];
   const currentExerciseNumber = EXERCISE_KEYS.indexOf(exerciseKey) + 1;
   const totalExercises = EXERCISE_KEYS.length;
 
-  // Removed initial launch logic and related refs
+  // --- Launch initial circles from the correct INITIAL_CIRCLES array ---
+  // Only launch initial circles once per exerciseKey, and always clear state synchronously before launching
+  // Prevent duplicate launches by using a launch token and clearing timeouts
+  const launchTimeoutRef = useRef(null);
+  const launchTokenRef = useRef(0);
+  const hasLaunchedRef = useRef(false);
+  const launchInitialCircles = useCallback(() => {
+    // Invalidate any previous launches
+    launchTokenRef.current += 1;
+    const myToken = launchTokenRef.current;
+    if (launchTimeoutRef.current) {
+      clearTimeout(launchTimeoutRef.current);
+      launchTimeoutRef.current = null;
+    }
+    setCircles([]);
+    setConnections([]);
+    setSuckingCircles([]);
+    setSuckedCircles([]);
+    setCurrentEntryOrder([]);
+    setOriginalSubmission(null);
+    setShowValidationResult(false);
+    setValidationResult(null);
+    hasLaunchedRef.current = true;
 
-  // useEffect(() => {
-  //   hasLaunchedRef.current = false;
-  //   launchInitialCircles();
-  //   return () => {
-  //     if (launchTimeoutRef.current) {
-  //       clearTimeout(launchTimeoutRef.current);
-  //       launchTimeoutRef.current = null;
-  //     }
-  //   };
-  // }, [exerciseKey, launchInitialCircles]);
+    let initialCircles;
+    if (exerciseKey === "exercise_one") {
+      initialCircles = INITIAL_CIRCLES;
+    } else if (exerciseKey === "exercise_two") {
+      initialCircles = INITIAL_CIRCLES_TWO;
+    } else if (exerciseKey === "exercise_tree") {
+      initialCircles = INITIAL_CIRCLES_THREE;
+    } else {
+      initialCircles = [];
+    }
+    // Launch after a short delay to ensure state is cleared
+    launchTimeoutRef.current = setTimeout(() => {
+      // If a new launch was triggered, abort this one
+      if (launchTokenRef.current !== myToken) return;
+      // Find the true head: node whose address is not referenced by any 'next' in initialCircles
+      const referencedAddresses = initialCircles.map(n => n.next).filter(Boolean);
+      const headNode = initialCircles.find(n => !referencedAddresses.includes(n.id));
+      // Traverse the list using 'next' pointers to get the launch order
+      const launchOrder = [];
+      let current = headNode;
+      const addressToNode = Object.fromEntries(initialCircles.map(n => [n.id, n]));
+      while (current) {
+        launchOrder.push(current);
+        current = current.next ? addressToNode[current.next] : null;
+      }
+      // Add any remaining nodes not in the main chain (disconnected/extra nodes)
+      const mainChainIds = new Set(launchOrder.map(n => n.id));
+      const restNodes = initialCircles.filter(n => !mainChainIds.has(n.id));
+      const finalLaunchOrder = [...launchOrder, ...restNodes];
+      let idx = 0;
+      function launchNext() {
+        if (launchTokenRef.current !== myToken) return;
+        if (idx >= finalLaunchOrder.length) return;
+        const c = finalLaunchOrder[idx];
+        const newCircle = {
+          id: c.id,
+          address: c.address,
+          value: c.value,
+          x: window.innerWidth - 10,
+          y: window.innerHeight - 55,
+          velocityX: -8 - Math.random() * 5,
+          velocityY: -5 - Math.random() * 3,
+        };
+        setCircles(prev => [...prev, newCircle]);
+        // Add connection if this node has a next
+        if (c.next) {
+          const nextNode = initialCircles.find(n => n.address === c.next);
+          if (nextNode) {
+            setConnections(prev => [
+              ...prev,
+              {
+                id: `conn-${c.id}-${nextNode.id}`,
+                from: c.id,
+                to: nextNode.id,
+              }
+            ]);
+          }
+        }
+        idx++;
+        launchTimeoutRef.current = setTimeout(launchNext, 200);
+      }
+      launchNext();
+    }, 50);
+  }, [exerciseKey]);
+
+  useEffect(() => {
+    hasLaunchedRef.current = false;
+    launchInitialCircles();
+    return () => {
+      if (launchTimeoutRef.current) {
+        clearTimeout(launchTimeoutRef.current);
+        launchTimeoutRef.current = null;
+      }
+    };
+  }, [exerciseKey, launchInitialCircles]);
 
   // Use a unique key on the main container to force React to fully reset state on exerciseKey change
   // Portal state management
@@ -127,8 +216,10 @@ function GalistGameLinkingNode() {
         setAddress("");
         setValue("");
         setShowDuplicateModal(false);
-        
-       
+        setShowInsertButton(false);
+        setShowInsertModal(false);
+        setShowIndexModal(false);
+        setInsertIndex("");
         setSelectedCircle(null);
         setConnectToAddress("");
         setShowInstructionPopup(false);
@@ -204,7 +295,7 @@ function GalistGameLinkingNode() {
     setOriginalSubmission(null);
     setShowValidationResult(false);
     setValidationResult(null);
-  // removed hasLaunchedRef, no longer needed
+    hasLaunchedRef.current = false;
     // Now load the new exercise
     const exercise = exerciseManagerRef.current.loadExercise(key);
     setCurrentExercise(exercise);
@@ -618,14 +709,256 @@ function GalistGameLinkingNode() {
     setShowDuplicateModal(false);
   };
 
-  
+  const handleLunchHoverStart = () => {
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+    }
+    const timer = setTimeout(() => {
+      setShowInsertButton(true);
+    }, 2000);
+    setHoverTimer(timer);
+  };
 
-  
+  const handleLunchHoverEnd = () => {
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      setHoverTimer(null);
+    }
 
-  
-  
+    const hideTimer = setTimeout(() => {
+      setShowInsertButton(false);
+    }, 100);
+    setHoverTimer(hideTimer);
+  };
 
-  
+  const handleInsertHover = () => {
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      setHoverTimer(null);
+    }
+  };
+
+  const handleInsertLeave = () => {
+    setShowInsertButton(false);
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      setHoverTimer(null);
+    }
+  };
+
+  const handleInsert = () => {
+    setShowInsertButton(false);
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      setHoverTimer(null);
+    }
+    setShowInsertModal(true);
+  };
+
+  const closeInsertModal = () => {
+    setShowInsertModal(false);
+  };
+
+  const closeIndexModal = () => {
+    setShowIndexModal(false);
+    setInsertIndex("");
+  };
+
+  const handleIndexSubmit = () => {
+    const index = parseInt(insertIndex.trim());
+    if (isNaN(index) || index < 1) {
+      alert("Please enter a valid index (must be >= 1)");
+      return;
+    }
+    const maxIndex = circles.length;
+    if (index > maxIndex) {
+      alert(`Index too large. Maximum index is ${maxIndex}`);
+      return;
+    }
+    handleSpecificInsertion(index);
+    closeIndexModal();
+    closeInsertModal();
+  };
+
+  const handleInsertOption = (option) => {
+    if (!address.trim() || !value.trim()) {
+      alert("Please enter both address and value before inserting");
+      return;
+    }
+
+    const addressExists = circles.some(
+      (circle) => circle.address === address.trim()
+    );
+    if (addressExists) {
+      setShowDuplicateModal(true);
+      closeInsertModal();
+      return;
+    }
+
+    switch (option) {
+      case "head":
+        handleHeadInsertion();
+        break;
+      case "specific":
+        setShowIndexModal(true);
+        break;
+      case "tail":
+        handleTailInsertion();
+        break;
+      default:
+        break;
+    }
+
+    closeInsertModal();
+  };
+
+  const handleHeadInsertion = () => {
+    const newHead = {
+      id: Date.now(),
+      address: address.trim(),
+      value: value.trim(),
+      x: window.innerWidth - 10,
+      y: window.innerHeight - 55,
+      velocityX: -8 - Math.random() * 5,
+      velocityY: -5 - Math.random() * 3,
+    };
+
+    const currentHeads = circles.filter((circle) => isHeadNode(circle.id));
+
+    setCircles((prev) => [...prev, newHead]);
+
+    if (currentHeads.length > 0) {
+      const newConnections = currentHeads.map((head) => ({
+        id: Date.now() + Math.random(),
+        from: newHead.id,
+        to: head.id,
+      }));
+
+      setConnections((prev) => [...prev, ...newConnections]);
+    }
+
+    setAddress("");
+    setValue("");
+  };
+
+  const handleTailInsertion = () => {
+    const newTail = {
+      id: Date.now(),
+      address: address.trim(),
+      value: value.trim(),
+      x: window.innerWidth - 10,
+      y: window.innerHeight - 55,
+      velocityX: -8 - Math.random() * 5,
+      velocityY: -5 - Math.random() * 3,
+    };
+
+    const currentTails = circles.filter((circle) => isTailNode(circle.id));
+
+    setCircles((prev) => [...prev, newTail]);
+
+    if (currentTails.length > 0) {
+      const newConnections = currentTails.map((tail) => ({
+        id: Date.now() + Math.random(),
+        from: tail.id,
+        to: newTail.id,
+      }));
+
+      setConnections((prev) => [...prev, ...newConnections]);
+    }
+
+    setAddress("");
+    setValue("");
+  };
+
+  const getChainOrderForHead = useCallback(
+    (headId) => {
+      const order = [];
+      let currentId = headId;
+      const visited = new Set();
+      while (currentId && !visited.has(currentId)) {
+        visited.add(currentId);
+        order.push(currentId);
+        const next = connections.find((c) => c.from === currentId);
+        currentId = next ? next.to : null;
+      }
+      return order;
+    },
+    [connections]
+  );
+
+  const handleSpecificInsertion = (index) => {
+    const targetIndex = parseInt(index);
+    if (isNaN(targetIndex) || targetIndex < 0) {
+      return;
+    }
+
+    const newNode = {
+      id: Date.now(),
+      address: address.trim(),
+      value: value.trim(),
+      x: window.innerWidth - 10,
+      y: window.innerHeight - 55,
+      velocityX: -8 - Math.random() * 5,
+      velocityY: -5 - Math.random() * 3,
+    };
+
+    const headNodes = circles.filter((circle) => isHeadNode(circle.id));
+
+    if (headNodes.length === 0) {
+      setCircles((prev) => [...prev, newNode]);
+    } else if (targetIndex === 0) {
+      setCircles((prev) => [...prev, newNode]);
+      const newConnections = headNodes.map((head) => ({
+        id: Date.now() + Math.random(),
+        from: newNode.id,
+        to: head.id,
+      }));
+      setConnections((prev) => [...prev, ...newConnections]);
+    } else {
+      const startHead = headNodes[0];
+      const chainOrder = getChainOrderForHead(startHead.id);
+
+      if (targetIndex >= chainOrder.length) {
+        const currentTails = circles.filter((circle) => isTailNode(circle.id));
+        setCircles((prev) => [...prev, newNode]);
+        if (currentTails.length > 0) {
+          const newConnections = currentTails.map((tail) => ({
+            id: Date.now() + Math.random(),
+            from: tail.id,
+            to: newNode.id,
+          }));
+          setConnections((prev) => [...prev, ...newConnections]);
+        }
+      } else {
+        const prevNodeId = chainOrder[targetIndex - 1];
+        const nextNodeId = chainOrder[targetIndex];
+        setCircles((prev) => [...prev, newNode]);
+        setConnections((prev) => {
+          const updated = prev.filter(
+            (conn) => !(conn.from === prevNodeId && conn.to === nextNodeId)
+          );
+          return [
+            ...updated,
+            {
+              id: Date.now() + Math.random(),
+              from: prevNodeId,
+              to: newNode.id,
+            },
+            {
+              id: Date.now() + Math.random() + 0.001,
+              from: newNode.id,
+              to: nextNodeId,
+            },
+          ];
+        });
+      }
+    }
+
+    setAddress("");
+    setValue("");
+    setInsertIndex("");
+  };
+
   const optimizeConnectionsAfterDeletion = (connections) => {
     const connectionMap = new Map();
     connections.forEach((conn) => {
@@ -914,7 +1247,7 @@ function GalistGameLinkingNode() {
         // onError={(e) => console.error("Video error:", e)}
         // onLoadedData={() => console.log("Video loaded successfully")}
       >
-        <source src="./video/bubble_bg.mp4" type="video/mp4" />
+        <source src="./video/insertion_bg.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
@@ -1001,7 +1334,7 @@ function GalistGameLinkingNode() {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           className={styles.inputField}
-          disabled={false}
+          disabled={true}
         />
         <input
           type="text"
@@ -1009,15 +1342,27 @@ function GalistGameLinkingNode() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           className={styles.inputField}
-          disabled={false}
+          disabled={true}
         />
         <div className={styles.buttonContainer}>
-          
+          {showInsertButton && (
+            <button
+              onClick={handleInsert}
+              className={styles.insertButton}
+              onMouseEnter={handleInsertHover}
+              onMouseLeave={handleInsertLeave}
+            >
+              INSERT
+            </button>
+          )}
           <button
             onClick={launchCircle}
             className={styles.launchButton}
+            onMouseEnter={handleLunchHoverStart}
+            onMouseLeave={handleLunchHoverEnd}
+            disabled={true}
           >
-            LAUNCH
+            LUNCH
           </button>
         </div>
         <button
@@ -1282,7 +1627,7 @@ function GalistGameLinkingNode() {
                   if (validationResult && validationResult.isCorrect && exerciseKey === "exercise_one") {
                     loadExercise("exercise_two");
                   } else if (validationResult && validationResult.isCorrect && exerciseKey === "exercise_two") {
-                    loadExercise("exercise_three");
+                    loadExercise("exercise_tree");
                   }
                 }}
                 className={styles.continueButton}
@@ -1321,12 +1666,13 @@ function GalistGameLinkingNode() {
                 value={connectToAddress}
                 onChange={(e) => setConnectToAddress(e.target.value)}
                 className={styles.popupInput}
+                disabled={true}
                 autoFocus
               />
               <div className={styles.popupButtons}>
                 <button
                   onClick={handleConnect}
-                  disabled={false}
+                  disabled={true}
                   className={`${styles.popupButton} ${styles.connectBtn}`}
                 >
                   CONNECT
@@ -1366,9 +1712,81 @@ function GalistGameLinkingNode() {
         </div>
       )}
 
-      
+      {showInsertModal && (
+        <div className={styles.insertModalOverlay} onClick={closeInsertModal}>
+          <div
+            className={styles.insertModalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className={styles.insertModalCloseBtn}
+              onClick={closeInsertModal}
+            >
+              ×
+            </button>
+
+            <div className={styles.insertOptions}>
+              <button
+                className={`${styles.insertOptionBtn} head-btn`}
+                onClick={() => handleInsertOption("head")}
+              >
+                <div className={styles.optionTitle}>HEAD</div>
+                <div className={styles.optionSubtitle}>i = 0 (Head)</div>
+              </button>
+
+              <button
+                className={`${styles.insertOptionBtn} specific-btn`}
+                onClick={() => handleInsertOption("specific")}
+              >
+                <div className={styles.optionTitle}>SPECIFIC</div>
+                <div className={styles.optionSubtitle}>
+                  specify both i in [1, N-1]
+                </div>
+              </button>
+
+              <button
+                className={`${styles.insertOptionBtn} tail-btn`}
+                onClick={() => handleInsertOption("tail")}
+              >
+                <div className={styles.optionTitle}>TAIL</div>
+                <div className={styles.optionSubtitle}>i = N (After Tail)</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showIndexModal && (
+        <div className={styles.indexModalOverlay} onClick={closeIndexModal}>
+          <div
+            className={styles.indexModalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className={styles.indexModalCloseBtn}
+              onClick={closeIndexModal}
+            >
+              ×
+            </button>
+            <div className={styles.indexModalTitle}>Index</div>
+            <div className={styles.indexInputContainer}>
+              <input
+                type="text"
+                placeholder="Enter Index"
+                value={insertIndex}
+                onChange={(e) => setInsertIndex(e.target.value)}
+                className={styles.indexInput}
+                autoFocus
+              />
+              <button onClick={handleIndexSubmit} className={styles.indexGoBtn}>
+                Go
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default GalistGameLinkingNode;
+export default GalistGameInsertionNode;
