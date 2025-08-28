@@ -394,7 +394,7 @@ export const EXERCISE_TEMPLATES = {
     { id: 3, value: "22", address: "0x5c", next: null },
   ];
   
-
+// Latest Insert Node
 // Exercise manager class
 export class ExerciseManager {
   constructor() {
