@@ -11,7 +11,7 @@ const levelsPage1 = [
 
 const levelsPage2 = [
   { level: 4, title: "Deletion of Node" },
-  { level: 5, title: "Searching of Node" },
+  { level: 5, title: "Abtract Data Types" },
 ];
 
 function SinglyLinkedListsSelection({ onSelect }) {
@@ -27,6 +27,8 @@ function SinglyLinkedListsSelection({ onSelect }) {
       navigate("/galist-game-linking-node");
     }  else if(lvl.level ===3 ) {
       navigate("/galist-game-insertion-node");
+    } else if(lvl.level ===5 ) {
+      navigate("/galist-game-abstract-data-type");
     } else {
       if (onSelect) onSelect(lvl.level);
       // You can add navigation for other levels here if needed

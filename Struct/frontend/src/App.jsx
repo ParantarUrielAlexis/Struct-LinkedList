@@ -21,6 +21,7 @@ import GalistGameDeletion from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/
 import GalistGameNodeCreation from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelOne/NodeCreation";
 import GalistGameInsertionNode from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelThree/InsertionNode";
 import GalistLinkingNode from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelTwo/LinkingNode";
+import GalistAbstractDataType from "./pages/GalistGame/ModeSelect/SinglyLinkedLists/LevelFive/AbstractDataType";
 
 import TeacherDashboard from "./pages/TeacherDashboard";
 
@@ -38,17 +39,12 @@ const AppLayout = () => {
 
   // Define routes that should only show the Header
   const headerOnlyRoutes = [
-    "/type-test",
-    "/sortshift",
-    "/sortshiftselection",
-    "/sortshiftbubble",
-    "/sortshiftinsertion",
-    "/snake-game",
     "/galist-game",
     "/galist-game-node-creation",
     "/galist-game-linking-node",
     "/galist-game-insertion-node",
     "/galist-game-deletion",
+    "/galist-game-abstract-data-type",
   ];
 
   // Check if the current route is in the header-only routes
@@ -155,6 +151,17 @@ const AppLayout = () => {
                 <ProtectedRoute>
                   <ClassRequiredWrapper>
                     <GalistGameNodeCreation />
+                  </ClassRequiredWrapper>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/galist-game-abstract-data-type"
+              element={
+                <ProtectedRoute>
+                  <ClassRequiredWrapper>
+                    <GalistAbstractDataType />
                   </ClassRequiredWrapper>
                 </ProtectedRoute>
               }
