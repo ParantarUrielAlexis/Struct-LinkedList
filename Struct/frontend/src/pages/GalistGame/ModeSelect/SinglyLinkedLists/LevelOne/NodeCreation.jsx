@@ -468,10 +468,7 @@ function GalistNodeCreation() {
     ];
   };
 
-  const handleDoubleClick = (circle) => {
-    setSelectedCircle(circle);
-    setConnectToAddress("");
-  };
+  
 
   const handleConnect = () => {
     if (!selectedCircle || !connectToAddress.trim()) return;
@@ -1016,7 +1013,7 @@ function GalistNodeCreation() {
                 : "grab",
           }}
           onMouseDown={(e) => handleMouseDown(e, circle)}
-          onDoubleClick={() => handleDoubleClick(circle)}
+          // Double click disabled
         >
           <span className={styles.circleValue}>{circle.value}</span>
           <span className={styles.circleAddress}>{circle.address}</span>

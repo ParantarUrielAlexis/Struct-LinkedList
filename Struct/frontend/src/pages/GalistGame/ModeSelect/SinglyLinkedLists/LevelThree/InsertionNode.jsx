@@ -1618,11 +1618,18 @@ function GalistGameInsertionNode() {
               <div className={styles.popupText}>Connect to?</div>
               <input
                 type="text"
-                placeholder="Enter Address"
+                placeholder={(() => {
+                  const outgoingConn = connections.find(conn => conn.from === selectedCircle.id);
+                  if (outgoingConn) {
+                    const targetCircle = circles.find(c => c.id === outgoingConn.to);
+                    return targetCircle ? `${targetCircle.address}` : "Enter Address";
+                  }
+                  return "Enter Address";
+                })()}
                 value={connectToAddress}
+                disabled={true}
                 onChange={(e) => setConnectToAddress(e.target.value)}
                 className={styles.popupInput}
-                disabled={true}
                 autoFocus
               />
               <div className={styles.popupButtons}>

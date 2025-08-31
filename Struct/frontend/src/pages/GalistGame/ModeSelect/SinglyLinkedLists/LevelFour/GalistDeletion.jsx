@@ -1662,7 +1662,15 @@ function GalistGameDeletion() {
               <div className={styles.popupText}>Connect to?</div>
               <input
                 type="text"
-                placeholder="Enter Address"
+                placeholder={(() => {
+                  // Find if this node is already connected to another node (outgoing connection)
+                  const outgoing = connections.find(conn => conn.from === selectedCircle.id);
+                  if (outgoing) {
+                    const target = circles.find(c => c.id === outgoing.to);
+                    return target ? target.address : "Enter Address";
+                  }
+                  return "Enter Address";
+                })()}
                 value={connectToAddress}
                 onChange={(e) => setConnectToAddress(e.target.value)}
                 className={styles.popupInput}
