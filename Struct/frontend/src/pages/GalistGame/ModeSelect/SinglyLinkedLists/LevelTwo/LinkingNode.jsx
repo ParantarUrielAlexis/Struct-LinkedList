@@ -1315,22 +1315,45 @@ function GalistGameLinkingNode() {
             </div>
             <div className={styles.popupFormContainer}>
               <div className={styles.popupText}>Connect to?</div>
-              <input
-                type="text"
-                placeholder="Enter Address"
-                value={connectToAddress}
-                onChange={(e) => setConnectToAddress(e.target.value)}
-                className={styles.popupInput}
-                autoFocus
-              />
+              {(() => {
+                // Find if selectedCircle is already connected (has outgoing connection)
+                const outgoingConn = connections.find(
+                  (conn) => conn.from === selectedCircle.id
+                );
+                let connectedAddress = "";
+                if (outgoingConn) {
+                  const targetCircle = circles.find(
+                    (c) => c.id === outgoingConn.to
+                  );
+                  connectedAddress = targetCircle ? targetCircle.address : "";
+                }
+                return (
+                  <input
+                    type="text"
+                    placeholder={outgoingConn ? `${connectedAddress}` : "Enter Address"}
+                    value={connectToAddress}
+                    onChange={(e) => setConnectToAddress(e.target.value)}
+                    className={styles.popupInput}
+                    autoFocus
+                    disabled={!!outgoingConn}
+                  />
+                );
+              })()}
               <div className={styles.popupButtons}>
-                <button
-                  onClick={handleConnect}
-                  disabled={false}
-                  className={`${styles.popupButton} ${styles.connectBtn}`}
-                >
-                  CONNECT
-                </button>
+                {(() => {
+                  const outgoingConn = connections.find(
+                    (conn) => conn.from === selectedCircle.id
+                  );
+                  return (
+                    <button
+                      onClick={handleConnect}
+                      disabled={!!outgoingConn}
+                      className={`${styles.popupButton} ${styles.connectBtn}`}
+                    >
+                      CONNECT
+                    </button>
+                  );
+                })()}
                 <button
                   onClick={handleDeleteCircle}
                   className={`${styles.popupButton} ${styles.deleteBtn}`}
