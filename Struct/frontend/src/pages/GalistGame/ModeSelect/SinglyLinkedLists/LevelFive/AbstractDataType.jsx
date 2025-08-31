@@ -738,189 +738,121 @@ function GalistAbstractDataType() {
       alert(`Index too large. Maximum index is ${maxIndex}`);
       return;
     }
-    handleSpecificInsertion(index);
+  // handleSpecificInsertion removed
     closeIndexModal();
     closeInsertModal();
   };
 
-  const handleInsertOption = (option) => {
+
+  // --- QUEUE OPERATIONS ---
+  // PEEK: Highlight the value at the head/front of the queue (first node in the chain)
+  const [highlightedCircleId, setHighlightedCircleId] = useState(null);
+  const handlePeek = () => {
+    // Find the head node (no incoming connections, has outgoing)
+    const head = circles.find((circle) => isHeadNode(circle.id));
+    closeInsertModal(); // Close insert modal after clicking peek
+    if (head) {
+      setHighlightedCircleId(head.id);
+      setTimeout(() => setHighlightedCircleId(null), 3000);
+    } else {
+      setHighlightedCircleId(null);
+    }
+  };
+
+  // ENQUEUE: Add a new node to the tail/end of the queue
+  const handleEnqueue = () => {
     if (!address.trim() || !value.trim()) {
-      alert("Please enter both address and value before inserting");
+      alert("Please enter both address and value before enqueueing");
       return;
     }
-
-    const addressExists = circles.some(
-      (circle) => circle.address === address.trim()
-    );
+    const addressExists = circles.some((circle) => circle.address === address.trim());
     if (addressExists) {
       setShowDuplicateModal(true);
       closeInsertModal();
       return;
     }
 
+    // Find the current tail node (has incoming but no outgoing connection)
+    let tail = circles.find((circle) => isTailNode(circle.id));
+
+    // If only one node exists, treat it as both head and tail
+    if (circles.length === 1) {
+      tail = circles[0];
+    }
+
+    // Create new circle
+    const newCircle = {
+      id: Date.now(),
+      address: address.trim(),
+      value: value.trim(),
+      x: window.innerWidth - 10,
+      y: window.innerHeight - 55,
+      velocityX: -8 - Math.random() * 5,
+      velocityY: -5 - Math.random() * 3,
+    };
+
+    setCircles((prev) => [...prev, newCircle]);
+
+    // If there is a tail, connect it to the new node
+    if (tail) {
+      setConnections((prev) => [
+        ...prev,
+        {
+          id: `conn-${tail.id}-${newCircle.id}`,
+          from: tail.id,
+          to: newCircle.id,
+        },
+      ]);
+    }
+
+    setAddress("");
+    setValue("");
+    closeInsertModal();
+  };
+
+  // DEQUEUE: Remove the node at the head/front of the queue
+  const handleDequeue = () => {
+    // Find the head node (no incoming connections, has outgoing)
+    const head = circles.find((circle) => isHeadNode(circle.id));
+    if (!head) {
+      setHighlightedCircleId(null);
+      closeInsertModal();
+      return;
+    }
+    setHighlightedCircleId(head.id);
+    closeInsertModal();
+    setTimeout(() => {
+      setHighlightedCircleId(null);
+      setCircles((prev) => {
+        // Remove the head node
+        const newCircles = prev.filter((c) => c.id !== head.id);
+        return newCircles;
+      });
+      setConnections((prev) => {
+        // Remove all connections to/from head
+        let updated = prev.filter((conn) => conn.from !== head.id && conn.to !== head.id);
+        return updated;
+      });
+    }, 3000);
+  };
+
+  // Updated handleInsertOption to use queue operations
+  const handleInsertOption = (option) => {
     switch (option) {
       case "head":
-        handleHeadInsertion();
+        handlePeek();
         break;
       case "specific":
-        setShowIndexModal(true);
+        handleEnqueue();
         break;
       case "tail":
-        handleTailInsertion();
+        handleDequeue();
         break;
       default:
         break;
     }
-
-    closeInsertModal();
   };
 
-  const handleHeadInsertion = () => {
-    const newHead = {
-      id: Date.now(),
-      address: address.trim(),
-      value: value.trim(),
-      x: window.innerWidth - 10,
-      y: window.innerHeight - 55,
-      velocityX: -8 - Math.random() * 5,
-      velocityY: -5 - Math.random() * 3,
-    };
-
-    const currentHeads = circles.filter((circle) => isHeadNode(circle.id));
-
-    setCircles((prev) => [...prev, newHead]);
-
-    if (currentHeads.length > 0) {
-      const newConnections = currentHeads.map((head) => ({
-        id: Date.now() + Math.random(),
-        from: newHead.id,
-        to: head.id,
-      }));
-
-      setConnections((prev) => [...prev, ...newConnections]);
-    }
-
-    setAddress("");
-    setValue("");
-  };
-
-  const handleTailInsertion = () => {
-    const newTail = {
-      id: Date.now(),
-      address: address.trim(),
-      value: value.trim(),
-      x: window.innerWidth - 10,
-      y: window.innerHeight - 55,
-      velocityX: -8 - Math.random() * 5,
-      velocityY: -5 - Math.random() * 3,
-    };
-
-    const currentTails = circles.filter((circle) => isTailNode(circle.id));
-
-    setCircles((prev) => [...prev, newTail]);
-
-    if (currentTails.length > 0) {
-      const newConnections = currentTails.map((tail) => ({
-        id: Date.now() + Math.random(),
-        from: tail.id,
-        to: newTail.id,
-      }));
-
-      setConnections((prev) => [...prev, ...newConnections]);
-    }
-
-    setAddress("");
-    setValue("");
-  };
-
-  const getChainOrderForHead = useCallback(
-    (headId) => {
-      const order = [];
-      let currentId = headId;
-      const visited = new Set();
-      while (currentId && !visited.has(currentId)) {
-        visited.add(currentId);
-        order.push(currentId);
-        const next = connections.find((c) => c.from === currentId);
-        currentId = next ? next.to : null;
-      }
-      return order;
-    },
-    [connections]
-  );
-
-  const handleSpecificInsertion = (index) => {
-    const targetIndex = parseInt(index);
-    if (isNaN(targetIndex) || targetIndex < 0) {
-      return;
-    }
-
-    const newNode = {
-      id: Date.now(),
-      address: address.trim(),
-      value: value.trim(),
-      x: window.innerWidth - 10,
-      y: window.innerHeight - 55,
-      velocityX: -8 - Math.random() * 5,
-      velocityY: -5 - Math.random() * 3,
-    };
-
-    const headNodes = circles.filter((circle) => isHeadNode(circle.id));
-
-    if (headNodes.length === 0) {
-      setCircles((prev) => [...prev, newNode]);
-    } else if (targetIndex === 0) {
-      setCircles((prev) => [...prev, newNode]);
-      const newConnections = headNodes.map((head) => ({
-        id: Date.now() + Math.random(),
-        from: newNode.id,
-        to: head.id,
-      }));
-      setConnections((prev) => [...prev, ...newConnections]);
-    } else {
-      const startHead = headNodes[0];
-      const chainOrder = getChainOrderForHead(startHead.id);
-
-      if (targetIndex >= chainOrder.length) {
-        const currentTails = circles.filter((circle) => isTailNode(circle.id));
-        setCircles((prev) => [...prev, newNode]);
-        if (currentTails.length > 0) {
-          const newConnections = currentTails.map((tail) => ({
-            id: Date.now() + Math.random(),
-            from: tail.id,
-            to: newNode.id,
-          }));
-          setConnections((prev) => [...prev, ...newConnections]);
-        }
-      } else {
-        const prevNodeId = chainOrder[targetIndex - 1];
-        const nextNodeId = chainOrder[targetIndex];
-        setCircles((prev) => [...prev, newNode]);
-        setConnections((prev) => {
-          const updated = prev.filter(
-            (conn) => !(conn.from === prevNodeId && conn.to === nextNodeId)
-          );
-          return [
-            ...updated,
-            {
-              id: Date.now() + Math.random(),
-              from: prevNodeId,
-              to: newNode.id,
-            },
-            {
-              id: Date.now() + Math.random() + 0.001,
-              from: newNode.id,
-              to: nextNodeId,
-            },
-          ];
-        });
-      }
-    }
-
-    setAddress("");
-    setValue("");
-    setInsertIndex("");
-  };
 
   const optimizeConnectionsAfterDeletion = (connections) => {
     const connectionMap = new Map();
@@ -1210,7 +1142,7 @@ function GalistAbstractDataType() {
         // onError={(e) => console.error("Video error:", e)}
         // onLoadedData={() => console.log("Video loaded successfully")}
       >
-        <source src="./video/rocks.mp4" type="video/mp4" />
+        <source src="./video/mars.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
@@ -1311,14 +1243,14 @@ function GalistAbstractDataType() {
               onClick={handleInsert}
               className={styles.insertButton}
             >
-              INSERT
+              QUEUE MENU
             </button>
           )}
           <button
             onClick={handleInsert}
             className={styles.launchButton}
           >
-            INSERT
+            QUEUE MENU
           </button>
         </div>
         <button
@@ -1332,7 +1264,7 @@ function GalistAbstractDataType() {
         </button>
       </div>
       
-      {circles.map((circle) => {
+  {circles.map((circle) => {
         // Only label as head the unique node with outgoing connections and no incoming connections
         // that is also the start of a connected component (reachable by others)
         const hasOutgoing = connections.some(conn => conn.from === circle.id);
@@ -1347,14 +1279,16 @@ function GalistAbstractDataType() {
         // Only one node should be labeled as head: the first in possibleHeads
         const isHead = isConnected && hasOutgoing && !hasIncoming && possibleHeads.length > 0 && possibleHeads[0].id === circle.id;
         const isTail = isConnected && hasIncoming && !hasOutgoing;
+        const isSingle = circles.length === 1;
 
         return (
-          
           <div
             key={circle.id}
-            className={`${styles.animatedCircle} ${
-              suckingCircles.includes(circle.id) ? styles.beingSucked : ""
-            }`}
+            className={[
+              styles.animatedCircle,
+              suckingCircles.includes(circle.id) ? styles.beingSucked : "",
+              highlightedCircleId === circle.id ? styles.highlightedCircle : ""
+            ].join(" ")}
             style={{
               left: `${circle.x - 30}px`,
               top: `${circle.y - 30}px`,
@@ -1366,9 +1300,9 @@ function GalistAbstractDataType() {
             onMouseDown={(e) => handleMouseDown(e, circle)}
             onDoubleClick={() => handleDoubleClick(circle)}
           >
-            {(isHead || isTail) && (
+            {(isSingle || isHead || isTail) && (
               <span className={styles.nodeTypeLabel}>
-                {isHead ? "Head" : "Tail"}
+                {isSingle ? "Head/Tail" : isHead ? "Head" : "Tail"}
               </span>
             )}
             <span className={styles.circleValue}>{circle.value}</span>
@@ -1694,7 +1628,7 @@ function GalistAbstractDataType() {
                 onClick={() => handleInsertOption("head")}
               >
                 <div className={styles.optionTitle}>PEEK</div>
-                <div className={styles.optionSubtitle}>The peek() method of Queue Interface returns the element at the front the container.(Head)</div>
+                <div className={styles.optionSubtitle}> Returns the element at the front (head) of the queue.</div>
               </button>
 
               <button

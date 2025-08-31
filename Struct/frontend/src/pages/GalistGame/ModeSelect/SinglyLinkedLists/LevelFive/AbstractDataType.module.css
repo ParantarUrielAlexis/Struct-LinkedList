@@ -61,7 +61,7 @@
 }
 
 .expectedBarAddress {
-  font-size: 12px;
+  font-size: 8px;
   color: #1a1a1a;
   opacity: 0.85;
   font-weight: 800;
@@ -105,7 +105,7 @@
   height: 100vh;
   object-fit: cover;
   z-index: 0;
-  opacity: 0.5;
+  opacity: 0.3;
   pointer-events: none;
 }
 
@@ -1227,4 +1227,7 @@
   font-size: 14px;
   color: #aaa;
   margin-top: 10px;
+}
+.highlightedCircle{
+  background-color: #e8a702;
 }

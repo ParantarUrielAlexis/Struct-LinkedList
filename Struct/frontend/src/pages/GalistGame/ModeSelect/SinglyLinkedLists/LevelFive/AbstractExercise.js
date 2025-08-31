@@ -340,13 +340,13 @@ export class LinkedListExercise {
 // Predefined exercise templates
 export const EXERCISE_TEMPLATES = {
   exercise_one: {
-    sequence: [4, 2, 1, 3, 10],
+    sequence: [101, 102, 103, 104, 105],
     addresses: {
-      4: "ab",
-      2: "cd",
-      1: "ef",
-      3: "gh",
-      10: "ij"
+      101: "0x100",
+      102: "0x105",
+      103: "0x110",
+      104: "0x115",
+      105: "0x120"
     },
     title: "Insert the following nodes",
     description: "Insert the nodes into the linked list in the correct order"
@@ -380,8 +380,11 @@ export const EXERCISE_TEMPLATES = {
   }
 };
   export const INITIAL_CIRCLES = [
-    { id: 1, value: "1", address: "ef", next: "gh" },
-    { id: 2, value: "3", address: "gh", next: null },
+    { id: 1, value: "105", address: "0x120", next: "0x115" },
+    { id: 2, value: "104", address: "0x115", next: "0x110" },
+    { id: 3, value: "103", address: "0x110", next: "0x105" },
+    { id: 4, value: "102", address: "0x105", next: "0x100" },
+    { id: 5, value: "101", address: "0x100", next: null }
   ];
   export const INITIAL_CIRCLES_TWO = [
     { id: 1, value: "11", address: "z10", next: "x20" },
