@@ -348,8 +348,8 @@ export const EXERCISE_TEMPLATES = {
       104: "0x115",
       105: "0x120"
     },
-    title: "Insert the following nodes",
-    description: "Insert the nodes into the linked list in the correct order"
+    title: "Reverse The Linked List",
+    description: "Reverse the linked list in place"
   },
   exercise_two: {
     sequence: [11, 57, 24, 42, 81, 52],
@@ -361,8 +361,8 @@ export const EXERCISE_TEMPLATES = {
       81: "v30",
       52: "u35",
     },
-    title: "Insert the following nodes",
-    description: "Insert the nodes into the linked list in the correct order"
+    title: "Sorted Insertion Challenge",
+    description: "Insert the nodes so that the linked list remains sorted in ascending order."
   },
   exercise_tree: {
     sequence: [91, 76, 23, 12, 41, 22, 34],
@@ -375,8 +375,8 @@ export const EXERCISE_TEMPLATES = {
       22: "0x5c",
       34: "0x5d"
     },
-    title: "Insert the following nodes",
-    description: "Insert the nodes into the linked list in the correct order"
+    title: "Position-Based Insertion",
+    description: "Insert each node at the specified position in the linked list. (e.g., Insert 23 at position 2, 41 at position 5, etc.)"
   }
 };
   export const INITIAL_CIRCLES = [
@@ -386,16 +386,21 @@ export const EXERCISE_TEMPLATES = {
     { id: 4, value: "102", address: "0x105", next: "0x100" },
     { id: 5, value: "101", address: "0x100", next: null }
   ];
-  export const INITIAL_CIRCLES_TWO = [
-    { id: 1, value: "11", address: "z10", next: "x20" },
-    { id: 2, value: "24", address: "x20", next: "v30" },
-    { id: 3, value: "81", address: "v30", next: null }
-  ];
-  export const INITIAL_CIRCLES_THREE = [
-    { id: 1, value: "76", address: "0x58", next: "0x59" },
-    { id: 2, value: "23", address: "0x59", next: "0x5c" },
-    { id: 3, value: "22", address: "0x5c", next: null },
-  ];
+
+// For more challenge, start with a partially filled, unsorted, or "broken" list for exercise 2 and 3
+export const INITIAL_CIRCLES_TWO = [
+  // Unsorted and missing some nodes from the sequence, user must fix and insert the rest in sorted order
+  { id: 1, value: "24", address: "x20", next: "y15" },
+  { id: 2, value: "57", address: "y15", next: null }
+  // User must insert 11, 42, 81, 52 and sort the list
+];
+
+export const INITIAL_CIRCLES_THREE = [
+  // Nodes are out of order and not all are present, user must insert and rearrange to match the required positions
+  { id: 1, value: "41", address: "0x5b", next: "0x5d" },
+  { id: 2, value: "34", address: "0x5d", next: null }
+  // User must insert 91, 76, 23, 12, 22 and arrange all nodes in the correct order
+];
   
 // Latest Insert Node
 // Exercise manager class
