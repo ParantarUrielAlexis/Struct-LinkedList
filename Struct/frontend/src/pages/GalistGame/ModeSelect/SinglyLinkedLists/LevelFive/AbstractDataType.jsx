@@ -5,11 +5,88 @@ import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO, INITIAL_CIRCLES_
 import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
 
+
+
 function GalistAbstractDataType() {
+
+  // --- Move all useState declarations to the top ---
+  // Portal state management (move above useEffect that uses isPortalOpen)
+  const [portalInfo, setPortalInfo] = useState({
+    isVisible: false,
+    canvasWidth: 45,
+  });
+  const [isPortalOpen, setIsPortalOpen] = useState(false);
+
+  // --- Background music effect (local to this component) ---
+  useEffect(() => {
+    let bgAudio;
+    const playMusic = () => {
+      if (bgAudio) {
+        bgAudio.play().catch(() => {});
+      }
+      window.removeEventListener('click', playMusic);
+    };
+    try {
+      bgAudio = new window.Audio('/sounds/bg_music.mp3');
+      bgAudio.loop = true;
+      bgAudio.volume = 0.3;
+      window.addEventListener('click', playMusic);
+    } catch {
+      // Ignore audio errors
+    }
+    return () => {
+      if (bgAudio) {
+        bgAudio.pause();
+        bgAudio.currentTime = 0;
+      }
+      window.removeEventListener('click', playMusic);
+    };
+  }, []);
+
+  // --- Portal sound effect (loop while portal is open) ---
+  const portalAudioRef = useRef(null);
+  useEffect(() => {
+    if (isPortalOpen) {
+      if (!portalAudioRef.current) {
+        try {
+          const audio = new window.Audio('/sounds/portal.mp3');
+          audio.loop = true;
+          audio.volume = 1;
+          portalAudioRef.current = audio;
+          // Play with promise catch for browser compatibility
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {});
+          }
+        } catch {
+          // Ignore audio errors
+        }
+      } else {
+        // If already created, just play
+        portalAudioRef.current.currentTime = 0;
+        portalAudioRef.current.play().catch(() => {});
+      }
+    } else {
+      if (portalAudioRef.current) {
+        portalAudioRef.current.pause();
+        portalAudioRef.current.currentTime = 0;
+        portalAudioRef.current = null;
+      }
+    }
+    // Clean up on unmount
+    return () => {
+      if (portalAudioRef.current) {
+        portalAudioRef.current.pause();
+        portalAudioRef.current.currentTime = 0;
+        portalAudioRef.current = null;
+      }
+    };
+  }, [isPortalOpen]);
+
+
+
   // Track which exercise is active
   const [exerciseKey, setExerciseKey] = useState("exercise_one");
-  // Launch initial circles from INITIAL_CIRCLES one at a time, using the same launch logic as the manual launch button
-  // --- Move all useState declarations to the top ---
   const [address, setAddress] = useState("");
   const [value, setValue] = useState("");
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -103,6 +180,18 @@ function GalistAbstractDataType() {
           velocityX: -8 - Math.random() * 5,
           velocityY: -5 - Math.random() * 3,
         };
+        // Play audio effect for launching a circle
+        try {
+          const audio = new window.Audio('/sounds/explode.mp3');
+          audio.currentTime = 0;
+          // Use promise for play() to avoid uncaught errors in modern browsers
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {/* Ignore play errors */});
+          }
+        } catch {
+          // Ignore audio errors
+        }
         setCircles(prev => [...prev, newCircle]);
         // Add connection if this node has a next
         if (c.next) {
@@ -136,13 +225,7 @@ function GalistAbstractDataType() {
     };
   }, [exerciseKey, launchInitialCircles]);
 
-  // Use a unique key on the main container to force React to fully reset state on exerciseKey change
-  // Portal state management
-  const [portalInfo, setPortalInfo] = useState({
-    isVisible: false,
-    canvasWidth: 45,
-  });
-  const [isPortalOpen, setIsPortalOpen] = useState(false);
+
 
   // Wrap setPortalInfo in useCallback to prevent unnecessary re-renders
   const handlePortalStateChange = useCallback((newPortalInfo) => {
@@ -161,8 +244,14 @@ function GalistAbstractDataType() {
   const [validationResult, setValidationResult] = useState(null);
   const [showInstructionPopup, setShowInstructionPopup] = useState(false);
 
-  // Game menu actions
-  // const startGame = useCallback(() => {
+    // Stop portal sound when validation overlay is open
+  useEffect(() => {
+    if (showValidationResult && portalAudioRef.current) {
+      portalAudioRef.current.pause();
+      portalAudioRef.current.currentTime = 0;
+    }
+  }, [showValidationResult]);
+  
   //   const next = { screen: "mode", mode: null };
   //   window.history.pushState(next, "");
   //   // Clear any previous game state so this session is fresh
@@ -739,7 +828,7 @@ function GalistAbstractDataType() {
     closeInsertModal(); // Close insert modal after clicking peek
     if (head) {
       setHighlightedCircleId(head.id);
-      setTimeout(() => setHighlightedCircleId(null), 1500);
+      setTimeout(() => setHighlightedCircleId(null), 1000);
     } else {
       setHighlightedCircleId(null);
     }
@@ -747,6 +836,18 @@ function GalistAbstractDataType() {
 
   // ENQUEUE: Add a new node to the tail/end of the queue
   const handleEnqueue = () => {
+
+    // Play audio effect for enqueue
+    try {
+      const audio = new window.Audio('/sounds/explode.mp3');
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {/* Ignore play errors */});
+      }
+    } catch {
+      // Ignore audio errors
+    }
     if (!address.trim() || !value.trim()) {
       alert("Please enter both address and value before enqueueing");
       return;
@@ -798,6 +899,16 @@ function GalistAbstractDataType() {
 
   // DEQUEUE: Remove the node at the head/front of the queue
   const handleDequeue = () => {
+    try{
+      const audio = new window.Audio('/sounds/dequeue_sound.mp3');
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {/* Ignore play errors */});
+      }
+    } catch {
+      // Ignore audio errors
+    }
     // Find the head node (no incoming connections, has outgoing)
     const head = circles.find((circle) => isHeadNode(circle.id));
     if (!head) {
@@ -819,7 +930,7 @@ function GalistAbstractDataType() {
         let updated = prev.filter((conn) => conn.from !== head.id && conn.to !== head.id);
         return updated;
       });
-    }, 1500);
+    }, 1000);
   };
 
   // Updated handleInsertOption to use queue operations
@@ -1246,7 +1357,7 @@ function GalistAbstractDataType() {
           } ${isPortalOpen ? styles.portalButtonOpen : ""}`}
           disabled={!isPortalButtonEnabled}
         >
-          {isPortalOpen ? "CLOSE PORTAL" : "OPEN PORTAL"}
+          {isPortalOpen ?"CLOSE PORTAL" : "OPEN PORTAL"}
         </button>
       </div>
       
