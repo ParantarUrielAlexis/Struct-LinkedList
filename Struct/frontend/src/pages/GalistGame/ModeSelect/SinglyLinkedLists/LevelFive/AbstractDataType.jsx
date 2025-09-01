@@ -4,6 +4,7 @@ import styles from "./AbstractDataType.module.css";
 import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO, INITIAL_CIRCLES_THREE} from "./AbstractExercise";
 import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
+import PortalParticles from "../../../Particles.jsx";
 
 
 
@@ -650,6 +651,7 @@ function GalistAbstractDataType() {
         }
         return finalCircles;
       });
+
       animationRef.current = requestAnimationFrame(gameLoop);
     };
     animationRef.current = requestAnimationFrame(gameLoop);
@@ -841,10 +843,7 @@ function GalistAbstractDataType() {
     try {
       const audio = new window.Audio('/sounds/explode.mp3');
       audio.currentTime = 0;
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {/* Ignore play errors */});
-      }
+      audio.play().catch(() => {/* Ignore play errors */});
     } catch {
       // Ignore audio errors
     }
@@ -1314,6 +1313,12 @@ function GalistAbstractDataType() {
         onPortalStateChange={handlePortalStateChange}
         isOpen={isPortalOpen}
       />
+      
+      {/* Portal particles for vacuum effect */}
+      <PortalParticles 
+        portalInfo={portalInfo} 
+      />
+      
       <div
         className={styles.rightSquare}
         style={{ outlineOffset: "5px" }}
