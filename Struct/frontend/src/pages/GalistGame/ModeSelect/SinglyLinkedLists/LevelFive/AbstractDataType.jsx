@@ -508,21 +508,7 @@ function GalistAbstractDataType() {
           }
 
           // Gentle suction if portal open
-          if (portalInfo.isVisible && !suckingCircles.includes(circle.id)) {
-            const portalCenter = {
-              x: 10 + portalInfo.canvasWidth / 2,
-              y: window.innerHeight / 2,
-            };
-            const dx = portalCenter.x - circle.x;
-            const dy = portalCenter.y - circle.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance > 80) {
-              const suctionForce = 0.1;
-              circle.velocityX = (circle.velocityX || 0) + (dx / distance) * suctionForce;
-              circle.velocityY = (circle.velocityY || 0) + (dy / distance) * suctionForce;
-            }
-          }
-
+          
           // Manual trigger for chain suction
           if (portalInfo.isVisible) {
             const portalRight = 10 + portalInfo.canvasWidth + 20;
@@ -753,7 +739,7 @@ function GalistAbstractDataType() {
     closeInsertModal(); // Close insert modal after clicking peek
     if (head) {
       setHighlightedCircleId(head.id);
-      setTimeout(() => setHighlightedCircleId(null), 3000);
+      setTimeout(() => setHighlightedCircleId(null), 1500);
     } else {
       setHighlightedCircleId(null);
     }
@@ -833,7 +819,7 @@ function GalistAbstractDataType() {
         let updated = prev.filter((conn) => conn.from !== head.id && conn.to !== head.id);
         return updated;
       });
-    }, 3000);
+    }, 1500);
   };
 
   // Updated handleInsertOption to use queue operations
@@ -1408,64 +1394,22 @@ function GalistAbstractDataType() {
 
                       <tr className={styles.userRow}>
                         {(() => {
-                          const userCircles = originalSubmission.circles;
-                          const userConnections =
-                            originalSubmission.connections;
-
-                          const userChain = [];
-                          const visited = new Set();
-
-                          let headCircle = userCircles.find((circle) => {
-                            const hasOutgoing = userConnections.some(
-                              (conn) => conn.from === circle.id
-                            );
-                            const hasIncoming = userConnections.some(
-                              (conn) => conn.to === circle.id
-                            );
-                            return hasOutgoing && !hasIncoming;
-                          });
-
-                          if (headCircle) {
-                            let currentId = headCircle.id;
-                            while (currentId && !visited.has(currentId)) {
-                              visited.add(currentId);
-                              const currentCircle = userCircles.find(
-                                (c) => c.id === currentId
-                              );
-                              if (currentCircle) {
-                                userChain.push(currentCircle);
-                              }
-                              const nextConnection = userConnections.find(
-                                (conn) => conn.from === currentId
-                              );
-                              currentId = nextConnection
-                                ? nextConnection.to
-                                : null;
-                            }
-                          }
-
-                          userCircles.forEach((circle) => {
-                            if (!visited.has(circle.id)) {
-                              userChain.push(circle);
-                            }
-                          });
-
+                          // Show the actual sucked order (portal entry order)
+                          const suckedOrder = suckedCircles
+                            .map(id => originalSubmission.circles.find(c => c.id === id))
+                            .filter(Boolean);
                           return currentExercise.expectedStructure.map(
                             (expectedNode, index) => {
-                              const userNode = userChain.find(
-                                (circle) =>
-                                  parseInt(circle.value) === expectedNode.value
-                              );
-
+                              const userNode = suckedOrder[index];
+                              const isCorrect =
+                                userNode && parseInt(userNode.value) === expectedNode.value;
                               return (
-                                <React.Fragment
-                                  key={`user-${expectedNode.value}`}
-                                >
+                                <React.Fragment key={`user-${expectedNode.value}`}>
                                   <td className={styles.userCell}>
                                     {userNode ? (
                                       <div
                                         className={`${styles.userNode} ${
-                                          validationResult.isCorrect
+                                          isCorrect
                                             ? styles.userNodeCorrect
                                             : styles.userNodeIncorrect
                                         }`}
@@ -1478,21 +1422,13 @@ function GalistAbstractDataType() {
                                         </div>
                                       </div>
                                     ) : (
-                                      <div
-                                        className={`${styles.userNode} ${styles.userNodeMissing}`}
-                                      >
-                                        <div className={styles.userNodeValue}>
-                                          ?
-                                        </div>
-                                        <div className={styles.userNodeAddress}>
-                                          ?
-                                        </div>
+                                      <div className={`${styles.userNode} ${styles.userNodeMissing}`}>
+                                        <div className={styles.userNodeValue}>?</div>
+                                        <div className={styles.userNodeAddress}>?</div>
                                       </div>
                                     )}
                                   </td>
-                                  {index <
-                                    currentExercise.expectedStructure.length -
-                                      1 && (
+                                  {index < currentExercise.expectedStructure.length - 1 && (
                                     <td className={styles.arrowCell}>→</td>
                                   )}
                                 </React.Fragment>
@@ -1571,12 +1507,14 @@ function GalistAbstractDataType() {
                   onClick={handleConnect}
                   disabled={true}
                   className={`${styles.popupButton} ${styles.connectBtn}`}
+                  
                 >
                   CONNECT
                 </button>
                 <button
                   onClick={handleDeleteCircle}
                   className={`${styles.popupButton} ${styles.deleteBtn}`}
+                  disabled={true}
                 >
                   DELETE
                 </button>

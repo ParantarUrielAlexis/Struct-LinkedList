@@ -15,10 +15,22 @@ export class LinkedListExercise {
       message: '',
       details: '',
       score: 0,
-      totalPoints: entryOrder ? 120 : 100 // Extra points for portal entry order if provided
+      totalPoints: 100 // Maximum score is always 100
     };
 
     try {
+      // STRICT ORDER: If portal entry order is required, validate it first and fail immediately if wrong
+      if (entryOrder && entryOrder.length > 0) {
+        const orderCheck = this.validatePortalEntryOrder(circles, connections, entryOrder);
+        if (!orderCheck.isValid) {
+          result.message = '❌ Portal entry order is incorrect!';
+          result.details = orderCheck.message;
+          result.score = 0;
+          result.isCorrect = false;
+          return result;
+        }
+      }
+
       // Ensure we have valid input data
       if (!circles || !connections) {
         result.message = 'No submission data provided';
@@ -34,13 +46,12 @@ export class LinkedListExercise {
       }
       result.score += 20;
 
-      // Check 2: All required values exist (20 points)
-      const userValues = circles.map(c => parseInt(c.value)).sort((a, b) => a - b);
-      const expectedValues = [...this.sequence].sort((a, b) => a - b);
+      // Check 2: Correct values in correct order (20 points)
+      const userValues = circles.map(c => parseInt(c.value));
       
-      if (!this.arraysEqual(userValues, expectedValues)) {
-        result.message = `Incorrect node values!`;
-        result.details = `Expected values: [${expectedValues.join(', ')}], but found: [${userValues.join(', ')}]`;
+      if (!this.arraysEqual(userValues, this.sequence)) {
+        result.message = `Incorrect sequence order!`;
+        result.details = `Expected order: [${this.sequence.join(' → ')}], but got: [${userValues.join(' → ')}]`;
         return result;
       }
       result.score += 20;
@@ -71,17 +82,10 @@ export class LinkedListExercise {
       }
       result.score += 20;
 
-      // Check 5: Portal entry order validation (20 bonus points if portal was used)
+      // Success message based on whether portal was used correctly
       if (entryOrder && entryOrder.length > 0) {
-        const orderCheck = this.validatePortalEntryOrder(circles, connections, entryOrder);
-        if (orderCheck.isValid) {
-          result.score += 20;
-          result.message = '🌟 PERFECT! Your linked list is correct AND entered the portal in proper order!';
-          result.details = `✅ Correct values: [${this.sequence.join(' → ')}]\n✅ Correct addresses\n✅ Perfect structure\n✅ All connections valid\n🌀 Perfect portal entry order!`;
-        } else {
-          result.message = '⚠️ Linked list is correct but portal entry order was wrong!';
-          result.details = `✅ Correct values: [${this.sequence.join(' → ')}]\n✅ Correct addresses\n✅ Perfect structure\n✅ All connections valid\n❌ ${orderCheck.message}`;
-        }
+        result.message = '🌟 PERFECT! Your linked list is correct AND entered the portal in proper order!';
+        result.details = `✅ Correct values: [${this.sequence.join(' → ')}]\n✅ Correct addresses\n✅ Perfect structure\n✅ All connections valid\n🌀 Perfect portal entry order!`;
       } else {
         result.message = '🎉 Perfect! Your linked list is completely correct!';
         result.details = `✅ Correct values: [${this.sequence.join(' → ')}]\n✅ Correct addresses\n✅ Perfect structure\n✅ All connections valid`;
@@ -89,7 +93,6 @@ export class LinkedListExercise {
 
       // All checks passed!
       result.isCorrect = true;
-      
       return result;
 
     } catch (error) {
@@ -352,30 +355,29 @@ export const EXERCISE_TEMPLATES = {
     description: "Reverse the linked list in place"
   },
   exercise_two: {
-    sequence: [11, 57, 24, 42, 81, 52],
+    sequence: [24, 53, 54, 76, 81, 82],
     addresses: {
-      11: "z10",
-      57: "y15",
-      24: "x20",
-      42: "w25",
-      81: "v30",
-      52: "u35",
+      24: "x131",
+      53: "x135",
+      54: "x139",
+      76: "xc20",
+      81: "xc30",
+      82: "xc35",
     },
-    title: "Sorted Insertion Challenge",
-    description: "Insert the nodes so that the linked list remains sorted in ascending order."
+    title: "Create this linked lists using queue",
+    description: "Implement a queue using linked list"
   },
   exercise_tree: {
-    sequence: [91, 76, 23, 12, 41, 22, 34],
+    sequence: ["ant", "bat", "cat", "dog", "emu", "fox"],
     addresses: {
-      91: "0x57",
-      76: "0x58",
-      23: "0x59",
-      12: "0x5a",
-      41: "0x5b",
-      22: "0x5c",
-      34: "0x5d"
+      "ant": "0xff4",
+      "bat": "0xff5",
+      "cat": "0xff6",
+      "dog": "0xff7",
+      "emu": "0xff8",
+      "fox": "0xff9"
     },
-    title: "Position-Based Insertion",
+    title: "Create this linked lists using queue",
     description: "Insert each node at the specified position in the linked list. (e.g., Insert 23 at position 2, 41 at position 5, etc.)"
   }
 };
@@ -387,18 +389,19 @@ export const EXERCISE_TEMPLATES = {
     { id: 5, value: "101", address: "0x100", next: null }
   ];
 
-// For more challenge, start with a partially filled, unsorted, or "broken" list for exercise 2 and 3
 export const INITIAL_CIRCLES_TWO = [
   // Unsorted and missing some nodes from the sequence, user must fix and insert the rest in sorted order
-  { id: 1, value: "24", address: "x20", next: "y15" },
-  { id: 2, value: "57", address: "y15", next: null }
-  // User must insert 11, 42, 81, 52 and sort the list
+  { id: 1, value: "54", address: "x139", next: "xc30" },
+  { id: 2, value: "76", address: "xc30", next: "x131" },
+  { id: 3, value: "24", address: "x131", next: "x135" },
+  { id: 4, value: "53", address: "x135", next: null }
 ];
 
 export const INITIAL_CIRCLES_THREE = [
   // Nodes are out of order and not all are present, user must insert and rearrange to match the required positions
-  { id: 1, value: "41", address: "0x5b", next: "0x5d" },
-  { id: 2, value: "34", address: "0x5d", next: null }
+  { id: 1, value: "bat", address: "0xff5", next: "0xff6" },
+  { id: 2, value: "cat", address: "0xff6", next: "0xff4" },
+  { id: 3, value: "ant", address: "0xff4", next: null },
   // User must insert 91, 76, 23, 12, 22 and arrange all nodes in the correct order
 ];
   
