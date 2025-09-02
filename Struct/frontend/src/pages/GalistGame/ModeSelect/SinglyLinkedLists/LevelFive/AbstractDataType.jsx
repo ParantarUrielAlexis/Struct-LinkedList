@@ -252,6 +252,13 @@ function GalistAbstractDataType() {
       portalAudioRef.current.currentTime = 0;
     }
   }, [showValidationResult]);
+
+  // Close portal when validation overlay is open
+  useEffect(() => {
+    if (showValidationResult) {
+      setIsPortalOpen(false);
+    }
+  }, [showValidationResult]);
   
   //   const next = { screen: "mode", mode: null };
   //   window.history.pushState(next, "");

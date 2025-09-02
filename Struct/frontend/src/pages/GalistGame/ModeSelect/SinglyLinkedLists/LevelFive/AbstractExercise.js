@@ -368,14 +368,14 @@ export const EXERCISE_TEMPLATES = {
     description: "Implement a queue using linked list"
   },
   exercise_tree: {
-    sequence: ["ant", "bat", "cat", "dog", "emu", "fox"],
+    sequence: [10, 72, 13, 12, 11, 34],
     addresses: {
-      "ant": "0xff4",
-      "bat": "0xff5",
-      "cat": "0xff6",
-      "dog": "0xff7",
-      "emu": "0xff8",
-      "fox": "0xff9"
+      10: "0xff4",
+      72: "0xff5",
+      13: "0xff6",
+      12: "0xff7",
+      11: "0xff8",
+      34: "0xff9"
     },
     title: "Create this linked lists using queue",
     description: "Insert each node at the specified position in the linked list. (e.g., Insert 23 at position 2, 41 at position 5, etc.)"
@@ -399,9 +399,9 @@ export const INITIAL_CIRCLES_TWO = [
 
 export const INITIAL_CIRCLES_THREE = [
   // Nodes are out of order and not all are present, user must insert and rearrange to match the required positions
-  { id: 1, value: "bat", address: "0xff5", next: "0xff6" },
-  { id: 2, value: "cat", address: "0xff6", next: "0xff4" },
-  { id: 3, value: "ant", address: "0xff4", next: null },
+  { id: 1, value: 72, address: "0xff5", next: "0xff6" },
+  { id: 2, value: 13, address: "0xff6", next: "0xff4" },
+  { id: 3, value: 10, address: "0xff4", next: null },
   // User must insert 91, 76, 23, 12, 22 and arrange all nodes in the correct order
 ];
   
