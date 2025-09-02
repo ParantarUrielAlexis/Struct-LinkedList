@@ -506,12 +506,28 @@ function GalistAbstractDataType() {
     [getChainOrder, circles, connections]
   );
 
-  // PHYSICS SYSTEM - Simple animation loop adapted for portal
+  // PHYSICS SYSTEM - Optimized animation loop for better performance
   useEffect(() => {
     let isAnimating = true;
+    let lastTime = 0;
+    const targetFPS = 30; // Reduced from ~60fps to 30fps
+    const frameInterval = 1000 / targetFPS;
 
-    const gameLoop = () => {
+    const gameLoop = (currentTime) => {
       if (!isAnimating) return;
+
+      // Throttle frame rate for better performance
+      if (currentTime - lastTime < frameInterval) {
+        animationRef.current = requestAnimationFrame(gameLoop);
+        return;
+      }
+      lastTime = currentTime;
+
+      // Only run expensive calculations if there are circles to process
+      if (circles.length === 0 && suckingCircles.length === 0) {
+        animationRef.current = requestAnimationFrame(gameLoop);
+        return;
+      }
 
       setCircles((prevCircles) => {
         const circlesWithSpecialBehavior = prevCircles.map((circle) => {
@@ -634,15 +650,20 @@ function GalistAbstractDataType() {
           return circle;
         });
 
-        // Second pass: Apply collision detection and physics
+        // Optimized collision detection - only run when needed
         const allCirclesForCollision = circlesWithSpecialBehavior;
         const draggedCircleData = draggedCircle
           ? allCirclesForCollision.find((circle) => circle.id === draggedCircle.id)
           : null;
-        const updatedAllCircles =
-          allCirclesForCollision.length > 0
-            ? collisionDetection.updatePhysics(allCirclesForCollision, suckingCircles)
-            : [];
+        
+        // Only run expensive collision detection if circles are actually moving
+        const hasMovingCircles = allCirclesForCollision.some(c => 
+          Math.abs(c.velocityX || 0) > 0.1 || Math.abs(c.velocityY || 0) > 0.1
+        );
+        
+        const updatedAllCircles = hasMovingCircles && allCirclesForCollision.length > 0
+          ? collisionDetection.updatePhysics(allCirclesForCollision, suckingCircles)
+          : allCirclesForCollision;
         let finalCircles = updatedAllCircles;
         if (draggedCircleData) {
           finalCircles = updatedAllCircles.map((circle) => {
@@ -679,6 +700,7 @@ function GalistAbstractDataType() {
     suckedCircles,
     originalSubmission,
     currentEntryOrder,
+    circles.length,
   ]);
 
   // Handle connection removal when circles are sucked
