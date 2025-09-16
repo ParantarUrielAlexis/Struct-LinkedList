@@ -40,6 +40,88 @@ function GalistNodeCreation() {
   const currentExerciseNumber = EXERCISE_KEYS.indexOf(exerciseKey) + 1;
   const totalExercises = EXERCISE_KEYS.length;
 
+  // for points
+  const [userPoints, setUserPoints] = useState(0);
+  const [pointsToAdd, setPointsToAdd] = useState(0);
+  const [showPointsAnimation, setShowPointsAnimation] = useState(false);
+  const calculatePoints = (score) => {
+    // Base points for 100% score is 150
+    const basePoints = 150;
+    // Calculate points proportionally based on score
+    return Math.floor((score / 100) * basePoints);
+  };
+
+  const updateUserPoints = async (points) => {
+    try {
+      // Get user token from localStorage or your auth system
+      const token = localStorage.getItem('authToken'); // Adjust based on your auth implementation
+      
+      const response = await fetch('/api/user/update-points/', {  // Adjust URL to match your Django endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Adjust based on your auth system
+        },
+        body: JSON.stringify({
+          points_to_add: points,
+          level_type: 'node_creation',
+          exercise_key: exerciseKey,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating points:', error);
+      throw error;
+    }
+  };
+  const fetchUserPoints = async () => {
+    try {
+      const token = localStorage.getItem('authToken'); // Adjust based on your auth implementation
+      
+      const response = await fetch('/api/user/points/', {  // Adjust URL to match your Django endpoint
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Adjust based on your auth system
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.points || 0;
+    } catch (error) {
+      console.error('Error fetching points:', error);
+      return 0;
+    }
+  };
+
+  useEffect(() => {
+    const loadUserPoints = async () => {
+      const points = await fetchUserPoints();
+      setUserPoints(points);
+    };
+    
+    loadUserPoints();
+  }, []);
+
+  const animatePointsGain = (points) => {
+    setPointsToAdd(points);
+    setShowPointsAnimation(true);
+    
+    // Hide animation after 3 seconds
+    setTimeout(() => {
+      setShowPointsAnimation(false);
+      setPointsToAdd(0);
+    }, 3000);
+  };
   // --- Auto launch removed. No initial circles are launched automatically. ---
 
   // Use a unique key on the main container to force React to fully reset state on exerciseKey change
@@ -262,15 +344,61 @@ function GalistNodeCreation() {
                   prev.filter((id) => id !== circle.id)
                 );
 
+                // setTimeout(() => {
+                //   const expectedCount =
+                //     currentExercise?.expectedStructure?.length || 0;
+                //   const suckedIds = entryOrderRef.current;
+                //   const suckedCirclesForValidation =
+                //     suckedCirclesRef.current || [];
+                //   const uniqueCircles = [];
+                //   const uniqueIds = [];
+                //   const seenAddresses = new Set();
+                //   for (let i = 0; i < suckedCirclesForValidation.length; i++) {
+                //     const c = suckedCirclesForValidation[i];
+                //     if (c && !seenAddresses.has(c.address)) {
+                //       uniqueCircles.push({ ...c, value: Number(c.value) });
+                //       uniqueIds.push(suckedIds[i]);
+                //       seenAddresses.add(c.address);
+                //     }
+                //   }
+                //   if (uniqueCircles.length === expectedCount) {
+                //     if (currentExercise) {
+                //       try {
+                //         const result =
+                //           exerciseManagerRef.current.validateSubmission(
+                //             uniqueCircles,
+                //             uniqueIds
+                //           );
+                //         setValidationResult(result);
+                //         setShowValidationResult(true);
+                //       } catch (error) {
+                //         setValidationResult({
+                //           isCorrect: false,
+                //           message: "System Error",
+                //           details: error.message,
+                //           score: 0,
+                //           totalPoints: 100,
+                //         });
+                //         setShowValidationResult(true);
+                //       }
+                //     }
+                //     setCircles((prevCircles) =>
+                //       prevCircles.filter((c) => c.id !== circle.id)
+                //     );
+                //   } else {
+                //     setCircles((prevCircles) =>
+                //       prevCircles.filter((c) => c.id !== circle.id)
+                //     );
+                //   }
+                // }, 0);
                 setTimeout(() => {
-                  const expectedCount =
-                    currentExercise?.expectedStructure?.length || 0;
+                  const expectedCount = currentExercise?.expectedStructure?.length || 0;
                   const suckedIds = entryOrderRef.current;
-                  const suckedCirclesForValidation =
-                    suckedCirclesRef.current || [];
+                  const suckedCirclesForValidation = suckedCirclesRef.current || [];
                   const uniqueCircles = [];
                   const uniqueIds = [];
                   const seenAddresses = new Set();
+                  
                   for (let i = 0; i < suckedCirclesForValidation.length; i++) {
                     const c = suckedCirclesForValidation[i];
                     if (c && !seenAddresses.has(c.address)) {
@@ -279,14 +407,28 @@ function GalistNodeCreation() {
                       seenAddresses.add(c.address);
                     }
                   }
+                  
                   if (uniqueCircles.length === expectedCount) {
                     if (currentExercise) {
                       try {
-                        const result =
-                          exerciseManagerRef.current.validateSubmission(
-                            uniqueCircles,
-                            uniqueIds
-                          );
+                        const result = exerciseManagerRef.current.validateSubmission(
+                          uniqueCircles,
+                          uniqueIds
+                        );
+                        
+                        // Calculate and add points based on score
+                        const pointsEarned = calculatePoints(result.score);
+                        
+                        // Update points in backend and local state
+                        updateUserPoints(pointsEarned).then((response) => {
+                          setUserPoints(response.total_points || userPoints + pointsEarned);
+                          animatePointsGain(pointsEarned);
+                        }).catch(() => {
+                          // Fallback: just update local state if backend fails
+                          setUserPoints(prev => prev + pointsEarned);
+                          animatePointsGain(pointsEarned);
+                        });
+                        
                         setValidationResult(result);
                         setShowValidationResult(true);
                       } catch (error) {
