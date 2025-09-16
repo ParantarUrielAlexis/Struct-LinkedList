@@ -8,6 +8,8 @@ import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
 import PortalParticles from "../../../Particles.jsx";
 
+import axios from "axios";
+
 function GalistNodeCreation() {
   // --- Add refs to reliably track entry order and sucked circles ---
   const entryOrderRef = useRef([]);
@@ -45,65 +47,58 @@ function GalistNodeCreation() {
   const [pointsToAdd, setPointsToAdd] = useState(0);
   const [showPointsAnimation, setShowPointsAnimation] = useState(false);
   const calculatePoints = (score) => {
-    // Base points for 100% score is 150
     const basePoints = 150;
-    // Calculate points proportionally based on score
-    return Math.floor((score / 100) * basePoints);
+    return ((score / 100) * basePoints);
   };
 
   const updateUserPoints = async (points) => {
     try {
-      // Get user token from localStorage or your auth system
-      const token = localStorage.getItem('authToken'); // Adjust based on your auth implementation
+      const token = localStorage.getItem('authToken');
+      const API_BASE_URL = 'http://localhost:8000';
       
-      const response = await fetch('/api/user/update-points/', {  // Adjust URL to match your Django endpoint
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Adjust based on your auth system
+      const response = await axios.post(
+        `${API_BASE_URL}/api/update-points/`,
+        {
+          score: points, // <-- FIXED: was 'points', should be 'score'
+          quiz_type: 'node_creation'
         },
-        body: JSON.stringify({
-          points_to_add: points,
-          level_type: 'node_creation',
-          exercise_key: exerciseKey,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+        {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      // Return the updated points from the backend
+      return response.data.total_points || userPoints + points;
     } catch (error) {
       console.error('Error updating points:', error);
-      throw error;
+      // Fallback to local update if API fails
+      return userPoints + points;
     }
   };
+
   const fetchUserPoints = async () => {
-    try {
-      const token = localStorage.getItem('authToken'); // Adjust based on your auth implementation
-      
-      const response = await fetch('/api/user/points/', {  // Adjust URL to match your Django endpoint
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`, // Adjust based on your auth system
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+  try {
+    const token = localStorage.getItem('authToken');
+    const API_BASE_URL = 'http://localhost:8000';
+    
+    const response = await axios.get(`${API_BASE_URL}/api/user/profile/`, {
+      headers: {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json'
       }
+    });
+    
+    return response.data.points || 0;
+  } catch (error) {
+    console.error('Error fetching user points:', error);
+    return 0;
+  }
+};
 
-      const data = await response.json();
-      return data.points || 0;
-    } catch (error) {
-      console.error('Error fetching points:', error);
-      return 0;
-    }
-  };
-
-  useEffect(() => {
+   useEffect(() => {
     const loadUserPoints = async () => {
       const points = await fetchUserPoints();
       setUserPoints(points);
@@ -116,7 +111,6 @@ function GalistNodeCreation() {
     setPointsToAdd(points);
     setShowPointsAnimation(true);
     
-    // Hide animation after 3 seconds
     setTimeout(() => {
       setShowPointsAnimation(false);
       setPointsToAdd(0);
@@ -417,17 +411,18 @@ function GalistNodeCreation() {
                         );
                         
                         // Calculate and add points based on score
-                        const pointsEarned = calculatePoints(result.score);
+                        const points = calculatePoints(result.score); 
                         
-                        // Update points in backend and local state
-                        updateUserPoints(pointsEarned).then((response) => {
-                          setUserPoints(response.total_points || userPoints + pointsEarned);
-                          animatePointsGain(pointsEarned);
-                        }).catch(() => {
-                          // Fallback: just update local state if backend fails
-                          setUserPoints(prev => prev + pointsEarned);
-                          animatePointsGain(pointsEarned);
-                        });
+                        // FIX: Only update points if validation is successful and we haven't already processed this submission
+                        if (result.score > 0 && !validationResult) {
+                          updateUserPoints(points).then((updatedPoints) => {
+                            setUserPoints(updatedPoints);
+                            animatePointsGain(points);
+                          }).catch(() => {
+                            setUserPoints(prev => prev + points);
+                            animatePointsGain(points);
+                          });
+                        }
                         
                         setValidationResult(result);
                         setShowValidationResult(true);
@@ -1348,7 +1343,17 @@ function GalistNodeCreation() {
                 </table>
               )}
             </div>
+            <div className={styles.pointsDisplay}>
+              <span className={styles.pointsLabel}>Points:</span>
+              <span className={styles.pointsValue}>{userPoints.toLocaleString()}</span>
+              {showPointsAnimation && (
+                <div className={styles.pointsAnimation}>
+                  +{pointsToAdd} Points!
+                </div>
+              )}
+            </div>
 
+            
             <div className={styles.validationButtons}>
               <button
                 onClick={() => {

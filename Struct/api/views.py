@@ -283,20 +283,20 @@ class PointsUpdateView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        points_to_add = request.data.get('score', 0)  # Changed 'points' to 'score' to match frontend
+        try:
+            points_to_add = int(request.data.get('score', 0))
+        except (TypeError, ValueError):
+            points_to_add = 0
         quiz_type = request.data.get('quiz_type', 'unknown')
         user = request.user
-        
-        # Use atomic transaction to ensure both updates happen together
+
         with transaction.atomic():
-            # Update points and quiz attempts atomically
-            user.points = F('points') + points_to_add
-            user.quiz_attempts = F('quiz_attempts') + 1
-            user.save(update_fields=['points', 'quiz_attempts'])
-            
-            # Refresh user object to get updated values
-            user.refresh_from_db()
-        
+            User.objects.filter(pk=user.pk).update(
+                points=F('points') + points_to_add,
+                quiz_attempts=F('quiz_attempts') + 1
+            )
+            user.refresh_from_db(fields=['points', 'quiz_attempts'])
+
         return Response({
             'success': True,
             'points_added': points_to_add,
@@ -304,7 +304,6 @@ class PointsUpdateView(APIView):
             'attempts': user.quiz_attempts,
             'quiz_type': quiz_type
         }, status=status.HTTP_200_OK)
-    
 class ClassStudentsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     

@@ -22,6 +22,7 @@ function SinglyLinkedListsSelection({ onSelect }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
+  
   // Check authentication and get hearts on component mount
   useEffect(() => {
     const checkAuthAndGetHearts = async () => {

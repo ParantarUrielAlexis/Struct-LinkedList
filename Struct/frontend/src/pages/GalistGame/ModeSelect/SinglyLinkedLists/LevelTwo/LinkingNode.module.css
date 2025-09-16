@@ -1233,3 +1233,27 @@
   color: #aaa;
   margin-top: 10px;
 }
+
+.pointsDisplay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  border: 2px solid #4CAF50;
+  z-index: 1000;
+}
+
+.pointsLabel {
+  margin-right: 10px;
+  color: #ccc;
+}
+
+.pointsValue {
+  color: #4CAF50;
+  font-size: 1.1em;
+}

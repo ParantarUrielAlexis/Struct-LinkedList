@@ -4,6 +4,7 @@ import styles from "./LinkingNode.module.css";
 import { ExerciseManager } from "./LinkingNodeExercise";
 import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
+import axios from "axios";
 
 function GalistGameLinkingNode() {
   // Track which exercise is active
@@ -98,7 +99,73 @@ function GalistGameLinkingNode() {
   //   setConnectToAddress("");
   //   setShowInstructionPopup(false);
   // }, []);
+    // for points
+  const [userPoints, setUserPoints] = useState(0);
+const [pointsToAdd, setPointsToAdd] = useState(0);
+const [showPointsAnimation, setShowPointsAnimation] = useState(false);
 
+const calculatePoints = (score) => {
+  const basePoints = 50;
+  return ((score / 100) * basePoints);
+};
+
+const updateUserPoints = async (points) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const API_BASE_URL = 'http://localhost:8000';
+    const response = await axios.post(
+      `${API_BASE_URL}/api/update-points/`,
+      {
+        score: points,
+        quiz_type: 'node_linking'
+      },
+      {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data.total_points || userPoints + points;
+  } catch (error) {
+    console.error('Error updating points:', error);
+    return userPoints + points;
+  }
+};
+
+const fetchUserPoints = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const API_BASE_URL = 'http://localhost:8000';
+    const response = await axios.get(`${API_BASE_URL}/api/user/profile/`, {
+      headers: {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data.points || 0;
+  } catch (error) {
+    console.error('Error fetching user points:', error);
+    return 0;
+  }
+};
+
+useEffect(() => {
+  const loadUserPoints = async () => {
+    const points = await fetchUserPoints();
+    setUserPoints(points);
+  };
+  loadUserPoints();
+}, []);
+
+const animatePointsGain = (points) => {
+  setPointsToAdd(points);
+  setShowPointsAnimation(true);
+  setTimeout(() => {
+    setShowPointsAnimation(false);
+    setPointsToAdd(0);
+  }, 3000); // Show animation for 1 second
+};
   // Initialize history state and handle browser back/forward
   useEffect(() => {
     const state = window.history.state;
@@ -372,6 +439,19 @@ function GalistGameLinkingNode() {
                             submissionData.connections,
                             finalEntryOrder
                           );
+
+                        
+                        // FIX: Only update points if validation is successful and we haven't already processed this submission
+                        if (result.score > 0 && !validationResult) {
+                          const points = calculatePoints(result.score);
+                          updateUserPoints(points).then((updatedPoints) => {
+                            setUserPoints(updatedPoints);
+                            animatePointsGain(points);
+                          }).catch(() => {
+                            setUserPoints(prev => prev + points);
+                            animatePointsGain(points);
+                          });
+                        }
                         setValidationResult(result);
                         setShowValidationResult(true);
                       } catch (error) {
@@ -1270,6 +1350,16 @@ function GalistGameLinkingNode() {
                   </table>
                 )}
             </div>
+            
+            <div className={styles.pointsDisplay}>
+                          <span className={styles.pointsLabel}>Points:</span>
+                          <span className={styles.pointsValue}>{userPoints.toLocaleString()}</span>
+                          {showPointsAnimation && (
+                            <div className={styles.pointsAnimation}>
+                              +{pointsToAdd} Points!
+                            </div>
+                          )}
+                        </div>
 
             <div className={styles.validationButtons}>
               <button

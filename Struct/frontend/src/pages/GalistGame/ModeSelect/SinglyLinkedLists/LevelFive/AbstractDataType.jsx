@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import axios from "axios";
 
 import styles from "./AbstractDataType.module.css";
 import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO, INITIAL_CIRCLES_THREE} from "./AbstractExercise";
@@ -71,6 +72,11 @@ function GalistAbstractDataType() {
   const [showInstructionPopup, setShowInstructionPopup] = useState(true); // Show instruction automatically on load
   const [gameStarted, setGameStarted] = useState(false); // Track if the game has been started
 
+  // Add point system states
+  const [userPoints, setUserPoints] = useState(0);
+  const [pointsToAdd, setPointsToAdd] = useState(0);
+  const [showPointsAnimation, setShowPointsAnimation] = useState(false);
+
   // Refs
   const animationRef = useRef();
   const mouseHistoryRef = useRef([]);
@@ -80,6 +86,69 @@ function GalistAbstractDataType() {
   const launchTokenRef = useRef(0);
   const hasLaunchedRef = useRef(false);
   const portalAudioRef = useRef(null);
+
+  const calculatePoints = (score) => {
+    const basePoints = 50;
+    return ((score / 100) * basePoints);
+  };
+
+  const updateUserPoints = async (points) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const API_BASE_URL = 'http://localhost:8000';
+      const response = await axios.post(
+        `${API_BASE_URL}/api/update-points/`,
+        {
+          score: points,
+          quiz_type: 'node_linking'
+        },
+        {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data.total_points || userPoints + points;
+    } catch (error) {
+      console.error('Error updating points:', error);
+      return userPoints + points;
+    }
+  };
+
+  const fetchUserPoints = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const API_BASE_URL = 'http://localhost:8000';
+      const response = await axios.get(`${API_BASE_URL}/api/user/profile/`, {
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data.points || 0;
+    } catch (error) {
+      console.error('Error fetching user points:', error);
+      return 0;
+    }
+  };
+
+  useEffect(() => {
+    const loadUserPoints = async () => {
+      const points = await fetchUserPoints();
+      setUserPoints(points);
+    };
+    loadUserPoints();
+  }, []);
+
+  const animatePointsGain = (points) => {
+    setPointsToAdd(points);
+    setShowPointsAnimation(true);
+    setTimeout(() => {
+      setShowPointsAnimation(false);
+      setPointsToAdd(0);
+    }, 3000);
+  };
 
   // Exercise progress indicator logic
   const currentExerciseNumber = EXERCISE_KEYS.indexOf(exerciseKey) + 1;
@@ -670,6 +739,17 @@ function GalistAbstractDataType() {
                             submissionData.connections,
                             finalEntryOrder
                           );
+                        // Only update points if validation is successful and not already processed
+                        if (result.score > 0 && !validationResult) {
+                          const points = calculatePoints(result.score);
+                          updateUserPoints(points).then((updatedPoints) => {
+                            setUserPoints(updatedPoints);
+                            animatePointsGain(points);
+                          }).catch(() => {
+                            setUserPoints(prev => prev + points);
+                            animatePointsGain(points);
+                          });
+                        }
                         setValidationResult(result);
                         setShowValidationResult(true);
                       } catch (error) {
@@ -1698,7 +1778,16 @@ function GalistAbstractDataType() {
                   </table>
                 )}
             </div>
-
+            <div className={styles.pointsDisplay}>
+              <span className={styles.pointsLabel}>Points:</span>
+              <span className={styles.pointsValue}>{userPoints.toLocaleString()}</span>
+              {showPointsAnimation && (
+                <div className={styles.pointsAnimation}>
+                  +{pointsToAdd} Points!
+                </div>
+              )}
+            </div>
+                  
             <div className={styles.validationButtons}>
               <button
                 onClick={() => {
