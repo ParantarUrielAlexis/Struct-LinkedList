@@ -4,8 +4,22 @@ import styles from "./LinkingNode.module.css";
 import { ExerciseManager } from "./LinkingNodeExercise";
 import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
-
+import TutorialScene from "./TutorialScene";
 function GalistGameLinkingNode() {
+  const [showTutorial, setShowTutorial] = useState(true);
+  const [currentTutorialScene, setCurrentTutorialScene] = useState("scene1");
+
+  const handleTutorialContinue = useCallback(() => {
+    if (currentTutorialScene === "scene1") {
+      setCurrentTutorialScene("scene2");
+    } else if (currentTutorialScene === "scene2") {
+      setCurrentTutorialScene("scene3");
+    } else if (currentTutorialScene === "scene3") {
+      setShowTutorial(false);
+      setShowInstructionPopup(true); // Show the exercise instruction popup after tutorial
+    }
+  }, [currentTutorialScene]);
+  
   // Track which exercise is active
   const [exerciseKey, setExerciseKey] = useState("exercise_one");
   // Launch initial circles from INITIAL_CIRCLES one at a time, using the same launch logic as the manual launch button
@@ -900,7 +914,15 @@ function GalistGameLinkingNode() {
     setAddress("");
     setValue("");
   };
-
+  if (showTutorial) {
+    return (
+      <TutorialScene 
+        scene={currentTutorialScene} 
+        onContinue={handleTutorialContinue}
+      />
+    );
+  }
+  
   return (
     
     <div className={styles.app}>

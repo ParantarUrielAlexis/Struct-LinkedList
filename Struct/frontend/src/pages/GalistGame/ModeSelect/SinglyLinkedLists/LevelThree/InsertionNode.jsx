@@ -4,8 +4,11 @@ import styles from "./InsertionNode.module.css";
 import { ExerciseManager, INITIAL_CIRCLES, INITIAL_CIRCLES_TWO, INITIAL_CIRCLES_THREE} from "./InsertionExercise";
 import { collisionDetection } from "../../../CollisionDetection";
 import PortalComponent from "../../../PortalComponent";
+import TutorialScene from "./TutorialScene";
 
 function GalistGameInsertionNode() {
+  const [showTutorial, setShowTutorial] = useState(true);
+  const [currentTutorialScene, setCurrentTutorialScene] = useState("scene1");
   // Track which exercise is active
   const [exerciseKey, setExerciseKey] = useState("exercise_one");
   // Launch initial circles from INITIAL_CIRCLES one at a time, using the same launch logic as the manual launch button
@@ -135,6 +138,17 @@ function GalistGameInsertionNode() {
       }
     };
   }, [exerciseKey, launchInitialCircles]);
+
+  const handleTutorialContinue = useCallback(() => {
+    if (currentTutorialScene === "scene1") {
+      setCurrentTutorialScene("scene2");
+    } else if (currentTutorialScene === "scene2") {
+      setCurrentTutorialScene("scene3");
+    } else if (currentTutorialScene === "scene3") {
+      setShowTutorial(false);
+      setShowInstructionPopup(true); // Show the exercise instruction popup after tutorial
+    }
+  }, [currentTutorialScene]);
 
   // Use a unique key on the main container to force React to fully reset state on exerciseKey change
   // Portal state management
@@ -1196,7 +1210,14 @@ function GalistGameInsertionNode() {
   //   setAddress("");
   //   setValue("");
   // };
-
+  if (showTutorial) {
+    return (
+      <TutorialScene 
+        scene={currentTutorialScene} 
+        onContinue={handleTutorialContinue}
+      />
+    );
+  }
   return (
     
     <div className={styles.app}>
