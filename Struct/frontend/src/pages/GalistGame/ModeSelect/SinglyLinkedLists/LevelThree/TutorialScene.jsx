@@ -849,8 +849,10 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
               <div className={tutorialStyles.tutorialContent}>
                 <h2>Insertion Mastered</h2>
                 <p>
-                  Great shots! You inserted nodes in different positions and kept the list ordered.
-                  Time to apply this skill in the mission.
+                  Well done! You’ve successfully practiced inserting nodes at the head, tail, and specific positions within a linked list. This shows how linked lists allow flexible data organization by adjusting pointers instead of shifting elements like in arrays.
+                </p>
+                <p>
+                  Get ready to use this knowledge in the upcoming mission!
                 </p>
                 <button
                   className={tutorialStyles.tutorialButton}
@@ -874,11 +876,11 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
       <div className={styles.app}>
         <video className={styles.videoBackground} autoPlay loop muted playsInline preload="auto">
           <source src="./video/bubble_bg.mp4" type="video/mp4" />
-        </video>
+          </video>
 
-        <div className={tutorialStyles.tutorialOverlay}>
-          <div className={tutorialStyles.tutorialPopup}>
-            <div className={tutorialStyles.tutorialContent}>
+        <div className={tutorialStyles.instructionOverlay}>
+          <div className={tutorialStyles.instructionPopup}>
+            <div className={tutorialStyles.instructionContent}>
               <h2>Node Insertion - Game Instructions</h2>
 
               <div className={tutorialStyles.gameInstructionsBody}>

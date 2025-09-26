@@ -10,28 +10,29 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  /* fade the backdrop in */
+  animation: fadeInOverlay 360ms ease-out both;
 }
 
 .tutorialPopup {
-  background: rgba(0,0,0,0.65);
-  border: 3px solid #f609e2;
-  border-radius: 12px;
-  padding: 36px 44px;
-  max-width: 1000px;
-  width: calc(100% - 40px);
+  background:transparent;
+  border: 2px solid #f609e2;
+  border-radius: 15px;
+  padding: 40px;
+  max-width: 700px;
   min-height: 340px;
   text-align: center;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  /* subtle pop-in for the popup */
+  animation: popIn 420ms cubic-bezier(.2,.9,.2,1) both;
 }
 
 .tutorialContent h2 {
   color: #f609e2;
-  font-size: 24px;
-  margin: 0 0 18px 0;
-  font-weight: 800;
-  text-align: center;
-  text-shadow: 0 0 8px rgba(246,9,226,0.25);
+  font-size: 35px;
+  margin-bottom: 10px;
+  font-weight: 700;
 }
 
 .tutorialContent p {
@@ -134,6 +135,7 @@
   overflow: hidden;
 }
 
+
 .gameInstructionsContent {
   color: #ffffff;
   height: 100%;
@@ -142,6 +144,7 @@
   justify-content: space-between;
   gap: 12px;
 }
+
 
 .gameInstructionsHeader {
   flex-shrink: 0;
@@ -193,23 +196,71 @@
 .gameInstructionsFooter {
   flex-shrink: 0;
   padding-top: 20px;
+}
+
+/*Instruction*/
+.instructionOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
+  animation: fadeInOverlay 2000ms ease-out both;
 }
 
-.gameInstructionsFooter .tutorialButton {
-  margin: 10px auto 0 auto;
-  padding: 12px 32px;
-  border-radius: 22px;
-  font-size: 16px;
+.instructionPopup {
+  background: rgba(0,0,0,0.65);
+  border: 3px solid #f609e2;
+  border-radius: 12px;
+  padding: 36px 44px;
+  max-width: 1000px;
+  width: calc(100% - 40px);
+  min-height: 340px;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
 }
 
-.gameInstructionsBody li::marker {
+.instructionContent h2 {
   color: #f609e2;
+  font-size: 24px;
+  margin: 0 0 18px 0;
+  font-weight: 800;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(246,9,226,0.25);
 }
 
+.instruction p {
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1.6;
+  justify-content: left;
+  text-align: left;
+  margin-bottom: 25px;
+}
 
+.instructionButton {
+  background: transparent;
+  color: white;
+  border: 2px solid #f609e2;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.instructionButton:hover {
+  background: #f609e2;
+  transform: translateY(-2px);
+}
 
 /* Animations */
 @keyframes fadeInOverlay {
