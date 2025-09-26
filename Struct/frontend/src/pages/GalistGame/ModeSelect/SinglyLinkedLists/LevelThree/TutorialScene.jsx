@@ -16,8 +16,12 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
     "Try adding a new head to the linked list. Scroll to switch direction.";
   const firstCollisionText =
     "Great! You inserted a new head node.";
+  const secondCollisionText =
+    "Nice! You inserted a new tail.";
+  const specificationText =
+    "Now try inserting at index 2.";
   const tailInstructionText =
-    "Now switch to \"After\" and hit the tail to transfer the tail to the new node. If you hit the head or middle, the node will be removed.";
+    "Now try inserting a new tail. Scroll to switch direction.";
 
 
   useEffect(() => {
@@ -27,15 +31,17 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
       return;
     }
 
-    let interval;
+  let interval;
     const runTypewriter = (text, nextStep, duration = 2200) => {
       let idx = 0;
       setTypedInstruction("");
+      isTypingRef.current = true;
       interval = setInterval(() => {
         idx++;
         setTypedInstruction(text.slice(0, idx));
         if (idx >= text.length) {
           clearInterval(interval);
+          isTypingRef.current = false;
           if (typeof nextStep === "number") {
             setTimeout(() => setInstructionStep(nextStep), 1800);
           }
@@ -43,8 +49,8 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
       }, duration / text.length);
     };
 
-    if (instructionStep === 0) runTypewriter(instructionText, 1, 3200);
-    else if (instructionStep === 1) runTypewriter(secondText, null, 2000);
+  if (instructionStep === 0) runTypewriter(instructionText, 1, 3200);
+  else if (instructionStep === 1) runTypewriter(secondText, null, 2000);
     else if (instructionStep === 2) {
       // Immediately display the collision confirmation, then after 1s
       // transition to the tail-phase so the second bullet logic becomes
@@ -59,6 +65,13 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
       interval = proceedTimer;
     }
     else if (instructionStep === 4) runTypewriter(tailInstructionText, null, 2200);
+    else if (instructionStep === 5) {
+      // After successful tail insertion we show the second collision text
+      // instantly for a short moment then show the specification for index 2.
+      setTypedInstruction(secondCollisionText);
+      setTimeout(() => setInstructionStep(6), 1000);
+    }
+    else if (instructionStep === 6) runTypewriter(specificationText, null, 2200);
 
     return () => clearInterval(interval);
   }, [scene, instructionStep]);
@@ -69,14 +82,21 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
   const [cannonCircle, setCannonCircle] = useState({ value: "18", address: "aa40" });
   const [tutorialBullets, setTutorialBullets] = useState([]);
   const tutorialCirclesRef = useRef([]);
+  const isTypingRef = useRef(false);
   const [firstShotDone, setFirstShotDone] = useState(false);
 
   useEffect(() => {
     if (scene !== "scene2") return;
     const handleWheel = ev => {
       if (Math.abs(ev.deltaY) < 1) return;
+      // Always allow the user to change insertion mode while the
+      // typewriter animation runs - don't return early when typing.
       setInsertionMode(ev.deltaY < 0 ? "before" : "after");
-      setInstructionStep(prev => (prev < 3 ? 3 : prev));
+      // Only advance the instruction step when we're not typing so the
+      // typewriter doesn't get interrupted by a scroll.
+      if (!isTypingRef.current) {
+        setInstructionStep(prev => (prev < 3 ? 3 : prev));
+      }
     };
     window.addEventListener("wheel", handleWheel, { passive: true });
     return () => window.removeEventListener("wheel", handleWheel);
@@ -215,6 +235,8 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
     if (scene !== "scene2") return undefined;
     const handleWheel = (ev) => {
       if (Math.abs(ev.deltaY) < 1 || instructionStep < 3) return;
+      // Allow changing insertion mode even while typing. We don't want
+      // wheel to interrupt text, only to change the selected mode.
       setInsertionMode(ev.deltaY < 0 ? "before" : "after");
     };
     window.addEventListener("wheel", handleWheel, { passive: true });
@@ -254,8 +276,9 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
               
               if (dist < 46) {
                 inserted = true;
-                // Determine effective insertion mode.
-                const effectiveMode = bullet.insertionMode ?? insertionMode;
+                // Determine effective insertion mode. Use the current user-selected
+                // insertionMode so scrolling immediately before shooting is honored.
+                const effectiveMode = insertionMode;
                 const isTargetHead = tutorialConnections.some(c => c.from === target.id) && !tutorialConnections.some(c => c.to === target.id);
 
                 // For the first shot, require that the user hit the head AND that
@@ -388,6 +411,62 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
                   }
                 }
 
+                // If we're in the specification phase (instructionStep 6) where
+                // the user must insert at index 2, enforce index-2-only insertion.
+                if (instructionStep === 6) {
+                  // Build ordered list from head using connections
+                  const ordered = [];
+                  const head = tutorialCirclesRef.current.find(c => tutorialConnections.some(conn => conn.from === c.id) && !tutorialConnections.some(conn => conn.to === c.id));
+                  if (head) {
+                    ordered.push(head);
+                    let currId = head.id;
+                    while (true) {
+                      const nextConn = tutorialConnections.find(conn => conn.from === currId);
+                      if (!nextConn) break;
+                      const nextCircle = tutorialCirclesRef.current.find(c => c.id === nextConn.to);
+                      if (!nextCircle) break;
+                      ordered.push(nextCircle);
+                      currId = nextCircle.id;
+                    }
+                  }
+                  const indexTwo = ordered[2];
+                  if (!indexTwo || indexTwo.id !== target.id) {
+                    // invalid for index-2 phase: nudge and discard
+                    const tempId = `temp_${Date.now()}`;
+                    const tempCircle = {
+                      id: tempId,
+                      x: target.x + (effectiveMode === "after" ? 46 : -46),
+                      y: target.y,
+                      value: bullet.value,
+                      address: bullet.address,
+                      velocityX: updatedBullet.velocityX * 0.3,
+                      velocityY: updatedBullet.velocityY * 0.3,
+                      isLaunched: true,
+                      launchTime: Date.now(),
+                    };
+
+                    setTutorialCircles(prev => {
+                      const targetIndex = prev.findIndex(c => c.id === target.id);
+                      if (targetIndex === -1) return prev;
+                      const updatedCircles = [
+                        ...prev.slice(0, targetIndex + (effectiveMode === "after" ? 1 : 0)),
+                        tempCircle,
+                        ...prev.slice(targetIndex + (effectiveMode === "after" ? 1 : 0)),
+                      ];
+                      try { return collisionDetection.updatePhysics(updatedCircles); } catch { return updatedCircles; }
+                    });
+
+                    setTutorialCircles(prev => prev.map(c => c.id === target.id ? { ...c, velocityX: (c.velocityX || 0) + (updatedBullet.velocityX || 0) * 0.6, velocityY: (c.velocityY || 0) + (updatedBullet.velocityY || 0) * 0.6 } : c));
+
+                    setTimeout(() => {
+                      setTutorialCircles(prev => prev.filter(c => c.id !== tempId));
+                    }, 120);
+
+                    onValueShoot?.("invalid_index2_phase");
+                    break;
+                  }
+                }
+
                 // Create new node
                 const newCircle = {
                   id: `inserted_${Date.now()}`,
@@ -509,7 +588,18 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
                 // If this was the first successful shot and it inserted, mark it done
                 if (!firstShotDone) setFirstShotDone(true);
 
-                setInstructionStep(2);
+                // If this insertion occurred in the tail-phase and the target
+                // was the tail (inserting 'after' the tail), advance to the
+                // second-collision step so the tail-confirmation text shows,
+                // then the specification text will follow via the existing
+                // instruction effect. Otherwise show the first-collision
+                // feedback (step 2).
+                const isTargetTailNow = tutorialConnections.some(c => c.to === target.id) && !tutorialConnections.some(c => c.from === target.id);
+                if (instructionStep === 4 && isTargetTailNow && effectiveMode === "after") {
+                  setInstructionStep(5);
+                } else {
+                  setInstructionStep(2);
+                }
                 onValueShoot?.("collision");
                 break;
               }
