@@ -1408,6 +1408,10 @@
 
 /* Bullet styles */
 .bullet {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 6;
   width: 30px !important;
   height: 30px !important;
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%) !important;
@@ -1488,4 +1492,18 @@
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+/* Fade-out animation for deleted nodes */
+.floatingCircle.deleting {
+  animation: nodeFadeOut 0.42s forwards ease-out;
+  pointer-events: none;
+  z-index: 4;
+}
+
+@keyframes nodeFadeOut {
+  0% { opacity: 1; transform: scale(1) translateY(0); filter: brightness(1); }
+  50% { opacity: 0.4; transform: scale(.85) translateY(-6px); filter: brightness(1.25); }
+  90% { opacity: 0.08; transform: scale(.6) translateY(4px); }
+  100% { opacity: 0; transform: scale(.55) translateY(12px); }
 }

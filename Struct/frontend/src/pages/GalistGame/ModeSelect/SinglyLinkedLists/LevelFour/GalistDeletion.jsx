@@ -8,6 +8,8 @@ import TutorialScene from "./TutorialScene.jsx";
 function MainGameComponent() {
   const entryOrderRef = useRef([]);
   const suckedCirclesRef = useRef([]); // Will store the actual circle objects in order
+  const hasGeneratedRef = useRef(false); // prevents double generation per exercise load
+
   // Track which exercise is active
   const [exerciseKey, setExerciseKey] = useState("level_1");
   const [circles, setCircles] = useState([]);
@@ -15,7 +17,6 @@ function MainGameComponent() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [connections, setConnections] = useState([]);
   const mouseHistoryRef = useRef([]);
-  const [suckingCircles, setSuckingCircles] = useState([]);
   const pendingValidationRef = useRef(null);
   const correctHitRef = useRef(false);
 
@@ -43,43 +44,50 @@ function MainGameComponent() {
   const [activatedNodes, setActivatedNodes] = useState(new Set());
   // Track player-created connections
   const [playerConnections, setPlayerConnections] = useState([]);
+  // Force rerender toggle for debugging visibility issues
+  const [renderTick, setRenderTick] = useState(0);
 
   // Update ref whenever floating circles change
   useEffect(() => {
     floatingCirclesRef.current = floatingCircles;
+    if (floatingCircles.length) {
+      const refList = floatingCirclesRef.current.map(c => `${c.value}(${c.address}) isInList=${c.isInList}`);
+      const stateList = floatingCircles.map(c => `${c.value}(${c.address}) isInList=${c.isInList}`);
+      const mismatch = refList.length !== stateList.length;
+      if (mismatch) {
+        console.warn("⚠️ Ref/state length mismatch after update", {refLen: refList.length, stateLen: stateList.length});
+      }
+      console.log("🧪 Circle state snapshot:", stateList);
+    }
   }, [floatingCircles]);
 
   // no expectedOutput for deletion; target is inside currentExercise
 
-  // Generate floating circles on mount and when level changes
+  // Guarded generation when exercise changes
   useEffect(() => {
-    const generateFloatingCircles = () => {
-      if (!currentExercise) return;
+    if (!currentExercise) return;
+    if (hasGeneratedRef.current) return;
+    const circleData = exerciseManagerRef.current.generateFloatingCircles(exerciseKey);
+    const circles = circleData.map(node => ({
+      id: node.id,
+      type: 'node',
+      value: node.value,
+      address: node.address,
+      isInList: node.isInList,
+      x: Math.random() * (window.innerWidth - 200) + 100,
+      y: Math.random() * (window.innerHeight - 300) + 150,
+      vx: 0,
+      vy: 0,
+    }));
+    setFloatingCircles(circles);
+    hasGeneratedRef.current = true;
+    console.log(`✅ Guarded generation for ${exerciseKey}:`, circles.map(c=>c.value));
+  }, [exerciseKey, currentExercise]);
 
-      const circleData =
-        exerciseManagerRef.current.generateFloatingCircles(exerciseKey);
-
-      // Map nodes to animated floating circles
-      const circles = circleData.map((node) => {
-        return {
-          id: node.id,
-          type: "node",
-          value: node.value,
-          address: node.address,
-          isInList: node.isInList,
-          x: Math.random() * (window.innerWidth - 200) + 100,
-          y: Math.random() * (window.innerHeight - 300) + 150,
-          // Keep nodes static: no velocities
-          vx: 0,
-          vy: 0,
-        };
-      });
-
-      setFloatingCircles(circles);
-    };
-
-    generateFloatingCircles();
-  }, [currentExercise, exerciseKey]);
+  // Reset generation guard when loading a brand new exercise via loadExercise
+  useEffect(() => {
+    // if exerciseKey just changed and there are no circles yet, hasGeneratedRef will be false
+  }, [exerciseKey]);
 
   // Initialize history state and handle browser back/forward
   useEffect(() => {
@@ -98,7 +106,6 @@ function MainGameComponent() {
       if (st.screen !== "play") {
         setCircles([]);
         setConnections([]);
-        setSuckingCircles([]);
         setShowValidationResult(false);
 
         setShowInstructionPopup(false);
@@ -133,179 +140,65 @@ function MainGameComponent() {
   // --- NEW: Function to validate challenge mode completion ---
   const validateChallengeCompletion = useCallback(
     (playerLinkedList, updatedFloatingCircles = null) => {
-      if (!currentExercise) return;
-
-      // Check if the player's linked list matches the expected structure after deletion
-      const { expectedStructure, targetNode } = currentExercise;
+      if (!currentExercise || !playerLinkedList) return;
 
       console.log("🔍 Validating challenge completion...");
       console.log("Player linked list:", playerLinkedList);
-      console.log("Expected structure:", expectedStructure);
-      console.log("Target to delete:", targetNode);
-
-      // Debug: Show detailed comparison
-      console.log("🔍 Detailed comparison:");
-      playerLinkedList.forEach((playerNode, index) => {
-        const expectedNode = expectedStructure[index];
-        if (expectedNode) {
-          console.log(`Index ${index}:`);
-          console.log(`  Player: ${playerNode.value}(${playerNode.address})`);
-          console.log(
-            `  Expected: ${expectedNode.value}(${expectedNode.address})`
-          );
-          console.log(
-            `  Value match: ${playerNode.value === expectedNode.value}`
-          );
-          console.log(
-            `  Address match: ${playerNode.address === expectedNode.address}`
-          );
-        }
-      });
+      console.log("Player connections:", playerConnections.length);
 
       // Use the provided floating circles or current state
       const currentFloatingCircles = updatedFloatingCircles || floatingCircles;
 
-      // Check if the target node has been successfully excluded (deleted)
-      // The target node should not be in the player's linked list
-      const targetNodeInLinkedList = playerLinkedList.some(
-        (node) =>
-          node.value === targetNode.value && node.address === targetNode.address
-      );
+      // Check if we have a valid linked list structure with connections
+      const hasValidConnections = playerConnections.length > 0;
+      const remainingNodes = currentFloatingCircles.filter((c) => c.isInList);
 
-      // For challenge mode: if there are player connections, check if target node is connected
-      // If no connections exist, fall back to checking floating circles
-      let targetNodeDeleted = false;
+      console.log(`🔍 Remaining nodes: ${remainingNodes.length}`);
+      console.log(`🔍 Connected nodes in list: ${playerLinkedList.length}`);
+      console.log(`🔍 Player connections: ${playerConnections.length}`);
 
-      if (playerConnections.length > 0) {
-        // Check if target node is part of any player connection
-        const targetNodeId = currentFloatingCircles.find(
-          (c) =>
-            c.value === targetNode.value && c.address === targetNode.address
-        )?.id;
+      // For our new deletion system, we consider it successful if:
+      // 1. Player has made at least one connection
+      // 2. Some nodes have been deleted through the connection process
+      // 3. The remaining connected nodes form a valid linked list
 
-        const targetNodeConnected =
-          targetNodeId &&
-          playerConnections.some(
-            (conn) => conn.from === targetNodeId || conn.to === targetNodeId
-          );
-
-        // Target is "deleted" if it's not in the linked list AND not connected
-        targetNodeDeleted = !targetNodeInLinkedList && !targetNodeConnected;
-      } else {
-        // Fallback: check floating circles (original logic)
-        const targetNodeInFloatingCircles = currentFloatingCircles.some(
-          (circle) =>
-            circle.value === targetNode.value &&
-            circle.address === targetNode.address &&
-            circle.isInList // Only check list nodes, not distractors
-        );
-        targetNodeDeleted =
-          !targetNodeInLinkedList && !targetNodeInFloatingCircles;
-      }
-
-      console.log("🎯 Target node in linked list:", targetNodeInLinkedList);
-      console.log("🎯 Target node deleted:", targetNodeDeleted);
-
-      if (playerConnections.length > 0) {
-        const targetNodeId = currentFloatingCircles.find(
-          (c) =>
-            c.value === targetNode.value && c.address === targetNode.address
-        )?.id;
-
-        const targetNodeConnected =
-          targetNodeId &&
-          playerConnections.some(
-            (conn) => conn.from === targetNodeId || conn.to === targetNodeId
-          );
-        console.log("🎯 Target node connected:", targetNodeConnected);
-      }
-
-      // Compare player's linked list with expected structure
       let isCorrect = false;
+      let message = "";
 
-      if (
-        targetNodeDeleted &&
-        playerLinkedList.length === expectedStructure.length
-      ) {
-        isCorrect = playerLinkedList.every((playerNode, index) => {
-          const expectedNode = expectedStructure[index];
-          return (
-            playerNode.value === expectedNode.value &&
-            playerNode.address === expectedNode.address
-          );
-        });
+      if (!hasValidConnections) {
+        message =
+          "Create connections between nodes to delete nodes and form a linked list!";
+        isCorrect = false;
+      } else if (playerLinkedList.length === 0) {
+        message =
+          "All nodes were deleted! You need to keep some nodes connected.";
+        isCorrect = false;
+      } else if (remainingNodes.length < currentExercise.initialList.length) {
+        // Some nodes were successfully deleted
+        isCorrect = true;
+        const deletedCount =
+          currentExercise.initialList.length - remainingNodes.length;
+        message = `Success! Deleted ${deletedCount} node${
+          deletedCount === 1 ? "" : "s"
+        } and created a linked list with ${playerLinkedList.length} node${
+          playerLinkedList.length === 1 ? "" : "s"
+        }!`;
       } else {
-        console.log(
-          "🔍 Length mismatch or target not deleted:",
-          "Expected length:",
-          expectedStructure.length,
-          "Player length:",
-          playerLinkedList.length,
-          "Target deleted:",
-          targetNodeDeleted
-        );
+        message =
+          "No nodes were deleted. Connect nodes to delete the nodes between them!";
+        isCorrect = false;
       }
-
-      console.log("🔍 Structure match:", isCorrect);
-      console.log("🔍 Expected length:", expectedStructure.length);
-      console.log("🔍 Player length:", playerLinkedList.length);
-      console.log(
-        "🔍 Current floating circles count:",
-        currentFloatingCircles.length
-      );
-      console.log(
-        "🔍 Floating circles that are list nodes:",
-        currentFloatingCircles
-          .filter((c) => c.isInList)
-          .map((c) => `${c.value}(${c.address})`)
-      );
 
       if (isCorrect) {
-        // Check if this completes the current stage and advance if needed
-        const nextExercise = exerciseManagerRef.current.validateAndAdvanceStage(
-          playerLinkedList,
-          targetNode
-        );
-
-        if (nextExercise) {
-          // Advanced to next stage
-          console.log("🎉 Stage completed! Advancing to next stage...");
-          setCurrentExercise(nextExercise);
-          setStageProgress(exerciseManagerRef.current.getStageProgress());
-
-          // Clear current connections and activated nodes for new stage
-          setPlayerConnections([]);
-          setActivatedNodes(new Set());
-
-          if (nextExercise.isLastStage) {
-            // This was the final stage
-            pendingValidationRef.current = {
-              isCorrect: true,
-              message: "Perfect! All stages completed! Level finished!",
-              score: 100,
-              expectedStructure,
-              userCircles: playerLinkedList,
-            };
-          } else {
-            // More stages to go
-            pendingValidationRef.current = {
-              isCorrect: true,
-              message: `Stage ${nextExercise.currentStage}/${nextExercise.totalStages} completed! New target: Delete ${nextExercise.targetNode?.value}`,
-              score: 100,
-              expectedStructure: nextExercise.expectedStructure,
-              userCircles: playerLinkedList,
-            };
-          }
-        } else {
-          // Stage validation failed or no more stages
-          pendingValidationRef.current = {
-            isCorrect: true,
-            message: "Perfect! Challenge completed successfully!",
-            score: 100,
-            expectedStructure,
-            userCircles: playerLinkedList,
-          };
-        }
+        pendingValidationRef.current = {
+          isCorrect: true,
+          message,
+          score: 100,
+          expectedStructure: [], // Not using predefined expected structure anymore
+          userCircles: playerLinkedList,
+          deletedCount:
+            currentExercise.initialList.length - remainingNodes.length,
+        };
 
         // Auto-show validation result
         if (!showValidationResult) {
@@ -314,9 +207,15 @@ function MainGameComponent() {
 
         console.log("🎉 Challenge completed successfully!");
       } else {
-        console.log("❌ Challenge not yet completed");
-        // Don't show validation result for incomplete challenges
-        // Let player continue working
+        pendingValidationRef.current = {
+          isCorrect: false,
+          message,
+          score: 0,
+          expectedStructure: [],
+          userCircles: playerLinkedList,
+        };
+
+        console.log("❌ Challenge not completed:", message);
       }
     },
     [currentExercise, showValidationResult, floatingCircles, playerConnections]
@@ -324,12 +223,12 @@ function MainGameComponent() {
 
   const createPlayerConnection = useCallback(
     (fromNodeId, toNodeId) => {
-      const fromNode = floatingCircles.find(
-        (circle) => circle.id === fromNodeId
-      );
-      const toNode = floatingCircles.find((circle) => circle.id === toNodeId);
+      // Always use ref for freshest data to avoid stale closure over floatingCircles
+      const currentNodes = floatingCirclesRef.current;
+      const fromNode = currentNodes.find((circle) => circle.id === fromNodeId);
+      const toNode = currentNodes.find((circle) => circle.id === toNodeId);
 
-      if (!fromNode || !toNode) {
+      if (!fromNode || !toNode || !currentExercise) {
         console.warn(
           "Could not find nodes for connection:",
           fromNodeId,
@@ -338,6 +237,161 @@ function MainGameComponent() {
         return;
       }
 
+      // Prevent creating connections involving nodes that have been soft-deleted
+      if (!fromNode.isInList || !toNode.isInList) {
+        console.log(
+          `� Ignoring connection attempt involving deleted node(s): ${fromNode.value}(${fromNode.address}) isInList=${fromNode.isInList} | ${toNode.value}(${toNode.address}) isInList=${toNode.isInList}`
+        );
+        return;
+      }
+
+      console.log(
+        `�🔗 Player connection created: ${fromNode.value}(${fromNode.address}) → ${toNode.value}(${toNode.address})`
+      );
+
+      // Find positions of both nodes in the original linked list
+      const originalList = currentExercise.initialList || [];
+      const fromIndex = originalList.findIndex(
+        (n) => n.value === fromNode.value && n.address === fromNode.address
+      );
+      const toIndex = originalList.findIndex(
+        (n) => n.value === toNode.value && n.address === toNode.address
+      );
+
+      if (fromIndex === -1 || toIndex === -1) {
+        console.warn("Nodes not found in original list");
+        return;
+      }
+
+      console.log(`📍 Original positions - From: ${fromIndex}, To: ${toIndex}`);
+
+      // Determine what nodes to delete based on connection
+      let nodesToDelete = [];
+
+      if (Math.abs(fromIndex - toIndex) === 1) {
+        // Adjacent nodes - delete the node that comes before them
+        const minIndex = Math.min(fromIndex, toIndex);
+        if (minIndex > 0) {
+          // Delete the predecessor node
+          nodesToDelete = [originalList[minIndex - 1]];
+          console.log(
+            `🗑️ Adjacent connection - deleting predecessor: ${
+              originalList[minIndex - 1].value
+            }(${originalList[minIndex - 1].address})`
+          );
+        } else {
+          console.log(
+            "🚫 No predecessor to delete for adjacent nodes at start of list"
+          );
+        }
+      } else {
+        // Non-adjacent nodes - delete all nodes between them
+        const startIndex = Math.min(fromIndex, toIndex);
+        const endIndex = Math.max(fromIndex, toIndex);
+
+        for (let i = startIndex + 1; i < endIndex; i++) {
+          nodesToDelete.push(originalList[i]);
+        }
+
+        if (nodesToDelete.length > 0) {
+          console.log(
+            `🗑️ Non-adjacent connection - deleting between nodes:`,
+            nodesToDelete.map((n) => `${n.value}(${n.address})`)
+          );
+        }
+      }
+
+      // Mark deleted nodes (retain object for stable references, hide via isInList flag)
+      if (nodesToDelete.length > 0) {
+        const shouldDelete = (circle) =>
+          nodesToDelete.some(
+            (nodeToDelete) =>
+              nodeToDelete.value === circle.value &&
+              nodeToDelete.address === circle.address
+          );
+
+        const deletedCircleIds = new Set();
+
+        setFloatingCircles((prevCircles) => {
+          const updatedCircles = prevCircles.map((circle) => {
+            if (shouldDelete(circle) && circle.isInList) {
+              deletedCircleIds.add(circle.id);
+              return { ...circle, isInList: false }; // soft-delete first
+            }
+            return circle;
+          });
+
+          // Hard-remove deleted nodes from the ref & state to avoid accidental future interaction
+          const hardPruned = updatedCircles.filter((c) => c.isInList);
+
+          if (deletedCircleIds.size > 0) {
+            console.log(
+              `🔍 Soft deletion applied. Total before: ${prevCircles.length} | Marked deleted: ${deletedCircleIds.size}`
+            );
+            console.log(
+              `🗑️ Deleted nodes:`,
+              nodesToDelete.map((n) => `${n.value}(${n.address})`)
+            );
+            console.log(
+              `🎯 Remaining visible circles (after prune): ${hardPruned.length}`
+            );
+            // Immediate diagnostic comparing IDs
+            console.log("🔎 Post-prune IDs:", hardPruned.map(c => c.id));
+          }
+
+          floatingCirclesRef.current = hardPruned;
+      // Instead of immediately pruning, mark nodes deleting, then prune after animation
+      const now = Date.now();
+      const withDeleteFlags = updatedCircles.map(c => {
+        if (!c.isInList && !c.deleting) {
+          return { ...c, deleting: true, deletedAt: now };
+        }
+        return c;
+      });
+
+      // Schedule hard prune after 450ms (CSS animation length ~400ms)
+      setTimeout(() => {
+        setFloatingCircles(current => {
+          const pruned = current.filter(c => c.isInList || c.deleting && Date.now() - (c.deletedAt||0) < 450);
+          // Second pass actually remove those past animation window
+          const finalList = pruned.filter(c => c.isInList || (c.deleting && Date.now() - (c.deletedAt||0) < 450));
+          floatingCirclesRef.current = finalList.filter(c=>c.isInList);
+          setRenderTick(t=>t+1);
+          return finalList.filter(c => c.isInList || c.deleting); // Keep deleting ones during fade
+        });
+      }, 10); // micro delay to allow class application
+      setTimeout(() => {
+        setFloatingCircles(current => {
+          const final = current.filter(c => c.isInList); // hard prune after animation
+          floatingCirclesRef.current = final;
+          setRenderTick(t=>t+1);
+          return final;
+        });
+      }, 470);
+
+      floatingCirclesRef.current = withDeleteFlags.filter(c => c.isInList || c.deleting);
+      setRenderTick((t) => t + 1);
+      queueMicrotask(()=>{
+        const actives = floatingCirclesRef.current.map(c=>`${c.value}(${c.address})${c.deleting?'[fading]':''}`);
+        console.log('🧵 Post-set active nodes (pre-fade):', actives);
+      });
+      return withDeleteFlags;
+        });
+
+        if (deletedCircleIds.size > 0) {
+          // Remove from activated list
+          setActivatedNodes(
+            (prevActivated) =>
+              new Set(
+                [...prevActivated].filter(
+                  (nodeId) => !deletedCircleIds.has(nodeId)
+                )
+              )
+          );
+        }
+      }
+
+      // Create the connection
       const newConnection = {
         id: `player-${fromNodeId}-to-${toNodeId}-${Date.now()}`,
         from: fromNodeId,
@@ -353,17 +407,13 @@ function MainGameComponent() {
         );
 
         if (!exists) {
-          console.log(
-            `🔗 Player connection created: ${fromNode.value}(${fromNode.address}) → ${toNode.value}(${toNode.address})`
-          );
-          // Simply add the connection without triggering any game state changes
           return [...prevConnections, newConnection];
         }
 
         return prevConnections;
       });
     },
-    [floatingCircles]
+    [currentExercise]
   );
 
   // No head/tail logic needed for node creation level
@@ -372,7 +422,6 @@ function MainGameComponent() {
     // Always clear circles/connections and reset launch state before loading new exercise
     setCircles([]);
     setConnections([]);
-    setSuckingCircles([]);
     // Clear persistent refs to avoid stale data between runs
     if (entryOrderRef) entryOrderRef.current = [];
     if (suckedCirclesRef) suckedCirclesRef.current = [];
@@ -410,8 +459,8 @@ function MainGameComponent() {
 
   // Mouse event handlers for dragging
   const handleMouseDown = (e, circle) => {
-    // Prevent dragging launched circles
-    if (circle.isLaunched) {
+    // Prevent dragging bullets
+    if (circle.isBullet) {
       return;
     }
 
@@ -534,10 +583,18 @@ function MainGameComponent() {
             // Check for collisions with floating node circles
             let reflectedThisStep = false;
 
-            // Get real-time floating circle positions
+            // Get real-time floating circle positions - use ref to avoid render loop
             const currentFloatingCircles = floatingCirclesRef.current;
+            const activeNodeCount = currentFloatingCircles.filter(c => c.isInList).length;
+            // (Low frequency) Diagnostic log every few frames when circles are deleted
+            if (Math.random() < 0.005) {
+              console.log(`🧪 Collision loop active nodes: ${activeNodeCount}`);
+            }
             for (let i = 0; i < currentFloatingCircles.length; i++) {
               const floatingCircle = currentFloatingCircles[i];
+
+              // Skip nodes that have been deleted
+              if (!floatingCircle.isInList) continue;
 
               // Use visual radii for collision
               const bulletRadius = 15;
@@ -730,7 +787,7 @@ function MainGameComponent() {
       setCannonAngle(angle);
 
       // Existing circle dragging logic (only for non-launched circles)
-      if (draggedCircle && !draggedCircle.isLaunched) {
+      if (draggedCircle) {
         const newX = e.clientX - dragOffset.x;
         const newY = e.clientY - dragOffset.y;
 
@@ -763,7 +820,7 @@ function MainGameComponent() {
               return false;
             }
 
-            const otherCircles = circles.filter(
+            const otherCircles = floatingCirclesRef.current.filter(
               (c) => c.id !== draggedCircle.id
             );
             for (let otherCircle of otherCircles) {
@@ -838,56 +895,25 @@ function MainGameComponent() {
           (entry) => now - entry.time < 100
         );
 
-        setCircles((prevCircles) =>
-          prevCircles.map((circle) =>
+        setFloatingCircles((prevCircles) => {
+          const updated = prevCircles.map((circle) =>
             circle.id === draggedCircle.id
               ? {
                   ...circle,
                   x: validPosition.x,
                   y: validPosition.y,
-                  velocityX: 0,
-                  velocityY: 0,
                 }
               : circle
-          )
-        );
+          );
+          floatingCirclesRef.current = updated;
+          return updated;
+        });
       }
     };
 
     const handleMouseUpGlobal = () => {
       if (draggedCircle) {
-        let velocityX = 0;
-        let velocityY = 0;
-
-        if (mouseHistoryRef.current.length >= 2) {
-          const recent =
-            mouseHistoryRef.current[mouseHistoryRef.current.length - 1];
-          const older = mouseHistoryRef.current[0];
-          const timeDiff = recent.time - older.time;
-
-          if (timeDiff > 0) {
-            velocityX = ((recent.x - older.x) / timeDiff) * 16;
-            velocityY = ((recent.y - older.y) / timeDiff) * 16;
-
-            const maxVelocity = 15;
-            velocityX = Math.max(
-              -maxVelocity,
-              Math.min(maxVelocity, velocityX)
-            );
-            velocityY = Math.max(
-              -maxVelocity,
-              Math.min(maxVelocity, velocityY)
-            );
-          }
-        }
-
-        setCircles((prevCircles) =>
-          prevCircles.map((circle) =>
-            circle.id === draggedCircle.id
-              ? { ...circle, velocityX, velocityY }
-              : circle
-          )
-        );
+        // Nodes remain static after dragging; no extra state updates required here
       }
 
       setDraggedCircle(null);
@@ -904,16 +930,10 @@ function MainGameComponent() {
       document.removeEventListener("mouseup", handleMouseUpGlobal);
       document.removeEventListener("contextmenu", handleGlobalRightClick);
     };
-  }, [
-    draggedCircle,
-    dragOffset,
-    findConnectedCircles,
-    circles,
-    handleGlobalRightClick,
-  ]);
+  }, [draggedCircle, dragOffset, handleGlobalRightClick]);
 
   return (
-    <div className={styles.app}>
+  <div className={styles.app} data-render-tick={renderTick}>
       <video
         className={styles.videoBackground}
         autoPlay
@@ -972,6 +992,8 @@ function MainGameComponent() {
                       <div className={styles.squareNodeField}>
                         {currentExercise.targetNode
                           ? `${currentExercise.targetNode.value} / ${currentExercise.targetNode.address}`
+                          : currentExercise.totalStages === 1
+                          ? "Free-form deletion"
                           : "N/A"}
                       </div>
                     </div>
@@ -1002,7 +1024,7 @@ function MainGameComponent() {
         <div
           style={{ color: "#00ff88", fontWeight: "bold", marginBottom: "8px" }}
         >
-          🚀 Progressive Deletion Challenge
+          🚀 Smart Deletion Challenge
         </div>
         <div>Right-click to shoot balls at nodes.</div>
         <div style={{ color: "#00ff88" }}>
@@ -1011,18 +1033,45 @@ function MainGameComponent() {
         <div style={{ color: "#00ff88" }}>
           • Second hit: Creates connection!
         </div>
-        <div style={{ color: "#ff6600", fontSize: "12px", marginTop: "5px" }}>
-          🎯 Goal: Delete target node by excluding it from connections
-        </div>
-        <div style={{ color: "#ff6600", fontSize: "12px" }}>
-          🔗 Connected nodes form the new linked list
-        </div>
-        <div style={{ color: "#ffaa00", fontSize: "12px" }}>
-          ⭐ Complete each stage to unlock the next target!
-        </div>
-        <div style={{ color: "#ffaa00", fontSize: "12px", marginTop: "3px" }}>
-          💡 Don&apos;t connect the target node to delete it
-        </div>
+        {currentExercise?.totalStages === 1 ? (
+          <>
+            <div
+              style={{ color: "#ff6600", fontSize: "12px", marginTop: "5px" }}
+            >
+              🎯 Free Mode: Connect any two nodes to delete nodes between them
+            </div>
+            <div style={{ color: "#ff6600", fontSize: "12px" }}>
+              🔗 Adjacent nodes? The predecessor gets deleted instead
+            </div>
+            <div style={{ color: "#ffaa00", fontSize: "12px" }}>
+              ⭐ Create strategic connections to form your linked list!
+            </div>
+            <div
+              style={{ color: "#ffaa00", fontSize: "12px", marginTop: "3px" }}
+            >
+              💡 Example: Connect B→D deletes node C between them
+            </div>
+          </>
+        ) : (
+          <>
+            <div
+              style={{ color: "#ff6600", fontSize: "12px", marginTop: "5px" }}
+            >
+              🎯 Goal: Connect two nodes to delete nodes between them
+            </div>
+            <div style={{ color: "#ff6600", fontSize: "12px" }}>
+              🔗 Adjacent nodes? The predecessor gets deleted instead
+            </div>
+            <div style={{ color: "#ffaa00", fontSize: "12px" }}>
+              ⭐ Target specific nodes to complete each stage!
+            </div>
+            <div
+              style={{ color: "#ffaa00", fontSize: "12px", marginTop: "3px" }}
+            >
+              💡 Follow the target node requirements above
+            </div>
+          </>
+        )}
       </div>
 
       {/* Connection Counter and Manual Validation */}
@@ -1327,38 +1376,18 @@ function MainGameComponent() {
         );
       })()}
 
-      {circles.map((circle) => (
-        <div
-          key={circle.id}
-          className={`${styles.animatedCircle} ${
-            suckingCircles.includes(circle.id) ? styles.beingSucked : ""
-          }`}
-          style={{
-            left: `${circle.x - (circle.isBullet ? 15 : 30)}px`,
-            top: `${circle.y - (circle.isBullet ? 15 : 30)}px`,
-            width: circle.isBullet ? "30px" : "60px",
-            height: circle.isBullet ? "30px" : "60px",
-            backgroundColor: circle.isBullet ? "#ff6b6b" : "#d3d3d3",
-            cursor: circle.isLaunched
-              ? "default"
-              : draggedCircle && circle.id === draggedCircle.id
-              ? "grabbing"
-              : "grab",
-            opacity: circle.isLaunched ? 0.9 : 1,
-            boxShadow: circle.isLaunched
-              ? "0 0 15px rgba(255, 255, 0, 0.6)"
-              : "0 4px 8px rgba(0, 0, 0, 0.3)",
-          }}
-          onMouseDown={(e) => handleMouseDown(e, circle)}
-        >
-          {!circle.isBullet && (
-            <>
-              <span className={styles.circleValue}>{circle.value}</span>
-              <span className={styles.circleAddress}>{circle.address}</span>
-            </>
-          )}
-        </div>
-      ))}
+      {circles
+        .filter((circle) => circle.isBullet)
+        .map((circle) => (
+          <div
+            key={circle.id}
+            className={styles.bullet}
+            style={{
+              left: `${circle.x - 15}px`,
+              top: `${circle.y - 15}px`,
+            }}
+          />
+        ))}
 
       {/* Linked List Connections (between present list nodes) */}
       {currentExercise &&
@@ -1516,25 +1545,32 @@ function MainGameComponent() {
         </svg>
       )}
 
-      {/* Floating Node Circles (value + address) */}
-      {floatingCircles.map((circle) => (
-        <div
-          key={circle.id}
-          data-node-id={circle.id}
-          className={`${styles.floatingCircle} ${styles.valueCircle} ${
-            activatedNodes.has(circle.id) ? styles.activated : ""
-          }`}
-          style={{
-            left: `${circle.x}px`,
-            top: `${circle.y}px`,
-          }}
-        >
-          <div style={{ fontSize: "16px", fontWeight: 800 }}>
-            {circle.value}
+      {/* Floating Node Circles (value + address) with fade-out on delete */}
+      {floatingCircles.map(circle => {
+        const isActive = circle.isInList;
+        const isDeleting = !circle.isInList && circle.deleting;
+        const cls = [styles.floatingCircle, styles.valueCircle];
+        if (activatedNodes.has(circle.id)) cls.push(styles.activated);
+        if (isDeleting) cls.push('deleting');
+        return (
+          <div
+            key={circle.id}
+            data-node-id={circle.id}
+            className={cls.join(' ')}
+            style={{
+              left: `${circle.x}px`,
+              top: `${circle.y}px`,
+              opacity: isActive || isDeleting ? 1 : 0,
+              pointerEvents: isActive ? 'auto' : 'none',
+              cursor: draggedCircle && circle.id === draggedCircle.id ? 'grabbing' : 'grab'
+            }}
+            onMouseDown={e => isActive ? handleMouseDown(e, circle) : undefined}
+          >
+            <div style={{ fontSize: '16px', fontWeight: 800 }}>{circle.value}</div>
+            <div style={{ fontSize: '10px', opacity: 0.9 }}>{circle.address}</div>
           </div>
-          <div style={{ fontSize: "10px", opacity: 0.9 }}>{circle.address}</div>
-        </div>
-      ))}
+        );
+      })}
 
       {/* Validation Overlay */}
       {showValidationResult && pendingValidationRef.current && (

@@ -4,8 +4,8 @@
 const exerciseDefinitions = {
   level_1: {
     id: "level_1",
-    name: "Level 1: Progressive Deletion",
-    description: "Delete nodes one by one through connections",
+    name: "Level 1: Smart Deletion",
+    description: "Connect nodes to delete the nodes between them",
     initialList: [
       { value: "10", address: "ab7" },
       { value: "25", address: "x2c" },
@@ -13,33 +13,7 @@ const exerciseDefinitions = {
       { value: "42", address: "k5m" },
       { value: "58", address: "p9r" },
     ],
-    // Multi-stage format: each stage has a target and expected result after that deletion
-    stages: [
-      {
-        target: { type: "head" }, // First target is head
-        expectedStructure: [
-          { value: "25", address: "x2c" },
-          { value: "33", address: "f9d" },
-          { value: "42", address: "k5m" },
-          { value: "58", address: "p9r" },
-        ],
-      },
-      {
-        target: { type: "tail" }, // Second target is tail of remaining list
-        expectedStructure: [
-          { value: "25", address: "x2c" },
-          { value: "33", address: "f9d" },
-          { value: "42", address: "k5m" },
-        ],
-      },
-      {
-        target: { type: "value", value: "33" }, // Third target is specific value
-        expectedStructure: [
-          { value: "25", address: "x2c" },
-          { value: "42", address: "k5m" },
-        ],
-      },
-    ],
+    // Free-form deletion - no stages, player can delete any nodes through connections
     difficulty: "easy",
   },
   level_2: {
@@ -172,7 +146,14 @@ export class ExerciseManager {
       return this._augmentExercise(this.exercises.level_1, 0);
     }
     this.currentLevel = key;
-    this.currentStage = Math.min(stage, exercise.stages.length - 1);
+
+    // Check if exercise has stages before accessing stages.length
+    if (exercise.stages && exercise.stages.length > 0) {
+      this.currentStage = Math.min(stage, exercise.stages.length - 1);
+    } else {
+      this.currentStage = 0; // No stages, so always stage 0
+    }
+
     if (stage === 0) {
       this.deletedNodes = []; // Reset deleted nodes when starting new level
     }
@@ -181,9 +162,20 @@ export class ExerciseManager {
 
   // Compute and attach current target and expected structure based on stage
   _augmentExercise(exercise, stage) {
+    // Handle exercises without stages (like level_1)
     if (!exercise.stages || exercise.stages.length === 0) {
-      console.error("Exercise missing stages data");
-      return exercise;
+      console.log(
+        `Exercise ${exercise.id} has no stages - using free-form mode`
+      );
+      return {
+        ...exercise,
+        targetNode: null, // No specific target in free-form mode
+        currentStage: 1,
+        totalStages: 1,
+        expectedStructure: [],
+        remainingList: exercise.initialList,
+        isLastStage: true,
+      };
     }
 
     const currentStageData = exercise.stages[stage];
@@ -234,17 +226,26 @@ export class ExerciseManager {
     }
 
     const exercise = this.exercises[this.currentLevel];
-    if (exercise && this.currentStage < exercise.stages.length - 1) {
+    if (
+      exercise &&
+      exercise.stages &&
+      this.currentStage < exercise.stages.length - 1
+    ) {
       this.currentStage++;
       return this._augmentExercise(exercise, this.currentStage);
     }
-    return null; // No more stages
+    return null; // No more stages or no stages at all
   }
 
   // Check if current stage is complete and advance if so
   validateAndAdvanceStage(playerLinkedList, targetNode) {
     const exercise = this.exercises[this.currentLevel];
     if (!exercise || !targetNode) return null;
+
+    // Handle exercises without stages (free-form mode)
+    if (!exercise.stages || exercise.stages.length === 0) {
+      return null; // No stages to advance in free-form mode
+    }
 
     const currentStageData = exercise.stages[this.currentStage];
     if (!currentStageData) return null;
@@ -285,6 +286,16 @@ export class ExerciseManager {
   getStageProgress() {
     const exercise = this.exercises[this.currentLevel];
     if (!exercise) return null;
+
+    // Handle exercises without stages
+    if (!exercise.stages || exercise.stages.length === 0) {
+      return {
+        currentStage: 1,
+        totalStages: 1,
+        isLastStage: true,
+        deletedNodesCount: this.deletedNodes.length,
+      };
+    }
 
     return {
       currentStage: this.currentStage + 1,
