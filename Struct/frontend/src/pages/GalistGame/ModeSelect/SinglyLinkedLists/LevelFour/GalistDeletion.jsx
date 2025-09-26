@@ -51,11 +51,18 @@ function MainGameComponent() {
   useEffect(() => {
     floatingCirclesRef.current = floatingCircles;
     if (floatingCircles.length) {
-      const refList = floatingCirclesRef.current.map(c => `${c.value}(${c.address}) isInList=${c.isInList}`);
-      const stateList = floatingCircles.map(c => `${c.value}(${c.address}) isInList=${c.isInList}`);
+      const refList = floatingCirclesRef.current.map(
+        (c) => `${c.value}(${c.address}) isInList=${c.isInList}`
+      );
+      const stateList = floatingCircles.map(
+        (c) => `${c.value}(${c.address}) isInList=${c.isInList}`
+      );
       const mismatch = refList.length !== stateList.length;
       if (mismatch) {
-        console.warn("⚠️ Ref/state length mismatch after update", {refLen: refList.length, stateLen: stateList.length});
+        console.warn("⚠️ Ref/state length mismatch after update", {
+          refLen: refList.length,
+          stateLen: stateList.length,
+        });
       }
       console.log("🧪 Circle state snapshot:", stateList);
     }
@@ -67,10 +74,11 @@ function MainGameComponent() {
   useEffect(() => {
     if (!currentExercise) return;
     if (hasGeneratedRef.current) return;
-    const circleData = exerciseManagerRef.current.generateFloatingCircles(exerciseKey);
-    const circles = circleData.map(node => ({
+    const circleData =
+      exerciseManagerRef.current.generateFloatingCircles(exerciseKey);
+    const circles = circleData.map((node) => ({
       id: node.id,
-      type: 'node',
+      type: "node",
       value: node.value,
       address: node.address,
       isInList: node.isInList,
@@ -81,7 +89,10 @@ function MainGameComponent() {
     }));
     setFloatingCircles(circles);
     hasGeneratedRef.current = true;
-    console.log(`✅ Guarded generation for ${exerciseKey}:`, circles.map(c=>c.value));
+    console.log(
+      `✅ Guarded generation for ${exerciseKey}:`,
+      circles.map((c) => c.value)
+    );
   }, [exerciseKey, currentExercise]);
 
   // Reset generation guard when loading a brand new exercise via loadExercise
@@ -336,46 +347,61 @@ function MainGameComponent() {
               `🎯 Remaining visible circles (after prune): ${hardPruned.length}`
             );
             // Immediate diagnostic comparing IDs
-            console.log("🔎 Post-prune IDs:", hardPruned.map(c => c.id));
+            console.log(
+              "🔎 Post-prune IDs:",
+              hardPruned.map((c) => c.id)
+            );
           }
 
           floatingCirclesRef.current = hardPruned;
-      // Instead of immediately pruning, mark nodes deleting, then prune after animation
-      const now = Date.now();
-      const withDeleteFlags = updatedCircles.map(c => {
-        if (!c.isInList && !c.deleting) {
-          return { ...c, deleting: true, deletedAt: now };
-        }
-        return c;
-      });
+          // Instead of immediately pruning, mark nodes deleting, then prune after animation
+          const now = Date.now();
+          const withDeleteFlags = updatedCircles.map((c) => {
+            if (!c.isInList && !c.deleting) {
+              return { ...c, deleting: true, deletedAt: now };
+            }
+            return c;
+          });
 
-      // Schedule hard prune after 450ms (CSS animation length ~400ms)
-      setTimeout(() => {
-        setFloatingCircles(current => {
-          const pruned = current.filter(c => c.isInList || c.deleting && Date.now() - (c.deletedAt||0) < 450);
-          // Second pass actually remove those past animation window
-          const finalList = pruned.filter(c => c.isInList || (c.deleting && Date.now() - (c.deletedAt||0) < 450));
-          floatingCirclesRef.current = finalList.filter(c=>c.isInList);
-          setRenderTick(t=>t+1);
-          return finalList.filter(c => c.isInList || c.deleting); // Keep deleting ones during fade
-        });
-      }, 10); // micro delay to allow class application
-      setTimeout(() => {
-        setFloatingCircles(current => {
-          const final = current.filter(c => c.isInList); // hard prune after animation
-          floatingCirclesRef.current = final;
-          setRenderTick(t=>t+1);
-          return final;
-        });
-      }, 470);
+          // Schedule hard prune after 450ms (CSS animation length ~400ms)
+          setTimeout(() => {
+            setFloatingCircles((current) => {
+              const pruned = current.filter(
+                (c) =>
+                  c.isInList ||
+                  (c.deleting && Date.now() - (c.deletedAt || 0) < 450)
+              );
+              // Second pass actually remove those past animation window
+              const finalList = pruned.filter(
+                (c) =>
+                  c.isInList ||
+                  (c.deleting && Date.now() - (c.deletedAt || 0) < 450)
+              );
+              floatingCirclesRef.current = finalList.filter((c) => c.isInList);
+              setRenderTick((t) => t + 1);
+              return finalList.filter((c) => c.isInList || c.deleting); // Keep deleting ones during fade
+            });
+          }, 10); // micro delay to allow class application
+          setTimeout(() => {
+            setFloatingCircles((current) => {
+              const final = current.filter((c) => c.isInList); // hard prune after animation
+              floatingCirclesRef.current = final;
+              setRenderTick((t) => t + 1);
+              return final;
+            });
+          }, 470);
 
-      floatingCirclesRef.current = withDeleteFlags.filter(c => c.isInList || c.deleting);
-      setRenderTick((t) => t + 1);
-      queueMicrotask(()=>{
-        const actives = floatingCirclesRef.current.map(c=>`${c.value}(${c.address})${c.deleting?'[fading]':''}`);
-        console.log('🧵 Post-set active nodes (pre-fade):', actives);
-      });
-      return withDeleteFlags;
+          floatingCirclesRef.current = withDeleteFlags.filter(
+            (c) => c.isInList || c.deleting
+          );
+          setRenderTick((t) => t + 1);
+          queueMicrotask(() => {
+            const actives = floatingCirclesRef.current.map(
+              (c) => `${c.value}(${c.address})${c.deleting ? "[fading]" : ""}`
+            );
+            console.log("🧵 Post-set active nodes (pre-fade):", actives);
+          });
+          return withDeleteFlags;
         });
 
         if (deletedCircleIds.size > 0) {
@@ -585,7 +611,9 @@ function MainGameComponent() {
 
             // Get real-time floating circle positions - use ref to avoid render loop
             const currentFloatingCircles = floatingCirclesRef.current;
-            const activeNodeCount = currentFloatingCircles.filter(c => c.isInList).length;
+            const activeNodeCount = currentFloatingCircles.filter(
+              (c) => c.isInList
+            ).length;
             // (Low frequency) Diagnostic log every few frames when circles are deleted
             if (Math.random() < 0.005) {
               console.log(`🧪 Collision loop active nodes: ${activeNodeCount}`);
@@ -933,7 +961,7 @@ function MainGameComponent() {
   }, [draggedCircle, dragOffset, handleGlobalRightClick]);
 
   return (
-  <div className={styles.app} data-render-tick={renderTick}>
+    <div className={styles.app} data-render-tick={renderTick}>
       <video
         className={styles.videoBackground}
         autoPlay
@@ -1546,28 +1574,37 @@ function MainGameComponent() {
       )}
 
       {/* Floating Node Circles (value + address) with fade-out on delete */}
-      {floatingCircles.map(circle => {
+      {floatingCircles.map((circle) => {
         const isActive = circle.isInList;
         const isDeleting = !circle.isInList && circle.deleting;
         const cls = [styles.floatingCircle, styles.valueCircle];
         if (activatedNodes.has(circle.id)) cls.push(styles.activated);
-        if (isDeleting) cls.push('deleting');
+        if (isDeleting) cls.push("deleting");
         return (
           <div
             key={circle.id}
             data-node-id={circle.id}
-            className={cls.join(' ')}
+            className={cls.join(" ")}
             style={{
               left: `${circle.x}px`,
               top: `${circle.y}px`,
               opacity: isActive || isDeleting ? 1 : 0,
-              pointerEvents: isActive ? 'auto' : 'none',
-              cursor: draggedCircle && circle.id === draggedCircle.id ? 'grabbing' : 'grab'
+              pointerEvents: isActive ? "auto" : "none",
+              cursor:
+                draggedCircle && circle.id === draggedCircle.id
+                  ? "grabbing"
+                  : "grab",
             }}
-            onMouseDown={e => isActive ? handleMouseDown(e, circle) : undefined}
+            onMouseDown={(e) =>
+              isActive ? handleMouseDown(e, circle) : undefined
+            }
           >
-            <div style={{ fontSize: '16px', fontWeight: 800 }}>{circle.value}</div>
-            <div style={{ fontSize: '10px', opacity: 0.9 }}>{circle.address}</div>
+            <div style={{ fontSize: "16px", fontWeight: 800 }}>
+              {circle.value}
+            </div>
+            <div style={{ fontSize: "10px", opacity: 0.9 }}>
+              {circle.address}
+            </div>
           </div>
         );
       })}
