@@ -1605,6 +1605,11 @@ function GalistGameLinkingNode() {
   // Black hole repositioning timer - every 20 seconds
   useEffect(() => {
     const repositionBlackHoles = () => {
+      // Don't generate black holes during tutorial
+      if (showInstructionPopup) {
+        setBlackHoles([]);
+        return;
+      }
       setBlackHoles(generateBlackHoles());
     };
 
@@ -1615,7 +1620,7 @@ function GalistGameLinkingNode() {
     const interval = setInterval(repositionBlackHoles, Math.random() * 5000 + 5000); // Random interval between 5-10 seconds
 
     return () => clearInterval(interval);
-  }, [generateBlackHoles]); // Include generateBlackHoles dependency
+  }, [generateBlackHoles, showInstructionPopup]); // Include generateBlackHoles dependency
 
   return (
     <div className={styles.app}>
