@@ -81,6 +81,7 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
   const [cannonAngle, setCannonAngle] = useState(0);
   const [cannonCircle, setCannonCircle] = useState({ value: "18", address: "aa40" });
   const [tutorialBullets, setTutorialBullets] = useState([]);
+  const [showInsertionMastered, setShowInsertionMastered] = useState(false);
   const tutorialCirclesRef = useRef([]);
   const isTypingRef = useRef(false);
   const [firstShotDone, setFirstShotDone] = useState(false);
@@ -588,6 +589,34 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
                 // If this was the first successful shot and it inserted, mark it done
                 if (!firstShotDone) setFirstShotDone(true);
 
+                // If this insertion happened during the index-2 specification
+                // phase (instructionStep 6) and the target matched the index-2
+                // node, show the 'Insertion Mastered' overlay so the player
+                // can proceed to the mission.
+                if (instructionStep === 6) {
+                  // Build ordered list from head to find index 2
+                  const ordered = [];
+                  const head = tutorialCirclesRef.current.find(c => tutorialConnections.some(conn => conn.from === c.id) && !tutorialConnections.some(conn => conn.to === c.id));
+                  if (head) {
+                    ordered.push(head);
+                    let currId = head.id;
+                    while (true) {
+                      const nextConn = tutorialConnections.find(conn => conn.from === currId);
+                      if (!nextConn) break;
+                      const nextCircle = tutorialCirclesRef.current.find(c => c.id === nextConn.to);
+                      if (!nextCircle) break;
+                      ordered.push(nextCircle);
+                      currId = nextCircle.id;
+                    }
+                  }
+                  const indexTwo = ordered[2];
+                    if (indexTwo && indexTwo.id === target.id) {
+                      setShowInsertionMastered(true);
+                      // Remove any on-screen instruction text while the overlay is visible
+                      setTypedInstruction("");
+                    }
+                }
+
                 // If this insertion occurred in the tail-phase and the target
                 // was the tail (inserting 'after' the tail), advance to the
                 // second-collision step so the tail-confirmation text shows,
@@ -711,9 +740,11 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
           <source src="./video/bubble_bg.mp4" type="video/mp4" />
         </video>
 
-        <div className={tutorialStyles.tutorialInstructionBar}>
-          <h3>{typedInstruction}</h3>
-        </div>
+        {!showInsertionMastered && (
+          <div className={tutorialStyles.tutorialInstructionBar}>
+            <h3>{typedInstruction}</h3>
+          </div>
+        )}
         
         <div
           className={styles.rightSquare}
@@ -812,7 +843,7 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
           </defs>
         </svg>
 
-        {tutorialCircles.length >= 5 && (
+        {(showInsertionMastered) && (
           <div className={tutorialStyles.tutorialOverlay}>
             <div className={tutorialStyles.tutorialPopup}>
               <div className={tutorialStyles.tutorialContent}>
@@ -821,7 +852,13 @@ function TutorialScene({ scene, onContinue, onValueShoot }) {
                   Great shots! You inserted nodes in different positions and kept the list ordered.
                   Time to apply this skill in the mission.
                 </p>
-                <button className={tutorialStyles.tutorialButton} onClick={onContinue}>
+                <button
+                  className={tutorialStyles.tutorialButton}
+                  onClick={() => {
+                    setShowInsertionMastered(false);
+                    onContinue();
+                  }}
+                >
                   Continue
                 </button>
               </div>
