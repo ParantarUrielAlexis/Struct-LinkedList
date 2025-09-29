@@ -108,6 +108,7 @@ function GalistAbstractDataType() {
 
   // Level completion modal state
   const [showLevelCompleteModal, setShowLevelCompleteModal] = useState(false);
+  const [isTransitioningExercise, setIsTransitioningExercise] = useState(false);
 
   // Basic helper functions first
   const createConnection = useCallback((fromId, toId) => {
@@ -1958,7 +1959,24 @@ function GalistAbstractDataType() {
     if (currentExerciseNumber < totalExercises) {
       setShowLevelCompleteModal(false);
       const nextKey = EXERCISE_KEYS[currentExerciseNumber];
-      loadExercise(nextKey);
+      // Prevent any transient rendering: clear visual state and cancel animation frame
+      setIsTransitioningExercise(true);
+      // Clear runtime visuals immediately
+      setConnections([]);
+      setCircles([]);
+      setSuckingCircles([]);
+      setSuckedCircles([]);
+      // Cancel any running animation frame to stop transient draws
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      // Slight delay to allow React to flush clears before loading next exercise
+      setTimeout(() => {
+        loadExercise(nextKey);
+        // allow a short grace period for loadExercise to populate state, then clear transitioning
+        setTimeout(() => setIsTransitioningExercise(false), 80);
+      }, 40);
     } else {
       // All exercises completed: skip level complete modal for last exercise
       setShowLevelCompleteModal(false);
@@ -2206,43 +2224,34 @@ function GalistAbstractDataType() {
         />
       ))}
 
-      <svg className={styles.connectionLines}>
-        {(() => {
-          return connections.map((connection) => {
-            // Only remove the line if BOTH nodes have been sucked
-            const fromSucked = suckedCircles.includes(connection.from);
-            const toSucked = suckedCircles.includes(connection.to);
-            if (fromSucked && toSucked) return null;
+      <svg
+        className={styles.connectionLines}
+        style={{ visibility: (!isTransitioningExercise && circles && circles.length > 0 && connections && connections.length > 0) ? 'visible' : 'hidden' }}
+      >
+        {connections.map((connection) => {
+          // Remove line if both nodes have been sucked
+          const fromSucked = suckedCircles.includes(connection.from);
+          const toSucked = suckedCircles.includes(connection.to);
+          if (fromSucked && toSucked) return null;
 
-            // Only anchor to portal entrance if a node has been sucked; otherwise, skip the line if either node is missing (e.g., during launch)
-            const fromCircle = circles.find((c) => c.id === connection.from);
-            const toCircle = circles.find((c) => c.id === connection.to);
-            const entranceX = 10 + portalInfo.canvasWidth / 2;
-            const entranceY = window.innerHeight / 2;
-            // If neither node is present and neither is sucked, don't render the line (prevents portal-anchored lines during launch)
-            if (!fromCircle && !fromSucked) return null;
-            if (!toCircle && !toSucked) return null;
-            const fromX = fromCircle ? fromCircle.x : entranceX;
-            const fromY = fromCircle ? fromCircle.y : entranceY;
-            const toX = toCircle ? toCircle.x : entranceX;
-            const toY = toCircle ? toCircle.y : entranceY;
-            
-            // ...existing code...
-            
-            return (
-              <g key={connection.id}>
-                <line
-                  x1={fromX}
-                  y1={fromY}
-                  x2={toX}
-                  y2={toY}
-                  className={styles.animatedLine}
-                  markerEnd="url(#arrowhead)"
-                />
-              </g>
-            );
-          });
-        })()}
+          // Only render when both endpoint circles currently exist. This prevents portal-anchored lines.
+          const fromCircle = circles.find((c) => c.id === connection.from);
+          const toCircle = circles.find((c) => c.id === connection.to);
+          if (!fromCircle || !toCircle) return null;
+
+          return (
+            <g key={connection.id}>
+              <line
+                x1={fromCircle.x}
+                y1={fromCircle.y}
+                x2={toCircle.x}
+                y2={toCircle.y}
+                className={styles.animatedLine}
+                markerEnd="url(#arrowhead)"
+              />
+            </g>
+          );
+        })}
         <defs>
           <marker
             id="arrowhead"
